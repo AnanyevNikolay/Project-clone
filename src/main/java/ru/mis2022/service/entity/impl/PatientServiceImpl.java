@@ -14,7 +14,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class PatientServiceImpl implements PatientService {
-
     private final PatientRepository patientRepository;
     private final PasswordEncoder encoder;
 
@@ -43,6 +42,11 @@ public class PatientServiceImpl implements PatientService {
     @Override
     public List<Patient> findPatientByFullName(String fullName) {
         return patientRepository.findPatientByFullName(fullName);
+    }
+
+    @Override
+    public void deleteAll() {
+        patientRepository.deleteAll();
     }
 
 }

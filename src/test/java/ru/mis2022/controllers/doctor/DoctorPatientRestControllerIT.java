@@ -1,6 +1,7 @@
 package ru.mis2022.controllers.doctor;
 
 import org.hamcrest.core.Is;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,15 +34,15 @@ import static ru.mis2022.utils.DateFormatter.DATE_TIME_FORMATTER;
 
 public class DoctorPatientRestControllerIT extends ContextIT {
     @Autowired
-    DoctorService doctorService;
+    private DoctorService doctorService;
     @Autowired
-    RoleService roleService;
+    private RoleService roleService;
     @Autowired
-    DepartmentService departmentService;
+    private DepartmentService departmentService;
     @Autowired
-    PatientService patientService;
+    private PatientService patientService;
     @Autowired
-    TalonService talonService;
+    private TalonService talonService;
 
     Role initRole(String name) {
         return roleService.save(Role.builder()
@@ -88,6 +89,14 @@ public class DoctorPatientRestControllerIT extends ContextIT {
         return talonService.save(new Talon(time, doctor, patient));
     }
 
+    @AfterEach
+    public void clear() {
+        talonService.deleteAll();
+        doctorService.deleteAll();
+        patientService.deleteAll();
+        departmentService.deleteAll();
+        roleService.deleteAll();
+    }
 
     @Test
     public void getPatientByFullNameTest () throws Exception {

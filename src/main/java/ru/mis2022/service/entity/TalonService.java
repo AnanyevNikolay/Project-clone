@@ -26,4 +26,6 @@ public interface TalonService {
     Long findPatientIdByTalonId(Long talonId);
 
     TalonDto registerPatientInTalon(Talon talon, Patient patient);
+
+    void deleteAll();
 }
