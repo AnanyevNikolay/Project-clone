@@ -82,6 +82,11 @@ public class TalonServiceImpl implements TalonService {
         return talonDtoConverter.talonToTalonDto(talon);
     }
 
+    @Override
+    public void deleteAll() {
+        talonRepository.deleteAll();
+    }
+
     public Long findPatientIdByTalonId(Long talonId){
         return patientRepository.findPatientIdByTalonId(talonId);
     };

@@ -10,7 +10,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import java.time.format.DateTimeFormatter;
 
 @SpringBootTest
 @AutoConfigureMockMvc
@@ -18,14 +17,17 @@ import java.time.format.DateTimeFormatter;
 @Transactional
 public class ContextIT {
 
-    @Autowired protected ITAccessTokenUtil tokenUtil;
+    @Autowired
+    protected ITAccessTokenUtil tokenUtil;
 
-    @SuppressWarnings("SpringJavaInjectionPointsAutowiringInspection")
-    @Autowired protected MockMvc mockMvc;
+    @Autowired
+    protected MockMvc mockMvc;
 
-    @Autowired protected ObjectMapper objectMapper;
+    @Autowired
+    protected ObjectMapper objectMapper;
 
-    @PersistenceContext protected EntityManager entityManager;
+    @PersistenceContext
+    protected EntityManager entityManager;
 
     protected String accessToken;
 }

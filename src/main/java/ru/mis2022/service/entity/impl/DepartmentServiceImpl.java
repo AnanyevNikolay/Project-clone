@@ -23,4 +23,9 @@ public class DepartmentServiceImpl implements DepartmentService {
         return departmentRepository.existsById(departmentId);
     }
 
+    @Override
+    public void deleteAll() {
+        departmentRepository.deleteAll();
+    }
+
 }
