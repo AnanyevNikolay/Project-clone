@@ -1,5 +1,6 @@
 package ru.mis2022.controllers.registrar;
 
+import org.hamcrest.core.Is;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -15,7 +16,9 @@ import ru.mis2022.util.ContextIT;
 import java.time.LocalDate;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static ru.mis2022.utils.DateFormatter.DATE_FORMATTER;
 
 public class RegistrarPatientRestControllerIT extends ContextIT {
 
@@ -87,27 +90,141 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
         Patient patient18 = initPatient(patientRole, "Jaxson", "Smith", "649130652", "40360");
         Patient patient19 = initPatient(patientRole, "Emmanuel", "Hanson", "326683018", "33002");
         Patient patient20 = initPatient(patientRole, "Jared", "Edwards", "518066112", "48416");
-        Patient patient21 = initPatient(patientRole, "Josue", "Barrett", "444548849", "71818");
-        Patient patient22 = initPatient(patientRole, "Felix", "Patterson", "984657834", "35328");
-        Patient patient23 = initPatient(patientRole, "Asher", "Morris", "271322997", "87041");
-        Patient patient24 = initPatient(patientRole, "Jonathan", "Kelly", "476445296", "44718");
-        Patient patient25 = initPatient(patientRole, "Julia", "Ward", "872859189", "30790");
-        Patient patient26 = initPatient(patientRole, "Zuri", "Watkins", "684866890", "72281");
-        Patient patient27 = initPatient(patientRole, "Penelope", "Brooks", "486727058", "77218");
-        Patient patient28 = initPatient(patientRole, "Sophie", "Carter", "306261089", "86137");
-        Patient patient29 = initPatient(patientRole, "Jonah", "Larson", "868736396", "29617");
+        Patient patient21 = initPatient(patientRole, "Julia", "Ward", "872859189", "30790");
+        Patient patient22 = initPatient(patientRole, "Watson", "Meyers", "370633933", "35437");
 
         accessToken = tokenUtil.obtainNewAccessToken(registrar.getEmail(), "1", mockMvc);
 
+        // Проверка поиска по имени включающем в себя сочетание `Ja`
+        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}",
+                        "Ja", null, null, null, "0")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+
+                .andExpect(jsonPath("$.data[0].firstName", Is.is(patient10.getFirstName())))
+                .andExpect(jsonPath("$.data[0].lastName", Is.is(patient10.getLastName())))
+                .andExpect(jsonPath("$.data[0].surName", Is.is(patient10.getSurname())))
+                .andExpect(jsonPath("$.data[0].birthday", Is.is(patient10.getBirthday().format(DATE_FORMATTER))))
+                .andExpect(jsonPath("$.data[0].passport", Is.is(patient10.getPassport())))
+                .andExpect(jsonPath("$.data[0].polis", Is.is(patient10.getPolis())))
+                .andExpect(jsonPath("$.data[0].snils", Is.is(patient10.getSnils())))
+
+                .andExpect(jsonPath("$.data[1].firstName", Is.is(patient18.getFirstName())))
+                .andExpect(jsonPath("$.data[1].lastName", Is.is(patient18.getLastName())))
+                .andExpect(jsonPath("$.data[1].surName", Is.is(patient18.getSurname())))
+                .andExpect(jsonPath("$.data[1].birthday", Is.is(patient18.getBirthday().format(DATE_FORMATTER))))
+                .andExpect(jsonPath("$.data[1].passport", Is.is(patient18.getPassport())))
+                .andExpect(jsonPath("$.data[1].polis", Is.is(patient18.getPolis())))
+                .andExpect(jsonPath("$.data[1].snils", Is.is(patient18.getSnils())))
+
+                .andExpect(jsonPath("$.data[2].firstName", Is.is(patient20.getFirstName())))
+                .andExpect(jsonPath("$.data[2].lastName", Is.is(patient20.getLastName())))
+                .andExpect(jsonPath("$.data[2].surName", Is.is(patient20.getSurname())))
+                .andExpect(jsonPath("$.data[2].birthday", Is.is(patient20.getBirthday().format(DATE_FORMATTER))))
+                .andExpect(jsonPath("$.data[2].passport", Is.is(patient20.getPassport())))
+                .andExpect(jsonPath("$.data[2].polis", Is.is(patient20.getPolis())))
+                .andExpect(jsonPath("$.data[2].snils", Is.is(patient20.getSnils())));
+//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
+        // Тест поиска по имени включающем Wa и фамилии включающей Me
+        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}",
+                        "Wa", "Me", null, null, "0")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+
+                .andExpect(jsonPath("$.data[0].firstName", Is.is(patient17.getFirstName())))
+                .andExpect(jsonPath("$.data[0].lastName", Is.is(patient17.getLastName())))
+                .andExpect(jsonPath("$.data[0].surName", Is.is(patient17.getSurname())))
+                .andExpect(jsonPath("$.data[0].birthday", Is.is(patient17.getBirthday().format(DATE_FORMATTER))))
+                .andExpect(jsonPath("$.data[0].passport", Is.is(patient17.getPassport())))
+                .andExpect(jsonPath("$.data[0].polis", Is.is(patient17.getPolis())))
+                .andExpect(jsonPath("$.data[0].snils", Is.is(patient17.getSnils())))
+
+                .andExpect(jsonPath("$.data[1].firstName", Is.is(patient22.getFirstName())))
+                .andExpect(jsonPath("$.data[1].lastName", Is.is(patient22.getLastName())))
+                .andExpect(jsonPath("$.data[1].surName", Is.is(patient22.getSurname())))
+                .andExpect(jsonPath("$.data[1].birthday", Is.is(patient22.getBirthday().format(DATE_FORMATTER))))
+                .andExpect(jsonPath("$.data[1].passport", Is.is(patient22.getPassport())))
+                .andExpect(jsonPath("$.data[1].polis", Is.is(patient22.getPolis())))
+                .andExpect(jsonPath("$.data[1].snils", Is.is(patient22.getSnils())));
+//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
+        // Поиск по имени включающем в себя J и номеру полиса включающем 85
+        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}",
+                        "J", null, "85", null, "0")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+
+                .andExpect(jsonPath("$.data[0].firstName", Is.is(patient10.getFirstName())))
+                .andExpect(jsonPath("$.data[0].lastName", Is.is(patient10.getLastName())))
+                .andExpect(jsonPath("$.data[0].surName", Is.is(patient10.getSurname())))
+                .andExpect(jsonPath("$.data[0].birthday", Is.is(patient10.getBirthday().format(DATE_FORMATTER))))
+                .andExpect(jsonPath("$.data[0].passport", Is.is(patient10.getPassport())))
+                .andExpect(jsonPath("$.data[0].polis", Is.is(patient10.getPolis())))
+                .andExpect(jsonPath("$.data[0].snils", Is.is(patient10.getSnils())))
+
+                .andExpect(jsonPath("$.data[1].firstName", Is.is(patient21.getFirstName())))
+                .andExpect(jsonPath("$.data[1].lastName", Is.is(patient21.getLastName())))
+                .andExpect(jsonPath("$.data[1].surName", Is.is(patient21.getSurname())))
+                .andExpect(jsonPath("$.data[1].birthday", Is.is(patient21.getBirthday().format(DATE_FORMATTER))))
+                .andExpect(jsonPath("$.data[1].passport", Is.is(patient21.getPassport())))
+                .andExpect(jsonPath("$.data[1].polis", Is.is(patient21.getPolis())))
+                .andExpect(jsonPath("$.data[1].snils", Is.is(patient21.getSnils())));
+//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
+        // Тест пагинации
+        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}",
+                        null, null, null, null, "0")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+                .andExpect(jsonPath("$.data.length()", Is.is(10)))
+                .andExpect(jsonPath("$.data[0].polis", Is.is(patient0.getPolis())))
+                .andExpect(jsonPath("$.data[1].polis", Is.is(patient1.getPolis())))
+                .andExpect(jsonPath("$.data[2].polis", Is.is(patient2.getPolis())))
+                .andExpect(jsonPath("$.data[3].polis", Is.is(patient3.getPolis())))
+                .andExpect(jsonPath("$.data[4].polis", Is.is(patient4.getPolis())))
+                .andExpect(jsonPath("$.data[5].polis", Is.is(patient5.getPolis())))
+                .andExpect(jsonPath("$.data[6].polis", Is.is(patient6.getPolis())))
+                .andExpect(jsonPath("$.data[7].polis", Is.is(patient7.getPolis())))
+                .andExpect(jsonPath("$.data[8].polis", Is.is(patient8.getPolis())))
+                .andExpect(jsonPath("$.data[9].polis", Is.is(patient9.getPolis())));
+//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
         mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}",
                         null, null, null, null, "1")
-                .header("Authorization", accessToken)
-                .contentType(MediaType.APPLICATION_JSON)
-        )
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
                 .andExpect(status().isOk())
-                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
-
-        int a = 1;
-
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+                .andExpect(jsonPath("$.data.length()", Is.is(10)))
+                .andExpect(jsonPath("$.data[0].polis", Is.is(patient10.getPolis())))
+                .andExpect(jsonPath("$.data[1].polis", Is.is(patient11.getPolis())))
+                .andExpect(jsonPath("$.data[2].polis", Is.is(patient12.getPolis())))
+                .andExpect(jsonPath("$.data[3].polis", Is.is(patient13.getPolis())))
+                .andExpect(jsonPath("$.data[4].polis", Is.is(patient14.getPolis())))
+                .andExpect(jsonPath("$.data[5].polis", Is.is(patient15.getPolis())))
+                .andExpect(jsonPath("$.data[6].polis", Is.is(patient16.getPolis())))
+                .andExpect(jsonPath("$.data[7].polis", Is.is(patient17.getPolis())))
+                .andExpect(jsonPath("$.data[8].polis", Is.is(patient18.getPolis())))
+                .andExpect(jsonPath("$.data[9].polis", Is.is(patient19.getPolis())));
+//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
     }
 }
