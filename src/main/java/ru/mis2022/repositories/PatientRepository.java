@@ -14,19 +14,19 @@ import java.util.List;
 public interface PatientRepository extends JpaRepository<Patient, Long> {
 
     @Query("""
-        SELECT new ru.mis2022.models.dto.patient.CurrentPatientDto(
-            p.firstName,
-            p.lastName,
-            p.birthday,
-            p.passport,
-            p.polis,
-            p.snils,
-            p.address,
-            r.name)
-        FROM Patient p
-            JOIN Role r ON p.role.id = r.id
-        WHERE p.email = :email
-        """)
+            SELECT new ru.mis2022.models.dto.patient.CurrentPatientDto(
+                p.firstName,
+                p.lastName,
+                p.birthday,
+                p.passport,
+                p.polis,
+                p.snils,
+                p.address,
+                r.name)
+            FROM Patient p
+                JOIN Role r ON p.role.id = r.id
+            WHERE p.email = :email
+            """)
     CurrentPatientDto getCurrentPatientDtoByEmail(String email);
 
     Patient findByEmail(String email);
@@ -41,7 +41,7 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
                 LIKE LOWER(CONCAT('%',:fullName,'%'))
             ORDER BY p.lastName, p.firstName, p.id
             """)
-    List<Patient> findPatientByFullName (String fullName);
+    List<Patient> findPatientByFullName(String fullName);
 
 
     @Query("SELECT t.patient.id FROM Talon t WHERE t.id = :talonId")
@@ -59,8 +59,10 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
             p.snils
             )
             FROM Patient p
-            WHERE p.firstName LIKE :firstName OR p.lastName LIKE :lastName
-            OR p.polis LIKE :polis OR p.snils LIKE :snils
+            WHERE (:firstName IS NULL OR LOWER(p.firstName) LIKE LOWER(CONCAT('%', :firstName, '%')))
+            AND (:lastName IS NULL OR LOWER(p.lastName) LIKE LOWER(CONCAT('%', :lastName, '%')))
+            AND (:polis IS NULL OR LOWER(p.polis) LIKE LOWER(CONCAT('%', :polis, '%')))
+            AND (:snils IS NULL OR LOWER(p.snils) LIKE LOWER(CONCAT('%', :snils, '%')))
             """)
     List<PatientDto> findPatientsByFirstNameOrLastNameOrPolisOrSnilsPattern(
             String firstName, String lastName, String polis, String snils, Pageable pageable

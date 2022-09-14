@@ -25,6 +25,7 @@ public class RegistrarPatientRestController {
             @RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName,
             @RequestParam("polis") String polis, @RequestParam("snils") String snils,
             @RequestParam("offset") Integer offset) {
+            int a = 1;
             return Response.ok(patientDtoService.findPatientsByFirstNameOrLastNameOrPolisOrSnilsPattern(
                     firstName, lastName, polis, snils, offset
             ));
