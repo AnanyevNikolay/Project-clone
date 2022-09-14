@@ -29,14 +29,14 @@ public class RegistrarPatientRestController {
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Список найденных по паттерну пользователей"),
             @ApiResponse(code = 404, message = "Пользователей по этому паттерну не найдено"),
-            @ApiResponse(code = 422, message = "Неверно указанная страница")
+            @ApiResponse(code = 422, message = "Неверно указан номер страницы")
     })
     @GetMapping
     public Response<List<PatientDto>> searchPatientByFirstNameOrLastNameOrPolisOrSnils(
             @RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName,
             @RequestParam("polis") String polis, @RequestParam("snils") String snils,
             @RequestParam("offset") Integer offset) {
-        ApiValidationUtils.expectedTrue(offset >= 0, 422, "Неверно указанная страница");
+        ApiValidationUtils.expectedTrue(offset >= 0, 422, "Неверно указан номер страницы");
         List<PatientDto> patientsDto = patientDtoService.findPatientsByFirstNameOrLastNameOrPolisOrSnilsPattern(
                 firstName, lastName, polis, snils, offset
         );
