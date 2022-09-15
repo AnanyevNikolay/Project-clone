@@ -10,6 +10,6 @@ public interface PatientDtoService {
     CurrentPatientDto getCurrentPatientDtoByEmail(String email);
 
     List<PatientDto> findPatientsByFirstNameOrLastNameOrPolisOrSnilsPattern(
-            String firstName, String lastName, String polis, String snils, Integer offset);
+            String firstName, String lastName, String polis, String snils, Integer offset, String sortBy);
 
 }

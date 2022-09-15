@@ -47,7 +47,7 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
     @Query("SELECT t.patient.id FROM Talon t WHERE t.id = :talonId")
     Long findPatientIdByTalonId(Long talonId);
 
-    @Query("""
+    @Query(value = """
             SELECT new ru.mis2022.models.dto.patient.PatientDto(
             p.id,
             p.firstName,

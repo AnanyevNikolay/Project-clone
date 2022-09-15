@@ -3,6 +3,7 @@ package ru.mis2022.service.dto.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import ru.mis2022.models.dto.patient.CurrentPatientDto;
 import ru.mis2022.models.dto.patient.PatientDto;
@@ -22,8 +23,8 @@ public class PatientDtoServiceImpl implements PatientDtoService {
 
     @Override
     public List<PatientDto> findPatientsByFirstNameOrLastNameOrPolisOrSnilsPattern(
-            String firstName, String lastName, String polis, String snils, Integer offset) {
-        Pageable pageable = PageRequest.of(offset, 10);
+            String firstName, String lastName, String polis, String snils, Integer offset, String sortBy) {
+        Pageable pageable = PageRequest.of(offset, 10, Sort.by(sortBy == null ? "id" : sortBy));
         return patientRepository.findPatientsByFirstNameOrLastNameOrPolisOrSnilsPattern(
                 firstName, lastName, polis, snils, pageable);
     }
