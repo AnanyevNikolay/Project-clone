@@ -4,6 +4,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -33,12 +34,16 @@ public class RegistrarPatientRestController {
     })
     @GetMapping
     public Response<List<PatientDto>> searchPatientByFirstNameOrLastNameOrPolisOrSnils(
-            @RequestParam("firstName") String firstName, @RequestParam("lastName") String lastName,
-            @RequestParam("polis") String polis, @RequestParam("snils") String snils,
-            @RequestParam("offset") Integer offset) {
+            @RequestParam("firstName") @Nullable String firstName,
+            @RequestParam("lastName") @Nullable String lastName,
+            @RequestParam("polis") @Nullable String polis,
+            @RequestParam("snils") @Nullable String snils,
+            @RequestParam("offset") @Nullable Integer offset,
+            @RequestParam("sortBy") @Nullable String sortBy) {
+        if (offset == null) offset = 0;
         ApiValidationUtils.expectedTrue(offset >= 0, 422, "Неверно указан номер страницы");
         List<PatientDto> patientsDto = patientDtoService.findPatientsByFirstNameOrLastNameOrPolisOrSnilsPattern(
-                firstName, lastName, polis, snils, offset
+                firstName, lastName, polis, snils, offset, sortBy
         );
         ApiValidationUtils.expectedFalse(patientsDto.isEmpty(), 404, "Пользователей по этому паттерну не найдено");
         return Response.ok(patientsDto);
