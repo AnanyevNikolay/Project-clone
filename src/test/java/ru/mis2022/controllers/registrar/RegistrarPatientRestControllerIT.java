@@ -2,6 +2,7 @@ package ru.mis2022.controllers.registrar;
 
 import org.hamcrest.core.Is;
 import org.hamcrest.core.IsNull;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -62,6 +63,13 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
                 LocalDate.now().minusYears(20),
                 role
         ));
+    }
+
+    @AfterEach
+    public void clear() {
+        patientService.deleteAll();
+        registrarService.deleteAll();
+        roleService.deleteAll();
     }
 
     @Test
@@ -251,6 +259,60 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.code", Is.is(404)))
                 .andExpect(jsonPath("$.data", Is.is(IsNull.nullValue())))
                 .andExpect(jsonPath("$.text", Is.is("Пользователей по этому паттерну не найдено")));
+//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
+        // Тест запроса без параметров(автоматическое проставление везде null(если offset == null, то автоматом ставится 0))
+        mockMvc.perform(get("/api/registrar/patient")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+                .andExpect(jsonPath("$.data[0].polis", Is.is(patient0.getPolis())))
+                .andExpect(jsonPath("$.data[1].polis", Is.is(patient1.getPolis())))
+                .andExpect(jsonPath("$.data[2].polis", Is.is(patient2.getPolis())))
+                .andExpect(jsonPath("$.data[3].polis", Is.is(patient3.getPolis())))
+                .andExpect(jsonPath("$.data[4].polis", Is.is(patient4.getPolis())))
+                .andExpect(jsonPath("$.data[5].polis", Is.is(patient5.getPolis())))
+                .andExpect(jsonPath("$.data[6].polis", Is.is(patient6.getPolis())))
+                .andExpect(jsonPath("$.data[7].polis", Is.is(patient7.getPolis())))
+                .andExpect(jsonPath("$.data[8].polis", Is.is(patient8.getPolis())))
+                .andExpect(jsonPath("$.data[9].polis", Is.is(patient9.getPolis())));
+
+        // Тест сортировки по firstName
+        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}&sortBy={sortBy}",
+                        "Ja", null, null, null, 0, "firstName")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+
+                .andExpect(jsonPath("$.data[0].firstName", Is.is(patient10.getFirstName())))
+                .andExpect(jsonPath("$.data[0].lastName", Is.is(patient10.getLastName())))
+                .andExpect(jsonPath("$.data[0].surName", Is.is(patient10.getSurname())))
+                .andExpect(jsonPath("$.data[0].birthday", Is.is(patient10.getBirthday().format(DATE_FORMATTER))))
+                .andExpect(jsonPath("$.data[0].passport", Is.is(patient10.getPassport())))
+                .andExpect(jsonPath("$.data[0].polis", Is.is(patient10.getPolis())))
+                .andExpect(jsonPath("$.data[0].snils", Is.is(patient10.getSnils())))
+
+                .andExpect(jsonPath("$.data[1].firstName", Is.is(patient20.getFirstName())))
+                .andExpect(jsonPath("$.data[1].lastName", Is.is(patient20.getLastName())))
+                .andExpect(jsonPath("$.data[1].surName", Is.is(patient20.getSurname())))
+                .andExpect(jsonPath("$.data[1].birthday", Is.is(patient20.getBirthday().format(DATE_FORMATTER))))
+                .andExpect(jsonPath("$.data[1].passport", Is.is(patient20.getPassport())))
+                .andExpect(jsonPath("$.data[1].polis", Is.is(patient20.getPolis())))
+                .andExpect(jsonPath("$.data[1].snils", Is.is(patient20.getSnils())))
+
+                .andExpect(jsonPath("$.data[2].firstName", Is.is(patient18.getFirstName())))
+                .andExpect(jsonPath("$.data[2].lastName", Is.is(patient18.getLastName())))
+                .andExpect(jsonPath("$.data[2].surName", Is.is(patient18.getSurname())))
+                .andExpect(jsonPath("$.data[2].birthday", Is.is(patient18.getBirthday().format(DATE_FORMATTER))))
+                .andExpect(jsonPath("$.data[2].passport", Is.is(patient18.getPassport())))
+                .andExpect(jsonPath("$.data[2].polis", Is.is(patient18.getPolis())))
+                .andExpect(jsonPath("$.data[2].snils", Is.is(patient18.getSnils())));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
     }
