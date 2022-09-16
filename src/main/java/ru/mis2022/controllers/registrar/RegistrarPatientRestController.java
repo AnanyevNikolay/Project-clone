@@ -6,10 +6,17 @@ import io.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
+
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PostMapping;
+
+import ru.mis2022.feign.PatientRequestDtoTS;
+import ru.mis2022.feign.PatientResponseDtoTS;
+import ru.mis2022.feign.TestSystemService;
 import ru.mis2022.models.dto.patient.PatientDto;
 import ru.mis2022.models.response.Response;
 import ru.mis2022.service.dto.PatientDtoService;
@@ -27,6 +34,8 @@ import java.util.Optional;
 public class RegistrarPatientRestController {
 
     private final PatientDtoService patientDtoService;
+
+    private final TestSystemService testSystemService;
 
     @ApiOperation("Регистратор получает пользователей по паттерну имени, или фамилии, или полиса, или снилса," +
             "или если все эти значения null, то регистратор получит всех пользователей")
@@ -54,4 +63,15 @@ public class RegistrarPatientRestController {
         return Response.ok(patientsDto.orElse(Collections.emptyList()));
     }
 
+    @ApiOperation("Регистратор получает актуальные данные пациента из СМО")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Данные из СМО получены"),
+            @ApiResponse(code = 402, message = "Неверные данные для авторизации в СМО")
+    })
+    @PostMapping("/findPeople")
+    public Response<PatientResponseDtoTS> findPeople(@RequestBody PatientRequestDtoTS requestDto) {
+        ApiValidationUtils
+                .expectedTrue(testSystemService.updateToken(), 402, "Test system authorisation error");
+        return Response.ok(testSystemService.findPeople(requestDto));
+    }
 }
