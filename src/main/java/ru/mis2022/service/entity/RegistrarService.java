@@ -6,4 +6,6 @@ public interface RegistrarService {
     Registrar findByEmail(String email);
 
     Registrar persist(Registrar registrar);
+
+    void deleteAll();
 }

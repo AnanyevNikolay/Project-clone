@@ -26,4 +26,9 @@ public class RegistrarServiceImpl implements RegistrarService {
         registrar.setPassword(encoder.encode(registrar.getPassword()));
         return registrarRepository.save(registrar);
     }
+
+    @Override
+    public void deleteAll() {
+        registrarRepository.deleteAll();
+    }
 }
