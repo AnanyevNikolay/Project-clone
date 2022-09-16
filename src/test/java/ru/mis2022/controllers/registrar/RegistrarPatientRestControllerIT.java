@@ -104,14 +104,15 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
         accessToken = tokenUtil.obtainNewAccessToken(registrar.getEmail(), "1", mockMvc);
 
         // Проверка поиска по имени включающем в себя сочетание `Ja`
-        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}",
-                        "Ja", null, null, null, 0)
+        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}")
+                        .param("firstName", "Ja")
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", Is.is(true)))
                 .andExpect(jsonPath("$.code", Is.is(200)))
+                .andExpect(jsonPath("$.data.length()", Is.is(3)))
 
                 .andExpect(jsonPath("$.data[0].firstName", Is.is(patient10.getFirstName())))
                 .andExpect(jsonPath("$.data[0].lastName", Is.is(patient10.getLastName())))
@@ -139,14 +140,16 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         // Тест поиска по имени включающем Wa и фамилии включающей Me
-        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}",
-                        "Wa", "Me", null, null, 0)
+        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}")
+                        .param("firstName", "Wa")
+                        .param("lastName", "Me")
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", Is.is(true)))
                 .andExpect(jsonPath("$.code", Is.is(200)))
+                .andExpect(jsonPath("$.data.length()", Is.is(2)))
 
                 .andExpect(jsonPath("$.data[0].firstName", Is.is(patient17.getFirstName())))
                 .andExpect(jsonPath("$.data[0].lastName", Is.is(patient17.getLastName())))
@@ -166,14 +169,19 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         // Поиск по имени включающем в себя J и номеру полиса включающем 85
-        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}",
-                        "J", null, "85", null, 0)
+        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}")
+                        .param("firstName", "J")
+                        .param("lastName", "")
+                        .param("polis", "85")
+                        .param("snils", "")
+                        .param("offset", "0")
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", Is.is(true)))
                 .andExpect(jsonPath("$.code", Is.is(200)))
+                .andExpect(jsonPath("$.data.length()", Is.is(2)))
 
                 .andExpect(jsonPath("$.data[0].firstName", Is.is(patient10.getFirstName())))
                 .andExpect(jsonPath("$.data[0].lastName", Is.is(patient10.getLastName())))
@@ -192,9 +200,14 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[1].snils", Is.is(patient21.getSnils())));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
-        // Тест пагинации
-        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}",
-                        null, null, null, null, 0)
+        // Тест пагинации(1 страница и 10 значений)
+        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}&size={size}")
+                        .param("firstName", "")
+                        .param("lastName", "")
+                        .param("polis", "")
+                        .param("snils", "")
+                        .param("offset", "0")
+                        .param("size", "10")
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -214,8 +227,14 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[9].polis", Is.is(patient9.getPolis())));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
-        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}",
-                        null, null, null, null, 1)
+        // 2 страница и 5 значений
+        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}&size={size}")
+                        .param("firstName", "")
+                        .param("lastName", "")
+                        .param("polis", "")
+                        .param("snils", "")
+                        .param("offset", "1")
+                        .param("size", "10")
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -236,8 +255,12 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         // Тест неверного номера страницы (номер страницы должен быть > 0)
-        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}",
-                null, null, null, null, -1)
+        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}")
+                        .param("firstName", "")
+                        .param("lastName", "")
+                        .param("polis", "")
+                        .param("snils", "")
+                        .param("offset", "-1")
                 .header("Authorization", accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
         )
@@ -249,8 +272,12 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         // Тест паттерна по которому не будет найден ни один пользователь
-        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}",
-                        "Christopher", "Notbek", "347915212", "47132", 0)
+        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}")
+                        .param("firstName", "Christopher")
+                        .param("lastName", "Notbek")
+                        .param("polis", "347915212")
+                        .param("snils", "47132")
+                        .param("offset", "0")
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -269,6 +296,7 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", Is.is(true)))
                 .andExpect(jsonPath("$.code", Is.is(200)))
+                .andExpect(jsonPath("$.data.length()", Is.is(10)))
                 .andExpect(jsonPath("$.data[0].polis", Is.is(patient0.getPolis())))
                 .andExpect(jsonPath("$.data[1].polis", Is.is(patient1.getPolis())))
                 .andExpect(jsonPath("$.data[2].polis", Is.is(patient2.getPolis())))
@@ -281,14 +309,20 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[9].polis", Is.is(patient9.getPolis())));
 
         // Тест сортировки по firstName
-        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}&sortBy={sortBy}",
-                        "Ja", null, null, null, 0, "firstName")
+        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}&sortBy={sortBy}")
+                        .param("firstName", "Ja")
+                        .param("lastName", "")
+                        .param("polis", "")
+                        .param("snils", "")
+                        .param("offset", "0")
+                        .param("sortBy", "FIRST_NAME")
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", Is.is(true)))
                 .andExpect(jsonPath("$.code", Is.is(200)))
+                .andExpect(jsonPath("$.data.length()", Is.is(3)))
 
                 .andExpect(jsonPath("$.data[0].firstName", Is.is(patient10.getFirstName())))
                 .andExpect(jsonPath("$.data[0].lastName", Is.is(patient10.getLastName())))
