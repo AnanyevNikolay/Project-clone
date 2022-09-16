@@ -15,6 +15,7 @@ import ru.mis2022.service.entity.RoleService;
 import ru.mis2022.util.ContextIT;
 
 import java.time.LocalDate;
+import java.util.Collections;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -104,7 +105,7 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
         accessToken = tokenUtil.obtainNewAccessToken(registrar.getEmail(), "1", mockMvc);
 
         // Проверка поиска по имени включающем в себя сочетание `Ja`
-        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}")
+        mockMvc.perform(get("/api/registrar/patient")
                         .param("firstName", "Ja")
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -140,7 +141,7 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         // Тест поиска по имени включающем Wa и фамилии включающей Me
-        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}")
+        mockMvc.perform(get("/api/registrar/patient")
                         .param("firstName", "Wa")
                         .param("lastName", "Me")
                         .header("Authorization", accessToken)
@@ -169,12 +170,9 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         // Поиск по имени включающем в себя J и номеру полиса включающем 85
-        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}")
+        mockMvc.perform(get("/api/registrar/patient")
                         .param("firstName", "J")
-                        .param("lastName", "")
                         .param("polis", "85")
-                        .param("snils", "")
-                        .param("offset", "0")
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -200,12 +198,8 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[1].snils", Is.is(patient21.getSnils())));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
-        // Тест пагинации(1 страница и 10 значений)
-        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}&size={size}")
-                        .param("firstName", "")
-                        .param("lastName", "")
-                        .param("polis", "")
-                        .param("snils", "")
+        // Тест пагинации 1 страница
+        mockMvc.perform(get("/api/registrar/patient")
                         .param("offset", "0")
                         .param("size", "10")
                         .header("Authorization", accessToken)
@@ -227,12 +221,8 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[9].polis", Is.is(patient9.getPolis())));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
-        // 2 страница и 5 значений
-        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}&size={size}")
-                        .param("firstName", "")
-                        .param("lastName", "")
-                        .param("polis", "")
-                        .param("snils", "")
+        // 2 страница
+        mockMvc.perform(get("/api/registrar/patient")
                         .param("offset", "1")
                         .param("size", "10")
                         .header("Authorization", accessToken)
@@ -254,12 +244,25 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[9].polis", Is.is(patient19.getPolis())));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
+        // 2 страница, но с 5 значениями, должна вернуть вторые 5 значений 1 страницы
+        mockMvc.perform(get("/api/registrar/patient")
+                        .param("offset", "1")
+                        .param("size", "5")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+                .andExpect(jsonPath("$.data.length()", Is.is(5)))
+                .andExpect(jsonPath("$.data[0].polis", Is.is(patient5.getPolis())))
+                .andExpect(jsonPath("$.data[1].polis", Is.is(patient6.getPolis())))
+                .andExpect(jsonPath("$.data[2].polis", Is.is(patient7.getPolis())))
+                .andExpect(jsonPath("$.data[3].polis", Is.is(patient8.getPolis())))
+                .andExpect(jsonPath("$.data[4].polis", Is.is(patient9.getPolis())));
+
         // Тест неверного номера страницы (номер страницы должен быть > 0)
-        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}")
-                        .param("firstName", "")
-                        .param("lastName", "")
-                        .param("polis", "")
-                        .param("snils", "")
+        mockMvc.perform(get("/api/registrar/patient")
                         .param("offset", "-1")
                 .header("Authorization", accessToken)
                 .contentType(MediaType.APPLICATION_JSON)
@@ -272,23 +275,24 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         // Тест паттерна по которому не будет найден ни один пользователь
-        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}")
+        mockMvc.perform(get("/api/registrar/patient")
                         .param("firstName", "Christopher")
                         .param("lastName", "Notbek")
                         .param("polis", "347915212")
                         .param("snils", "47132")
-                        .param("offset", "0")
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
-                .andExpect(status().is4xxClientError())
-                .andExpect(jsonPath("$.success", Is.is(false)))
-                .andExpect(jsonPath("$.code", Is.is(404)))
-                .andExpect(jsonPath("$.data", Is.is(IsNull.nullValue())))
-                .andExpect(jsonPath("$.text", Is.is("Пользователей по этому паттерну не найдено")));
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+                .andExpect(jsonPath("$.data", Is.is(Collections.emptyList())));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
-        // Тест запроса без параметров(автоматическое проставление везде null(если offset == null, то автоматом ставится 0))
+        // Тест запроса без параметров
+        // автоматическое проставление везде null
+        // если offset == null, то автоматом ставится 0,
+        // если size == null, то автоматом ставится 0
         mockMvc.perform(get("/api/registrar/patient")
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
@@ -309,12 +313,8 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[9].polis", Is.is(patient9.getPolis())));
 
         // Тест сортировки по firstName
-        mockMvc.perform(get("/api/registrar/patient?firstName={firstName}&lastName={lastName}&polis={polis}&snils={snils}&offset={offset}&sortBy={sortBy}")
+        mockMvc.perform(get("/api/registrar/patient")
                         .param("firstName", "Ja")
-                        .param("lastName", "")
-                        .param("polis", "")
-                        .param("snils", "")
-                        .param("offset", "0")
                         .param("sortBy", "FIRST_NAME")
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
