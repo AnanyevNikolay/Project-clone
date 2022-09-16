@@ -13,9 +13,12 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.mis2022.models.dto.patient.PatientDto;
 import ru.mis2022.models.response.Response;
 import ru.mis2022.service.dto.PatientDtoService;
+import ru.mis2022.utils.enums.patient.PatientSortingEnum;
 import ru.mis2022.utils.validation.ApiValidationUtils;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @PreAuthorize("hasRole('REGISTRAR')")
@@ -39,14 +42,16 @@ public class RegistrarPatientRestController {
             @RequestParam("polis") @Nullable String polis,
             @RequestParam("snils") @Nullable String snils,
             @RequestParam("offset") @Nullable Integer offset,
-            @RequestParam("sortBy") @Nullable String sortBy) {
+            @RequestParam("size") @Nullable Integer size,
+            @RequestParam("sortBy") @Nullable PatientSortingEnum sortBy) {
         if (offset == null) offset = 0;
+        if (size == null) size = 10;
+        if (sortBy == null) sortBy = PatientSortingEnum.ID;
         ApiValidationUtils.expectedTrue(offset >= 0, 422, "Неверно указан номер страницы");
-        List<PatientDto> patientsDto = patientDtoService.findPatientsByFirstNameOrLastNameOrPolisOrSnilsPattern(
-                firstName, lastName, polis, snils, offset, sortBy
+        Optional<List<PatientDto>> patientsDto = patientDtoService.findPatientsByFirstNameOrLastNameOrPolisOrSnilsPattern(
+                firstName, lastName, polis, snils, offset, size, sortBy
         );
-        ApiValidationUtils.expectedFalse(patientsDto.isEmpty(), 404, "Пользователей по этому паттерну не найдено");
-        return Response.ok(patientsDto);
+        return Response.ok(patientsDto.orElse(Collections.emptyList()));
     }
 
 }
