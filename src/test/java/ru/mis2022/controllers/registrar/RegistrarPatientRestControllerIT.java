@@ -1,11 +1,20 @@
 package ru.mis2022.controllers.registrar;
 
+import feign.FeignException;
 import org.hamcrest.core.Is;
 import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
+
+import ru.mis2022.feign.TestSystemFeignClient;
+import ru.mis2022.feign.AuthRequestDtoTS;
+import ru.mis2022.feign.AuthTokenTS;
+import ru.mis2022.feign.PatientRequestDtoTS;
+import ru.mis2022.feign.PatientResponseDtoTS;
+
 import ru.mis2022.models.entity.Patient;
 import ru.mis2022.models.entity.Registrar;
 import ru.mis2022.models.entity.Role;
@@ -17,11 +26,16 @@ import ru.mis2022.util.ContextIT;
 import java.time.LocalDate;
 import java.util.Collections;
 
+import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.mock;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.mis2022.utils.DateFormatter.DATE_FORMATTER;
 
+@MockBean(TestSystemFeignClient.class)
 public class RegistrarPatientRestControllerIT extends ContextIT {
 
     private final PatientService patientService;
@@ -29,10 +43,16 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
     private final RoleService roleService;
 
     @Autowired
-    public RegistrarPatientRestControllerIT(PatientService patientService, RegistrarService registrarService, RoleService roleService) {
+    private TestSystemFeignClient testSystemFeignClient;
+
+    private AuthRequestDtoTS authRequest;
+
+    @Autowired
+    public RegistrarPatientRestControllerIT(PatientService patientService, RegistrarService registrarService, RoleService roleService, AuthRequestDtoTS authRequest) {
         this.patientService = patientService;
         this.registrarService = registrarService;
         this.roleService = roleService;
+        this.authRequest = authRequest;
     }
 
     Role initRole(String name) {
@@ -349,5 +369,90 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[2].snils", Is.is(patient18.getSnils())));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
+    }
+
+    @Test
+    public void findPeopleTestBedCredentials() throws Exception {
+        Role role = initRole("REGISTRAR");
+        Registrar registrar = initRegistrar(role);
+        PatientRequestDtoTS patientRequestDto = new PatientRequestDtoTS(
+                "patientFirstName1",
+                "patientLastName1",
+                "patientSurname1",
+                "passport1",
+                "snils1",
+                "polis1"
+        );
+
+
+        accessToken = tokenUtil.obtainNewAccessToken(registrar.getEmail(), "1", mockMvc);
+
+        TestSystemFeignClient client = mock(TestSystemFeignClient.class);
+        when(client.login(authRequest))
+                .thenThrow(FeignException.class);
+
+        mockMvc.perform(post("/api/registrar/patient/findPeople")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(patientRequestDto))
+                )
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.code", Is.is(402)))
+                .andExpect(jsonPath("$.text", Is.is("Test system authorisation error")))
+
+        ;
+    }
+
+    @Test
+    public void findPeopleTest() throws Exception {
+        Role role = initRole("REGISTRAR");
+        Registrar registrar = initRegistrar(role);
+        PatientRequestDtoTS patientRequestDto = new PatientRequestDtoTS(
+                "patientFirstName1",
+                "patientLastName1",
+                "patientSurname1",
+                "passport1",
+                "snils1",
+                "polis1"
+        );
+        PatientResponseDtoTS peopleDto = new PatientResponseDtoTS(
+                0L,
+                patientRequestDto.firstName(),
+                patientRequestDto.lastName(),
+                patientRequestDto.surname(),
+                null,
+                patientRequestDto.passport(),
+                patientRequestDto.snils(),
+                patientRequestDto.polis(),
+                null,
+                null
+        );
+        AuthTokenTS authTokenTS = new AuthTokenTS("tokenValue", 86400000L, System.currentTimeMillis());
+        accessToken = tokenUtil.obtainNewAccessToken(registrar.getEmail(), "1", mockMvc);
+
+        doReturn(authTokenTS).when(testSystemFeignClient).login(authRequest);
+        doReturn(peopleDto).when(testSystemFeignClient).getAllPeoples(authTokenTS.token(), patientRequestDto);
+
+        //отправляем пациента и получаем его назад
+        mockMvc.perform(post("/api/registrar/patient/findPeople")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(patientRequestDto))
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+
+                .andExpect(jsonPath("$.data.id", Is.is(0)))
+                .andExpect(jsonPath("$.data.firstName", Is.is("patientFirstName1")))
+                .andExpect(jsonPath("$.data.lastName", Is.is("patientLastName1")))
+                .andExpect(jsonPath("$.data.surname", Is.is("patientSurname1")))
+                .andExpect(jsonPath("$.data.address").value(IsNull.nullValue()))
+                .andExpect(jsonPath("$.data.passport", Is.is("passport1")))
+                .andExpect(jsonPath("$.data.polis", Is.is("polis1")))
+                .andExpect(jsonPath("$.data.birthday").value(IsNull.nullValue()))
+                .andExpect(jsonPath("$.data.dateOfDeath").value(IsNull.nullValue()))
+        //.andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()))
+        ;
     }
 }
