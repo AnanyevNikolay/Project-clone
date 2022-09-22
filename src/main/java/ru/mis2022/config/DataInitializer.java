@@ -68,6 +68,8 @@ public class DataInitializer {
     private Integer numbersOfTalons;
     @Value("${mis.property.patientSchedule}")
     private Integer numberOfDaysPatient;
+    @Value("${mis.property.Invite.expirationPeriod}")
+    private String expirationPeriod;
 
     private final AppealService appealService;
     private final PatientService patientService;

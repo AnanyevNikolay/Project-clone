@@ -1,6 +1,7 @@
 package ru.mis2022.service.entity;
 
 import org.springframework.security.core.userdetails.UserDetailsService;
+import ru.mis2022.models.entity.Invite;
 import ru.mis2022.models.entity.User;
 
 import java.util.List;
@@ -20,4 +21,7 @@ public interface UserService extends UserDetailsService {
     List<User> findPersonalByFullName(String fullName, String roleName);
 
     User persist(User user);
+    User findUserById(Long id);
+    User save(User user);
+    User saveUserByInviteAndDeleteInvite(User user, String password, Invite invite);
 }
