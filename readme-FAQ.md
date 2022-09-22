@@ -101,7 +101,7 @@ SpringBoot, Hibernate, Rest, Spring Data JPA, HQL, SQL, PostgreSQL, FlyWay, Lomb
 Если ссылка есть, используем MapStruct.
 В контроллере принимаем Dto, которая валидирует поля на своем уровне.
 
-В контроллере валидацию бизнес логики осуществляем используя утилитарный класс ApiValidationUtils.
+В контроллере валидацию бизнес логики осуществляем используя утилитаBearer eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJkb2N0b3IxMkBlbWFpbC5jb20iLCJpYXQiOjE2NjMwNzQ3OTIsImV4cCI6MTY2MzE2MTE5Mn0.27RESm2mbNFVZXfUzngMS_WVoL8BVFkrCTO2tvfmSKIzdygEoNbIj-N7Oye2XyZ9SisLHbu-V0WMuFPz-gpuWwрный класс ApiValidationUtils.
 Контроллеры и эндпоинты должны быть описаны Swagger-ом.
 Запросы к БД предпочтительно писать на HQL.
 Если такой возможности нет, используем SQL.

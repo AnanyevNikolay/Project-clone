@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.lang.Nullable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -26,10 +27,14 @@ import ru.mis2022.service.entity.DoctorService;
 import ru.mis2022.service.entity.TalonService;
 import ru.mis2022.utils.validation.ApiValidationUtils;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
+
+import static ru.mis2022.utils.DateFormatter.DATE_FORMATTER;
+
 
 
 @RestController
@@ -37,7 +42,7 @@ import java.util.List;
 @PreAuthorize("hasRole('DOCTOR')")
 @RequestMapping("/api/doctor/talon")
 public class DoctorTalonsRestController {
-    @Value("${mis.property.doctorSchedule}")
+    @Value("14")
     private Integer numberOfDays;
     @Value("${mis.property.talon}")
     private Integer numbersOfTalons;
@@ -47,28 +52,37 @@ public class DoctorTalonsRestController {
     private final TalonDtoConverter converter;
     private final TalonDtoService talonDtoService;
 
+
     @ApiOperation("Доктор создает себе пустые талоны на диапазон времени")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Талоны созданы"),
             @ApiResponse(code = 401, message = "У доктора есть талоны на данные дни"),
+            @ApiResponse(code = 402, message = "Введены некорректные даты"),
+            @ApiResponse(code = 403, message = "Некорректный порядок дат")
     })
     @PostMapping("/add")
-    public Response<List<TalonDto>> addTalons() {
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        Doctor doctor = doctorService.findByEmail(currentUser.getEmail());
+    public Response<List<TalonDto>> addTalons(@Nullable String startDate, @Nullable String endDate) {
+        Doctor doctor = (Doctor) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (startDate != null || endDate != null) {
+            ApiValidationUtils.expectedFalse(startDate == null || endDate == null,
+                    402, "Введены некорректные даты");
+            LocalDate start = LocalDate.parse(startDate, DATE_FORMATTER);
+            LocalDate end = LocalDate.parse(endDate, DATE_FORMATTER);
+            numberOfDays = end.getDayOfYear() - start.getDayOfYear();
+            ApiValidationUtils.expectedTrue(numberOfDays >= 1, 403, "Некорректный порядок дат");
+        }
 
         ApiValidationUtils
-                .expectedFalse(talonService.findTalonsCountByIdAndDoctor(numberOfDays, doctor) >= 1, 401,
-                        "У доктора есть талоны на данные дни");
-
-        List<Talon> talons = talonService.persistTalonsForDoctor(doctor, numberOfDays, numbersOfTalons);
-
+                .expectedFalse(talonService.findTalonsCountByIdAndDoctor(numberOfDays, doctor.getId(),  startDate, endDate) >= 1,
+                        401, "У доктора есть талоны на данные дни");
+        List<Talon> talons = talonService.persistTalonsForDoctor(doctor, numberOfDays, numbersOfTalons, startDate, endDate);
         return Response.ok(converter.toTalonDtoByDoctorId(talons, doctor.getId()));
     }
 
-    @ApiOperation("Доктор получает все свои талоны")
+    @ApiOperation("Получить все талоны текущего доктора")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Список талонов"),
+            @ApiResponse(code = 200, message = "Список талонов текущего доктора")
     })
     @GetMapping("/group")
     public Response<List<TalonByDay>> getAllTalonsByCurrentDoctor() {

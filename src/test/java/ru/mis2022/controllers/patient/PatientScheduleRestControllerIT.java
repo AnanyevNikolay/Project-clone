@@ -201,10 +201,10 @@ public class PatientScheduleRestControllerIT extends ContextIT {
         Doctor doctor3 = initDoctor(roleDoctor, department, null, "doctor3@email.com");
         Doctor doctor4 = initDoctor(roleDoctor, department, null, "doctor4@email.com");
 
-        talonService.persistTalonsForDoctor(doctor,  numberOfDays, numbersOfTalons);
-        talonService.persistTalonsForDoctor(doctor2,  numberOfDays, numbersOfTalons);
-        talonService.persistTalonsForDoctor(doctor3,  numberOfDays, numbersOfTalons);
-        talonService.persistTalonsForDoctor(doctor4,  numberOfDays, numbersOfTalons);
+        talonService.persistTalonsForDoctor(doctor,  numberOfDays, numbersOfTalons, null, null);
+        talonService.persistTalonsForDoctor(doctor2,  numberOfDays, numbersOfTalons, null, null);
+        talonService.persistTalonsForDoctor(doctor3,  numberOfDays, numbersOfTalons, null, null);
+        talonService.persistTalonsForDoctor(doctor4,  numberOfDays, numbersOfTalons, null, null);
 
         // Заполняем пациентами талоны доктора 4 (так было в тесте у Анны Муравьевой)
         List<DoctorTalonsDto> doc4Talons = talonDtoService.getTalonsByDoctorIdAndDay(
