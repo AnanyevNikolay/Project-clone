@@ -161,7 +161,7 @@ public class PatientTalonsRestControllerIT extends ContextIT {
         Patient patient = initPatient(role, "patient1test@email.com");
         Patient patient2 = initPatient(role, "patient2test@email.com");
         Doctor doctor = initDoctor(role1, null, null, "doctor1test@email.com");
-        talonService.persistTalonsForDoctor(doctor, 14, 4);
+        talonService.persistTalonsForDoctor(doctor, 14, 4, null, null);
         Talon talon = initTalon(null, doctor, patient);
         Talon talon2 = initTalon(LocalDateTime.now(), doctor, patient2);
         talon = talonService.save(talon);

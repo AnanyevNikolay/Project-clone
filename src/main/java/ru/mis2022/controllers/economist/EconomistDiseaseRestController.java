@@ -13,8 +13,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.mis2022.models.dto.disease.converter.DiseaseDtoConverter;
 import ru.mis2022.models.dto.disease.DiseaseDto;
+import ru.mis2022.models.dto.disease.converter.DiseaseDtoConverter;
 import ru.mis2022.models.entity.Disease;
 import ru.mis2022.models.response.Response;
 import ru.mis2022.service.dto.DiseaseDtoService;
@@ -74,5 +74,4 @@ public class EconomistDiseaseRestController {
         diseaseService.deleteById(diseaseId);
         return Response.ok();
     }
-
 }

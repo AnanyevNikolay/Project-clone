@@ -20,6 +20,7 @@ import ru.mis2022.service.entity.RegistrarService;
 import ru.mis2022.service.entity.RoleService;
 import ru.mis2022.service.entity.TalonService;
 import ru.mis2022.util.ContextIT;
+
 import java.time.LocalDate;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -203,7 +204,7 @@ public class RegistrarScheduleRestControllerIT extends ContextIT {
 
         Role rolePatient = initRole("PATIENT");
         Patient patient = initPatient(rolePatient);
-        talonService.persistTalonsForDoctor(doctor,14, 4);
+        talonService.persistTalonsForDoctor(doctor,14, 4, null, null);
 
         //Вывод талонов доктора
         mockMvc.perform(post("/api/registrar/schedule/talons/{id}", doctor.getId())

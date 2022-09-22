@@ -1,6 +1,7 @@
 package ru.mis2022.service.entity.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.mis2022.models.dto.talon.TalonDto;
@@ -17,6 +18,10 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+
+import static ru.mis2022.utils.DateFormatter.DATE_FORMATTER;
+
 
 
 @Service
@@ -33,12 +38,27 @@ public class TalonServiceImpl implements TalonService {
         return talonRepository.save(talon);
     }
 
+
+
     @Override
     @Transactional
-    public List<Talon> persistTalonsForDoctor(Doctor doctor, int numberOfDays, int numbersOfTalons) {
+    public List<Talon> persistTalonsForDoctor(Doctor doctor,
+                                              int numberOfDays,
+                                              int numbersOfTalons,
+                                              @Nullable String startDate,
+                                              @Nullable String endDate) {
 
         List<Talon> talons = new ArrayList<>();
-        LocalDateTime time = LocalDateTime.of(LocalDate.now(), LocalTime.of(8, 0));
+        LocalDateTime time;
+
+        if (startDate == null && endDate == null) {
+            time = LocalDateTime.of(LocalDate.now(), LocalTime.of(8, 0));
+        } else {
+            LocalDate start = LocalDate.parse(Objects.requireNonNull(startDate), DATE_FORMATTER);
+            LocalDate end = LocalDate.parse(Objects.requireNonNull(endDate), DATE_FORMATTER);
+            time = LocalDateTime.of(start, LocalTime.of(8, 0));
+            numberOfDays = end.getDayOfYear() - start.getDayOfYear();
+        }
 
         for (int day = 0; day < numberOfDays; day++) {
             for (int hour = 0; hour < numbersOfTalons; hour++) {
@@ -47,12 +67,21 @@ public class TalonServiceImpl implements TalonService {
         }
         return talons;
     }
-    @Override
-    public long findTalonsCountByIdAndDoctor(int numberOfDays, Doctor doctor) {
-        LocalDateTime startTime = LocalDateTime.now();
-        LocalDateTime endTime = LocalDateTime.now().plusDays(numberOfDays).with(LocalTime.MAX);
 
-        return talonRepository.findCountTalonsByParameters(doctor.getId(), startTime, endTime);
+    @Override
+    public long findTalonsCountByIdAndDoctor(int countDays,
+                                             Long doctorId,
+                                             @Nullable String startDate,
+                                             @Nullable String endDate) {
+        LocalDateTime start = LocalDateTime.now();
+        LocalDateTime end = LocalDateTime.now().plusDays(countDays);
+
+        if (startDate != null && endDate != null) {
+            start = LocalDateTime.of(LocalDate.parse(startDate, DATE_FORMATTER), LocalTime.of(8, 0));
+            end = LocalDateTime.of(LocalDate.parse(endDate, DATE_FORMATTER), LocalTime.MAX);
+        }
+
+        return talonRepository.findCountTalonsByParameters(doctorId, start, end);
     }
 
     @Override
@@ -89,5 +118,5 @@ public class TalonServiceImpl implements TalonService {
 
     public Long findPatientIdByTalonId(Long talonId){
         return patientRepository.findPatientIdByTalonId(talonId);
-    };
+    }
 }

@@ -2,7 +2,6 @@ package ru.mis2022.controllers.doctor;
 
 import org.hamcrest.Matchers;
 import org.hamcrest.core.Is;
-import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -19,7 +18,6 @@ import ru.mis2022.service.entity.PatientService;
 import ru.mis2022.service.entity.RoleService;
 import ru.mis2022.service.entity.TalonService;
 import ru.mis2022.util.ContextIT;
-import ru.mis2022.utils.DateFormatter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -41,7 +39,6 @@ class ChiefDoctorReportRestControllerTest extends ContextIT {
     DoctorService doctorService;
 
     DepartmentService departmentService;
-
 
     TalonService talonService;
 
@@ -109,7 +106,7 @@ class ChiefDoctorReportRestControllerTest extends ContextIT {
         Department department = initDepartement("Therapy");
         Department deptDantist = initDepartement("Dantist");
 
-        Doctor ChiefDoctor = initDoctor(roleCheaf, department, "mainDoctor1@email.com", "гавный", "Доктор" ,  null);
+        Doctor ChiefDoctor = initDoctor(roleCheaf, department, "mainDoctor1@email.com", "главный", "Доктор" ,  null);
         Doctor docWithOutTalons = initDoctor(roleDoc, department, "docWithOutTalons@email.com", "доктор вообще", "без талонов" ,  null);
         Doctor docWithAllFreeTalons = initDoctor(roleDoc, department, "docWithAllFreeTalons@email.com", "доктор со всеми", "свободными талонами" ,  null);
 
