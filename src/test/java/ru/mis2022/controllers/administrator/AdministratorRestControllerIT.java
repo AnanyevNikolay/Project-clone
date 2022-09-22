@@ -3,13 +3,17 @@ package ru.mis2022.controllers.administrator;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.Is;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import ru.mis2022.models.entity.Administrator;
 import ru.mis2022.models.entity.Role;
 import ru.mis2022.service.entity.AdministratorService;
 import ru.mis2022.service.entity.RoleService;
 import ru.mis2022.util.ContextIT;
+import ru.mis2022.utils.GenerateRandomString;
 
 import java.time.LocalDate;
 
@@ -19,11 +23,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 public class AdministratorRestControllerIT extends ContextIT {
 
-    @Autowired
-     RoleService roleService;
+    RoleService roleService;
+    AdministratorService administratorService;
+    @MockBean
+    GenerateRandomString generator;
+    @Value("15")
+    int randomPasswordLength;
 
     @Autowired
-    AdministratorService administratorService;
+    public AdministratorRestControllerIT(RoleService roleService, AdministratorService administratorService) {
+        this.roleService = roleService;
+        this.administratorService = administratorService;
+    }
 
     Role initRole(String name) {
         return roleService.save(Role.builder()
@@ -31,24 +42,25 @@ public class AdministratorRestControllerIT extends ContextIT {
                 .build());
     }
 
-    Administrator initAdministrator(Role role) {
+    Administrator initAdministrator(Role role) throws Exception {
         return administratorService.persist(new Administrator(
                 "administrator1@email.com",
-                String.valueOf("1"),
+                "1",
                 "f_name",
                 "l_name",
                 "surname",
                 LocalDate.now().minusYears(20),
                 role
-                ));
+        ));
     }
 
     @Test
     public void getCurrentUserTest() throws Exception {
+        Mockito.when(generator.getRndStr(randomPasswordLength)).thenReturn("12345");
+
         Role role = initRole("ADMIN");
         Administrator administrator = initAdministrator(role);
-
-        accessToken = tokenUtil.obtainNewAccessToken(administrator.getEmail(), "1", mockMvc);
+        accessToken = tokenUtil.obtainNewAccessToken(administrator.getEmail(), "12345", mockMvc);
 
         mockMvc.perform(get("/api/administrator/mainPage/current")
                         .header("Authorization", accessToken)

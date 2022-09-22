@@ -69,4 +69,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
         ORDER BY u.id
         """)
     List<UserDto> findStaffByDepartment(Long depId);
+
+    User findUserById(Long id);
+    User save(User user);
 }

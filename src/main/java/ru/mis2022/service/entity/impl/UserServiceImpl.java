@@ -3,9 +3,12 @@ package ru.mis2022.service.entity.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import ru.mis2022.models.entity.Invite;
 import ru.mis2022.models.entity.User;
 import ru.mis2022.repositories.UserRepository;
+import ru.mis2022.service.entity.InviteService;
 import ru.mis2022.service.entity.UserService;
 
 import java.util.List;
@@ -15,6 +18,9 @@ import java.util.List;
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final PasswordEncoder encoder;
+    private final InviteService inviteService;
+
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -54,5 +60,24 @@ public class UserServiceImpl implements UserService {
     @Override
     public User persist(User user) {
         return userRepository.save(user);
+    }
+
+    @Override
+    public User findUserById(Long id) {
+        return userRepository.findUserById(id);
+    }
+
+    @Override
+    public User save(User user) {
+        user.setPassword(encoder.encode(user.getPassword()));
+        return userRepository.save(user);
+    }
+
+    @Override
+    public User saveUserByInviteAndDeleteInvite(User user, String password, Invite invite) {
+        user.setPassword(password);
+        user = userRepository.save(user);
+        inviteService.delete(invite);
+        return user;
     }
 }

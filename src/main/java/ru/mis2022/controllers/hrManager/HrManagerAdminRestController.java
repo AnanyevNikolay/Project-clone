@@ -17,6 +17,8 @@ import ru.mis2022.models.dto.administrator.converter.AdministratorDtoConverter;
 import ru.mis2022.models.entity.Administrator;
 import ru.mis2022.models.response.Response;
 import ru.mis2022.service.entity.AdministratorService;
+import ru.mis2022.service.entity.InviteService;
+import ru.mis2022.service.entity.MailService;
 import ru.mis2022.service.entity.UserService;
 import ru.mis2022.utils.validation.ApiValidationUtils;
 import ru.mis2022.utils.validation.OnCreate;
@@ -34,6 +36,8 @@ public class HrManagerAdminRestController {
     private final AdministratorService administratorService;
     private final AdministratorDtoConverter administratorDtoConverter;
     private final UserService userService;
+    private final MailService mailService;
+    private final InviteService inviteService;
 
     @ApiOperation("Кадровик сохраняет нового админа")
     @ApiResponses(value = {
@@ -47,10 +51,8 @@ public class HrManagerAdminRestController {
         ApiValidationUtils
                 .expectedFalse(userService.existsByEmail(administratorDto.getEmail()),
                         412, "Такой адрес электронной почты уже используется!");
-        Administrator administrator =
-                administratorService.persist(
-                        administratorDtoConverter.toEntity(
-                                administratorDto));
+        Administrator administrator = administratorService.persist(administratorDtoConverter.toEntity(administratorDto));
+        mailService.sendRegistrationInviteByEmail(inviteService.persist(administrator), administrator);
         return Response.ok(administratorDtoConverter.toDto(administrator));
     }
 

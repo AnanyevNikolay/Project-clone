@@ -4,15 +4,20 @@ package ru.mis2022.controllers.hrManager;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.Is;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import ru.mis2022.models.dto.administrator.AdministratorDto;
 import ru.mis2022.models.dto.administrator.converter.AdministratorDtoConverter;
 import ru.mis2022.models.entity.Administrator;
 import ru.mis2022.models.entity.HrManager;
+import ru.mis2022.models.entity.Invite;
 import ru.mis2022.models.entity.Role;
+import ru.mis2022.models.entity.User;
 import ru.mis2022.service.entity.AdministratorService;
 import ru.mis2022.service.entity.HrManagerService;
+import ru.mis2022.service.entity.MailService;
 import ru.mis2022.service.entity.RoleService;
 import ru.mis2022.util.ContextIT;
 
@@ -24,18 +29,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class HrManagerAdminRestControllerIT extends ContextIT {
-
     @Autowired
     HrManagerService hrManagerService;
-
     @Autowired
     AdministratorService administratorService;
-
     @Autowired
     AdministratorDtoConverter administratorDtoConverter;
-
     @Autowired
     RoleService roleService;
+    @MockBean
+    MailService mailService;
 
     Role initRole(String name) {
         return roleService.save(Role.builder()
@@ -89,6 +92,8 @@ public class HrManagerAdminRestControllerIT extends ContextIT {
         AdministratorDto noValidIdDtoCreate = initAdministratorDto((long) 2, "administrator2@email.com");
         AdministratorDto noValidEmailDtoCreate = initAdministratorDto(null, "123456");
         AdministratorDto noValidExistEmailDtoCreate = initAdministratorDto(null, "administrator2@email.com");
+
+        Mockito.doNothing().when(mailService).sendRegistrationInviteByEmail(Mockito.any(Invite.class), Mockito.any(User.class));
 
         accessToken = tokenUtil.obtainNewAccessToken(hrManager.getEmail(), "1", mockMvc);
         // Валидный ДТО администратора, создание администратора
