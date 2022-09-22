@@ -9,6 +9,9 @@ import ru.mis2022.models.entity.MedicalService;
 import ru.mis2022.repositories.MedicalServiceRepository;
 import ru.mis2022.service.entity.MedicalServiceService;
 
+import java.util.List;
+import java.util.Optional;
+
 
 @Service
 @RequiredArgsConstructor
@@ -32,5 +35,10 @@ public class MedicalServiceServiceImpl implements MedicalServiceService {
     @Override
     public boolean isExistByName(String name) {
         return medicalServiceRepository.existsByName(name);
+    }
+
+    @Override
+    public Optional<List<MedicalService>> getMedicalServicesDtoVisitedByCurrentPatientWithId(long id) {
+        return medicalServiceRepository.getMedicalServicesDtoVisitedByCurrentPatientWithId(id);
     }
 }

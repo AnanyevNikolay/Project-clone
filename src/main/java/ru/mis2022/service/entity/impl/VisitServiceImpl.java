@@ -6,6 +6,9 @@ import ru.mis2022.models.entity.Visit;
 import ru.mis2022.repositories.VisitRepository;
 import ru.mis2022.service.entity.VisitService;
 
+import java.util.List;
+import java.util.Optional;
+
 
 @Service
 @RequiredArgsConstructor
@@ -16,5 +19,10 @@ public class VisitServiceImpl implements VisitService {
     @Override
     public Visit save(Visit visit) {
         return visitRepository.save(visit);
+    }
+
+    @Override
+    public Optional<List<Visit>> getVisitsOfCurrentPatientById(long id) {
+        return visitRepository.getVisitsOfCurrentPatientById(id);
     }
 }
