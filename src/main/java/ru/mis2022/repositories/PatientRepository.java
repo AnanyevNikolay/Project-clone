@@ -55,9 +55,12 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
             p.lastName,
             p.surname,
             p.birthday,
+            p.role.name,
             p.passport,
             p.polis,
-            p.snils
+            p.snils,
+            p.email,
+            p.password
             )
             FROM Patient p
             WHERE (:firstName IS NULL OR LOWER(p.firstName) LIKE LOWER(CONCAT('%', :firstName, '%')))

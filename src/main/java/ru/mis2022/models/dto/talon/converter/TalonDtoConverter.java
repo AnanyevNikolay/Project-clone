@@ -58,7 +58,7 @@ public class TalonDtoConverter {
                 .id(talon.getId())
                 .time(talon.getTime())
                 .doctorId(talon.getDoctor().getId())
-                .patient(patientDtoConverter.patientToPatientDto(talon.getPatient()))
+                .patient(patientDtoConverter.toDto(talon.getPatient()))
                 .build();
     }
 }
