@@ -1,9 +1,11 @@
 package ru.mis2022.models.entity;
 
 
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.FetchMode;
 import org.springframework.lang.Nullable;
@@ -28,6 +30,7 @@ import java.util.Set;
 @Setter
 @Getter
 @NoArgsConstructor
+@SuperBuilder
 public class Patient extends User {
 
     private String passport;

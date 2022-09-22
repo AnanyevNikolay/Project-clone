@@ -17,6 +17,7 @@ import ru.mis2022.models.entity.Patient;
 import ru.mis2022.models.entity.PersonalHistory;
 import ru.mis2022.models.entity.Role;
 import ru.mis2022.models.entity.Talon;
+import ru.mis2022.repositories.RoleRepository;
 import ru.mis2022.service.dto.TalonDtoService;
 import ru.mis2022.service.entity.DepartmentService;
 import ru.mis2022.service.entity.DoctorService;
@@ -49,6 +50,8 @@ public class DoctorTalonsRestControllerIT extends ContextIT {
     DoctorService doctorService;
     @Autowired
     RoleService roleService;
+    @Autowired
+    RoleRepository roleRepository;
     @Autowired
     DepartmentService departmentService;
     @Autowired
@@ -397,8 +400,8 @@ public class DoctorTalonsRestControllerIT extends ContextIT {
         accessToken = tokenUtil.obtainNewAccessToken(doctor1.getEmail(), "1", mockMvc);
 
         // Для теста правильности возвращенного дто пацента
-        PatientDtoConverter patientDtoConverter = new PatientDtoConverter();
-        PatientDto patientDto = patientDtoConverter.patientToPatientDto(patient);
+        PatientDtoConverter patientDtoConverter = new PatientDtoConverter(roleRepository);
+        PatientDto patientDto = patientDtoConverter.toDto(patient);
 
         // Проверяем поиск по талону и ждем ответ 200 с пациентом null
         mockMvc.perform(get("/api/doctor/talon/{id}", talon1.getId())

@@ -6,7 +6,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import ru.mis2022.models.entity.Patient;
 import ru.mis2022.repositories.PatientRepository;
+import ru.mis2022.repositories.RoleRepository;
 import ru.mis2022.service.entity.PatientService;
+import ru.mis2022.service.entity.RoleService;
 
 import java.util.List;
 
@@ -16,6 +18,7 @@ import java.util.List;
 public class PatientServiceImpl implements PatientService {
     private final PatientRepository patientRepository;
     private final PasswordEncoder encoder;
+    private final RoleRepository roleRepository;
 
     @Override
     public Patient findByEmail(String email) {
@@ -26,6 +29,7 @@ public class PatientServiceImpl implements PatientService {
     @Transactional
     public Patient persist(Patient patient) {
         patient.setPassword(encoder.encode(patient.getPassword()));
+        patient.setRole(roleRepository.findByName("PATIENT"));
         return patientRepository.save(patient);
     }
 

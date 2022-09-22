@@ -1,5 +1,6 @@
 package ru.mis2022.controllers.registrar;
 
+import org.hamcrest.Matchers;
 import feign.FeignException;
 import org.hamcrest.core.Is;
 import org.hamcrest.core.IsNull;
@@ -8,13 +9,12 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-
+import ru.mis2022.models.dto.patient.PatientDto;
 import ru.mis2022.feign.TestSystemFeignClient;
 import ru.mis2022.feign.AuthRequestDtoTS;
 import ru.mis2022.feign.AuthTokenTS;
 import ru.mis2022.feign.PatientRequestDtoTS;
 import ru.mis2022.feign.PatientResponseDtoTS;
-
 import ru.mis2022.models.entity.Patient;
 import ru.mis2022.models.entity.Registrar;
 import ru.mis2022.models.entity.Role;
@@ -22,10 +22,8 @@ import ru.mis2022.service.entity.PatientService;
 import ru.mis2022.service.entity.RegistrarService;
 import ru.mis2022.service.entity.RoleService;
 import ru.mis2022.util.ContextIT;
-
 import java.time.LocalDate;
 import java.util.Collections;
-
 import static org.mockito.Mockito.when;
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
@@ -33,8 +31,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static ru.mis2022.models.entity.Role.RolesEnum.PATIENT;
+import static ru.mis2022.models.entity.Role.RolesEnum.REGISTRAR;
 import static ru.mis2022.utils.DateFormatter.DATE_FORMATTER;
-
 @MockBean(TestSystemFeignClient.class)
 public class RegistrarPatientRestControllerIT extends ContextIT {
 
@@ -84,6 +83,21 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
                 LocalDate.now().minusYears(20),
                 role
         ));
+    }
+
+    PatientDto createPatientDto() {
+        return new PatientDto(
+                null,
+                "Patient test",
+                "супер пациент",
+                "surname",
+                LocalDate.now().minusYears(20),
+                "PATIENT",
+                "passport",
+                "polis",
+                "snils",
+                "patientdto@email.com",
+                "1");
     }
 
     @AfterEach
@@ -455,4 +469,68 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
         //.andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()))
         ;
     }
+
+    @Test
+    public void persistPatientTest() throws Exception {
+
+        Role roleRegistrar = initRole(REGISTRAR.name());
+        Role rolePatient = initRole(PATIENT.name());
+        Registrar registrar = initRegistrar(roleRegistrar);
+
+        accessToken = tokenUtil.obtainNewAccessToken(registrar.getEmail(), "1", mockMvc);
+
+        //ВАЛИДНЫЙ ТЕСТ
+        PatientDto patientDto = createPatientDto();
+        mockMvc.perform(post("/api/registrar/patient/create")
+                        .header("Authorization", accessToken)
+                        .content(objectMapper.writeValueAsString(patientDto))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+                .andExpect(jsonPath("$.data.id", Matchers.notNullValue()))
+                .andExpect(jsonPath("$.data.firstName", Is.is(patientDto.firstName())))
+                .andExpect(jsonPath("$.data.lastName", Is.is(patientDto.lastName())))
+                .andExpect(jsonPath("$.data.surName", Is.is(patientDto.surName())))
+                .andExpect(jsonPath("$.data.birthday", Is.is(patientDto.birthday().format(DATE_FORMATTER))))
+                .andExpect(jsonPath("$.data.roleName", Is.is(patientDto.roleName())))
+                .andExpect(jsonPath("$.data.passport", Is.is(patientDto.passport())))
+                .andExpect(jsonPath("$.data.polis", Is.is(patientDto.polis())))
+                .andExpect(jsonPath("$.data.snils", Is.is(patientDto.snils())))
+                .andExpect(jsonPath("$.data.email", Is.is(patientDto.email())));
+
+        //Проверка, что пациент создан
+
+        mockMvc.perform(get("/api/registrar/patient")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+                .andExpect(jsonPath("$.data.length()", Is.is(1)))
+                .andExpect(jsonPath("$.data[0].firstName", Is.is(patientDto.firstName())))
+                .andExpect(jsonPath("$.data[0].lastName", Is.is(patientDto.lastName())))
+                .andExpect(jsonPath("$.data[0].surName", Is.is(patientDto.surName())))
+                .andExpect(jsonPath("$.data[0].birthday", Is.is(patientDto.birthday().format(DATE_FORMATTER))))
+                .andExpect(jsonPath("$.data[0].roleName", Is.is(patientDto.roleName())))
+                .andExpect(jsonPath("$.data[0].passport", Is.is(patientDto.passport())))
+                .andExpect(jsonPath("$.data[0].polis", Is.is(patientDto.polis())))
+                .andExpect(jsonPath("$.data[0].snils", Is.is(patientDto.snils())));
+
+        //Проверка, что логин уже занят
+        mockMvc.perform(post("/api/registrar/patient/create")
+                        .header("Authorization", accessToken)
+                        .content(objectMapper.writeValueAsString(patientDto))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(415)))
+                .andExpect(jsonPath("$.text", Is.is("Пациент с данным логином уже существует в базе")));
+
+    }
+
+
 }
