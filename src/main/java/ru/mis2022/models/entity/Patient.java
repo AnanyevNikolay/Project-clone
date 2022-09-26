@@ -1,21 +1,16 @@
 package ru.mis2022.models.entity;
 
 
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
 import org.springframework.lang.Nullable;
+
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
-import javax.persistence.JoinColumn;
-import javax.persistence.MapsId;
 import javax.persistence.OneToMany;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 /**

@@ -36,4 +36,6 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
             where doc.id=:docId
             """)
     List<DiseaseDto> findDiseaseByDepartmentDoctors(@Param("docId") Long docId);
+    Disease findDiseaseById(Long id);
+
 }

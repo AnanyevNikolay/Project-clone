@@ -47,7 +47,6 @@ public class Disease {
     private Department department;
 
     public Disease(String identifier, String name) {
-
         this.identifier = identifier;
         this.name = name;
     }

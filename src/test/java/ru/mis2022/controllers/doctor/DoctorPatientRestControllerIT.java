@@ -99,26 +99,26 @@ public class DoctorPatientRestControllerIT extends ContextIT {
     }
 
     @Test
-    public void getPatientByFullNameTest () throws Exception {
+    public void getPatientByFullNameTest() throws Exception {
         Role role = initRole("DOCTOR");
         Role role1 = initRole("PATIENT");
         Department department = initDepartment("Therapy");
         Doctor doctor1 = initDoctor(role, department, null, "doctor1@email.com");
-        Patient patient1 = initPatient("email1@rt.ru","Alexandr", "Safronov", "Sergeevich", role1,"2222 878190","2349581209685472","567-476-439 85");
-        Patient patient2 = initPatient("email2@rt.ru","Igor", "Livanov", null, role1,"3407 878190","2349581209685472","567-476-43 98");
-        Patient patient3 = initPatient("email3@rt.ru","Oleg", "Karimov", "Sergeevich", role1,"5671 878190","2349581209685472","567-476-434 56");
-        Patient patient4 = initPatient("email4@rt.ru","Sergey", "Petrov", "Sergeevich", role1,"1298 878190","2349581209685472","567-476-401 93");
-        Patient patient5 = initPatient("email5@rt.ru","Petr", "Krasov", "Sergeevich", role1,"1298 878190","2349581209685472","567-476-401 93");
-        Patient patient6 = initPatient("email6@rt.ru","Vladimir", "Ivanov", null,  role1,"7304 878190","2349581209685472","567-476-439 80");
+        Patient patient1 = initPatient("email1@rt.ru", "Alexandr", "Safronov", "Sergeevich", role1, "2222 878190", "2349581209685472", "567-476-439 85");
+        Patient patient2 = initPatient("email2@rt.ru", "Igor", "Livanov", null, role1, "3407 878190", "2349581209685472", "567-476-43 98");
+        Patient patient3 = initPatient("email3@rt.ru", "Oleg", "Karimov", "Sergeevich", role1, "5671 878190", "2349581209685472", "567-476-434 56");
+        Patient patient4 = initPatient("email4@rt.ru", "Sergey", "Petrov", "Sergeevich", role1, "1298 878190", "2349581209685472", "567-476-401 93");
+        Patient patient5 = initPatient("email5@rt.ru", "Petr", "Krasov", "Sergeevich", role1, "1298 878190", "2349581209685472", "567-476-401 93");
+        Patient patient6 = initPatient("email6@rt.ru", "Vladimir", "Ivanov", null, role1, "7304 878190", "2349581209685472", "567-476-439 80");
 
         accessToken = tokenUtil.obtainNewAccessToken(doctor1.getEmail(), "1", mockMvc);
 
         String fullName = "pet";
         mockMvc.perform(get("/api/doctor/patient/stringPattern")
-                .header("Authorization", accessToken)
-                .param("stringPattern", fullName)
-                .contentType(MediaType.APPLICATION_JSON)
-        )
+                        .header("Authorization", accessToken)
+                        .param("stringPattern", fullName)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", Is.is(true)))
                 .andExpect(jsonPath("$.code", Is.is(200)))
@@ -130,8 +130,8 @@ public class DoctorPatientRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[0].firstName", Is.is(patient5.getFirstName())))
                 .andExpect(jsonPath("$.data[0].lastName", Is.is(patient5.getLastName())))
                 .andExpect(jsonPath("$.data[0].surName", Is.is(patient5.getSurname())))
-                .andExpect(jsonPath("$.data[0].birthday", Is.is(patient5.getBirthday().format(DateTimeFormatter.ofPattern( "dd.MM.yyyy" )))))//format(dateFormat = "dd.MM.yyyy"))))
-                .andExpect(jsonPath("$.data[0].passport", Is.is(patient5.getPassport().replaceAll("\\s+","").substring(6))))
+                .andExpect(jsonPath("$.data[0].birthday", Is.is(patient5.getBirthday().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")))))//format(dateFormat = "dd.MM.yyyy"))))
+                .andExpect(jsonPath("$.data[0].passport", Is.is(patient5.getPassport().replaceAll("\\s+", "").substring(6))))
                 .andExpect(jsonPath("$.data[0].polis", Is.is(patient5.getPolis().substring(12))))
                 .andExpect(jsonPath("$.data[0].snils", Is.is(patient5.getSnils().replaceAll("[^A-Za-z�-��-�0-9]", "").substring(7))));
 //              .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
@@ -150,8 +150,8 @@ public class DoctorPatientRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[0].firstName", Is.is(patient1.getFirstName())))
                 .andExpect(jsonPath("$.data[0].lastName", Is.is(patient1.getLastName())))
                 .andExpect(jsonPath("$.data[0].surName", Is.is(patient1.getSurname())))
-                .andExpect(jsonPath("$.data[0].birthday", Is.is(patient1.getBirthday().format(DateTimeFormatter.ofPattern( "dd.MM.yyyy" )))))
-                .andExpect(jsonPath("$.data[0].passport", Is.is(patient1.getPassport().replaceAll("\\s+","").substring(6))))
+                .andExpect(jsonPath("$.data[0].birthday", Is.is(patient1.getBirthday().format(DateTimeFormatter.ofPattern("dd.MM.yyyy")))))
+                .andExpect(jsonPath("$.data[0].passport", Is.is(patient1.getPassport().replaceAll("\\s+", "").substring(6))))
                 .andExpect(jsonPath("$.data[0].polis", Is.is(patient1.getPolis().substring(12))))
                 .andExpect(jsonPath("$.data[0].snils", Is.is(patient1.getSnils().replaceAll("[^A-Za-z�-��-�0-9]", "").substring(7))));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
@@ -181,16 +181,16 @@ public class DoctorPatientRestControllerIT extends ContextIT {
     }
 
     @Test
-    void registerPatientInTalon()  throws Exception {
+    void registerPatientInTalon() throws Exception {
         Role roleDoc = initRole(DOCTOR.name());
         Role rolePatient = initRole("PATIENT");
         Department department = initDepartment("Therapy");
         Doctor doctor = initDoctor(roleDoc, department, null, "doc@email.com");
         Doctor otherDoctor = initDoctor(roleDoc, department, null, "otherDoc@email.com");
-        Patient patient = initPatient("email1@rt.ru","Alexandr", "Safronov", "Sergeevich",
-                rolePatient,"2222 878190","2349581209685472","567-476-439 85");
-        Patient otherPatient = initPatient("lala","la", "tra", "lala",
-                rolePatient,"la","1","1");
+        Patient patient = initPatient("email1@rt.ru", "Alexandr", "Safronov", "Sergeevich",
+                rolePatient, "2222 878190", "2349581209685472", "567-476-439 85");
+        Patient otherPatient = initPatient("lala", "la", "tra", "lala",
+                rolePatient, "la", "1", "1");
         LocalDateTime talonTime = LocalDateTime.now().with(LocalTime.MIN).plusHours(10);
         Talon talon = initTalon(talonTime, doctor, patient);
 
@@ -294,19 +294,16 @@ public class DoctorPatientRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data.patient.id").value(patient.getId()))
                 .andExpect(jsonPath("$.data.time").value(DATE_TIME_FORMATTER.format(talonTime)));
 
-        Talon qryTalon  = entityManager.createQuery("""
-                SELECT t
-                FROM Talon t
-                LEFT JOIN Doctor d
-                    ON d.id = t.doctor.id
-                LEFT JOIN Patient p
-                    ON p.id = t.patient.id
-                WHERE t.id = :talonId
-                    AND d.id = :docId
-                    AND p.id = :patientId
-
+        Talon qryTalon = entityManager.createQuery("""
+            SELECT t
+            FROM Talon t
+            LEFT JOIN Doctor d
+                 ON d.id = t.doctor.id
+            LEFT JOIN Patient p
+                 ON p.id = t.patient.id
+            WHERE d.id = :docId
+                 AND p.id = :patientId
             """, Talon.class)
-                .setParameter("talonId", talon.getId())
                 .setParameter("docId", doctor.getId())
                 .setParameter("patientId", patient.getId())
                 .getSingleResult();

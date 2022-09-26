@@ -3,6 +3,7 @@ package ru.mis2022.models.dto.appeal.converter;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Component;
 import ru.mis2022.models.dto.appeal.AppealDto;
+import ru.mis2022.models.dto.appeal.CurrentPatientAppealsDto;
 import ru.mis2022.models.dto.visit.converter.VisitDtoConverter;
 import ru.mis2022.models.entity.Appeal;
 
@@ -17,21 +18,33 @@ public class AppealDtoConverter {
 
     private final VisitDtoConverter visitDtoConverter;
 
-    public List<AppealDto> convertAppealsListToAppealsDtoList(List<Appeal> appeals) {
+    public List<CurrentPatientAppealsDto> convertAppealsListToAppealsDtoList(List<Appeal> appeals) {
         if (appeals == null) {
             return Collections.emptyList();
         }
-        List<AppealDto> appealDtoList = new ArrayList<>();
+        List<CurrentPatientAppealsDto> appealDtoList = new ArrayList<>();
         for (Appeal appeal : appeals) {
-            appealDtoList.add(new AppealDto(
+            appealDtoList.add(new CurrentPatientAppealsDto(
                     appeal.getId(),
                     appeal.getDisease().getName(),
                     appeal.isClosed(),
                     visitDtoConverter.visitsToVisitDtoConverter(appeal.getVisits())
             ));
         }
-        appealDtoList.sort(Comparator.comparingLong(AppealDto::appealId));
+        appealDtoList.sort(Comparator.comparingLong(CurrentPatientAppealsDto::appealId));
         return appealDtoList;
+    }
+
+    public AppealDto toAppealDto(Appeal appeal) {
+        return AppealDto.builder()
+                .id(appeal.getId())
+                .account(appeal.getAccount())
+                .visits(appeal.getVisits())
+                .localDate(appeal.getLocalDate())
+                .isClosed(appeal.isClosed())
+                .patientId(appeal.getPatient().getId())
+                .diseaseId(appeal.getDisease().getId())
+                .build();
     }
 
 }
