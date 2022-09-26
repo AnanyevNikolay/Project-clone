@@ -1,6 +1,6 @@
 package ru.mis2022.models.entity;
 
-import lombok.AllArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -57,8 +57,16 @@ public class Appeal {
     private Account account;
 
     private boolean isClosed;
-
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd.MM.yyyy")
     private LocalDate localDate;
+
+    public Appeal(Patient patient, Disease disease, LocalDate localDate) {
+        this.patient = patient;
+        this.disease = disease;
+        this.localDate = localDate;
+        visits = null;
+        account = null;
+    }
 
     public Appeal(Patient patient, Disease disease, Set<Visit> visits, Account account, boolean isClosed, LocalDate localDate) {
         this.patient = patient;

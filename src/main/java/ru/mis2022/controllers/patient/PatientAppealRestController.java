@@ -9,7 +9,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.mis2022.models.dto.appeal.AppealDto;
+import ru.mis2022.models.dto.appeal.CurrentPatientAppealsDto;
 import ru.mis2022.models.dto.appeal.converter.AppealDtoConverter;
 import ru.mis2022.models.dto.patient.PatientAppealsDto;
 import ru.mis2022.models.entity.Patient;
@@ -33,7 +33,7 @@ public class PatientAppealRestController {
     @GetMapping
     public Response<PatientAppealsDto> getCurrentPatientAppeals() {
         Patient patient = (Patient) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        List<AppealDto> appealsDto = appealDtoConverter.convertAppealsListToAppealsDtoList(appealService.getAppealsDtoByPatientId(patient.getId()).orElse(null));
+        List<CurrentPatientAppealsDto> appealsDto = appealDtoConverter.convertAppealsListToAppealsDtoList(appealService.getAppealsDtoByPatientId(patient.getId()).orElse(null));
         return Response.ok(new PatientAppealsDto(
                 patient.getId(),
                 patient.getFirstName() + " " + patient.getLastName() + " " + patient.getSurname(),
