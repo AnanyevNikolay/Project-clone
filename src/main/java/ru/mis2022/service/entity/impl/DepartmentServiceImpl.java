@@ -28,4 +28,8 @@ public class DepartmentServiceImpl implements DepartmentService {
         departmentRepository.deleteAll();
     }
 
+    @Override
+    public Department findDepartmentById(Long id) {
+        return departmentRepository.findDepartmentById(id);
+    }
 }

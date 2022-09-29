@@ -14,4 +14,12 @@ public class DiseaseDtoConverter {
                 .id(disease.getId())
                 .build();
     }
+
+    public Disease toEntity(DiseaseDto diseaseDto) {
+        return Disease.builder()
+                .id(diseaseDto.id())
+                .name(diseaseDto.name())
+                .identifier(diseaseDto.identifier())
+                .build();
+    }
 }
