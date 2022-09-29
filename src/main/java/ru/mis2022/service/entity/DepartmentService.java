@@ -7,6 +7,8 @@ public interface DepartmentService {
 
     Department save(Department department);
 
+    Department findDepartmentById(Long id);
+
     boolean isExistById(Long departmentId);
 
     void deleteAll();

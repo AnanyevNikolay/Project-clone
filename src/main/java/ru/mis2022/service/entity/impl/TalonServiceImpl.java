@@ -38,8 +38,6 @@ public class TalonServiceImpl implements TalonService {
         return talonRepository.save(talon);
     }
 
-
-
     @Override
     @Transactional
     public List<Talon> persistTalonsForDoctor(Doctor doctor,

@@ -306,6 +306,7 @@ public class DoctorTalonsRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data.length()", Is.is(0)));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
+        talonService.deleteAll();
         // ТЕСТ НА СТЫКЕ ДАТ
         accessToken = tokenUtil.obtainNewAccessToken(doctor1.getEmail(), "1", mockMvc);
 
@@ -324,13 +325,10 @@ public class DoctorTalonsRestControllerIT extends ContextIT {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", Is.is(true)))
-                .andExpect(jsonPath("$.data[3].date", Is.is(formatDate)))
-                .andExpect(jsonPath("$.data[3].talonsDto[0].time", Is.is(junction_talon1.getTime().format(DATE_TIME_FORMATTER))))
-
-                .andExpect(jsonPath("$.data[4].talonsDto[0].time", Is.is(junction_talon2.getTime().format(DATE_TIME_FORMATTER))))
-
-                .andExpect(jsonPath("$.data[5].talonsDto[0].time", Is.is(junction_talon3.getTime().format(DATE_TIME_FORMATTER))));
-
+                .andExpect(jsonPath("$.data[0].date", Is.is(formatDate)))
+                .andExpect(jsonPath("$.data[0].talonsDto[0].time", Is.is(junction_talon1.getTime().format(DATE_TIME_FORMATTER))))
+                .andExpect(jsonPath("$.data[1].talonsDto[0].time", Is.is(junction_talon2.getTime().format(DATE_TIME_FORMATTER))))
+                .andExpect(jsonPath("$.data[2].talonsDto[0].time", Is.is(junction_talon3.getTime().format(DATE_TIME_FORMATTER))));
     }
 
     @Test
