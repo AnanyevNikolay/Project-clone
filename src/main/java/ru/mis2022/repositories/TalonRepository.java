@@ -4,42 +4,30 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.mis2022.models.dto.registrar.CurrentDepartamentDoctorTalonsDto;
 import ru.mis2022.models.dto.talon.DoctorTalonsDto;
-import ru.mis2022.models.dto.talon.TalonDto;
 import ru.mis2022.models.entity.Doctor;
 import ru.mis2022.models.entity.Talon;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
 
 public interface TalonRepository extends JpaRepository<Talon, Long> {
 
     @Query("""
-        SELECT new ru.mis2022.models.dto.talon.TalonDto(
-        t.id,
-        t.time,
-        t.doctor.id,
-        t.patient
-        )
+        SELECT t
         FROM Talon t left outer join t.patient pt on (t.patient.id = pt.id or (t.patient.id is null and pt.id is null))
         WHERE t.doctor.id = :doctorId
         """)
-    Optional<List<TalonDto>> findAllDtoByDoctorId(long doctorId);
+    List<Talon> findAllDtoByDoctorId(long doctorId);
 
     List<Talon> findAllByDoctorId(Long id);
 
     @Query("""
-    SELECT new ru.mis2022.models.dto.talon.TalonDto(
-        t.id,
-        t.time,
-        t.doctor.id,
-        t.patient
-    )
+    SELECT t
     FROM Talon t
     WHERE
         t.patient.id = :patientId
     """)
-    List<TalonDto> findAllDtoByPatientId(Long patientId);
+    List<Talon> findAllDtoByPatientId(Long patientId);
 
     @Query("""
                 select count(t) from Talon t
@@ -93,17 +81,12 @@ public interface TalonRepository extends JpaRepository<Talon, Long> {
     List<DoctorTalonsDto> talonsByDoctorByDay(long doctorId, LocalDateTime startDayTime, LocalDateTime endDayTime);
 
     @Query("""
-        SELECT new ru.mis2022.models.dto.talon.TalonDto(
-        t.id,
-        t.time,
-        t.doctor.id,
-        t.patient
-        )
+        SELECT t
         FROM Talon t left outer join t.patient
         WHERE t.doctor.id = :doctorId
          AND t.time BETWEEN :timeNow AND :timeEnd
         """)
-    List<TalonDto> findTalonsByDoctorIdAndTimeBetween(Long doctorId, LocalDateTime timeNow, LocalDateTime timeEnd);
+    List<Talon> findTalonsByDoctorIdAndTimeBetween(Long doctorId, LocalDateTime timeNow, LocalDateTime timeEnd);
 
 
     @Query("""

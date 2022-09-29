@@ -270,28 +270,28 @@ public class DoctorTalonsRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[0].talonsDto[0].id", Is.is(talon1.getId().intValue())))
                 .andExpect(jsonPath("$.data[0].talonsDto[0].time", Is.is(talon1.getTime().format(DATE_TIME_FORMATTER))))
                 .andExpect(jsonPath("$.data[0].talonsDto[0].doctorId", Is.is(doctor1.getId().intValue())))
-                .andExpect(jsonPath("$.data[0].talonsDto[0].patient", Is.is(Matchers.nullValue())))
+                .andExpect(jsonPath("$.data[0].talonsDto[0].patientDto", Is.is(Matchers.nullValue())))
                 //      .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
                 .andExpect(jsonPath("$.data[0].talonsDto[1].id", Is.is(talon2.getId().intValue())))
                 .andExpect(jsonPath("$.data[0].talonsDto[1].time", Is.is(talon2.getTime().format(DATE_TIME_FORMATTER))))
                 .andExpect(jsonPath("$.data[0].talonsDto[1].doctorId", Is.is(doctor1.getId().intValue())))
-                .andExpect(jsonPath("$.data[0].talonsDto[1].patient.id", Is.is(patient.getId().intValue())))
+                .andExpect(jsonPath("$.data[0].talonsDto[1].patientDto.id", Is.is(patient.getId().intValue())))
 
                 .andExpect(jsonPath("$.data[0].talonsDto[2].id", Is.is(talon3.getId().intValue())))
                 .andExpect(jsonPath("$.data[0].talonsDto[2].time", Is.is(talon3.getTime().format(DATE_TIME_FORMATTER))))
                 .andExpect(jsonPath("$.data[0].talonsDto[2].doctorId", Is.is(doctor1.getId().intValue())))
-                .andExpect(jsonPath("$.data[0].talonsDto[2].patient", Is.is(Matchers.nullValue())))
+                .andExpect(jsonPath("$.data[0].talonsDto[2].patientDto", Is.is(Matchers.nullValue())))
 
                 .andExpect(jsonPath("$.data[1].talonsDto[0].id", Is.is(talon4.getId().intValue())))
                 .andExpect(jsonPath("$.data[1].talonsDto[0].time", Is.is(talon4.getTime().format(DATE_TIME_FORMATTER))))
                 .andExpect(jsonPath("$.data[1].talonsDto[0].doctorId", Is.is(doctor1.getId().intValue())))
-                .andExpect(jsonPath("$.data[1].talonsDto[0].patient.id", Is.is(patient.getId().intValue())))
+                .andExpect(jsonPath("$.data[1].talonsDto[0].patientDto.id", Is.is(patient.getId().intValue())))
 
                 .andExpect(jsonPath("$.data[2].talonsDto[0].id", Is.is(talon5.getId().intValue())))
                 .andExpect(jsonPath("$.data[2].talonsDto[0].time", Is.is(talon5.getTime().format(DATE_TIME_FORMATTER))))
                 .andExpect(jsonPath("$.data[2].talonsDto[0].doctorId", Is.is(doctor1.getId().intValue())))
-                .andExpect(jsonPath("$.data[2].talonsDto[0].patient", Is.is(Matchers.nullValue())));
+                .andExpect(jsonPath("$.data[2].talonsDto[0].patientDto", Is.is(Matchers.nullValue())));
 
         // У ДОКТОРА НЕТ ТАЛОНОВ
         accessToken = tokenUtil.obtainNewAccessToken(doctor2.getEmail(), "1", mockMvc);
@@ -412,7 +412,7 @@ public class DoctorTalonsRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data.id", Is.is(talon1.getId().intValue())))
                 .andExpect(jsonPath("$.data.time", Is.is(talon1.getTime().format(DATE_TIME_FORMATTER))))
                 .andExpect(jsonPath("$.data.doctorId", Is.is(talon1.getDoctor().getId().intValue())))
-                .andExpect(jsonPath("$.data.patient", Is.is(IsNull.nullValue())));
+                .andExpect(jsonPath("$.data.patientDto", Is.is(IsNull.nullValue())));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         // Проверяем поиск по талону и ждем ответ 200 с пациентом not null
@@ -426,14 +426,14 @@ public class DoctorTalonsRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data.id", Is.is(talon3.getId().intValue())))
                 .andExpect(jsonPath("$.data.time", Is.is(talon3.getTime().format(DATE_TIME_FORMATTER))))
                 .andExpect(jsonPath("$.data.doctorId", Is.is(talon3.getDoctor().getId().intValue())))
-                .andExpect(jsonPath("$.data.patient.id", Is.is(patientDto.id().intValue())))
-                .andExpect(jsonPath("$.data.patient.firstName", Is.is(patientDto.firstName())))
-                .andExpect(jsonPath("$.data.patient.lastName", Is.is(patientDto.lastName())))
-                .andExpect(jsonPath("$.data.patient.surName", Is.is(patientDto.surName())))
-                .andExpect(jsonPath("$.data.patient.birthday", Is.is(patientDto.birthday().format(DATE_FORMATTER))))
-                .andExpect(jsonPath("$.data.patient.passport", Is.is(patientDto.passport())))
-                .andExpect(jsonPath("$.data.patient.polis", Is.is(patientDto.polis())))
-                .andExpect(jsonPath("$.data.patient.snils", Is.is(patientDto.snils())));
+                .andExpect(jsonPath("$.data.patientDto.id", Is.is(patientDto.id().intValue())))
+                .andExpect(jsonPath("$.data.patientDto.firstName", Is.is(patientDto.firstName())))
+                .andExpect(jsonPath("$.data.patientDto.lastName", Is.is(patientDto.lastName())))
+                .andExpect(jsonPath("$.data.patientDto.surName", Is.is(patientDto.surName())))
+                .andExpect(jsonPath("$.data.patientDto.birthday", Is.is(patientDto.birthday().format(DATE_FORMATTER))))
+                .andExpect(jsonPath("$.data.patientDto.passport", Is.is(patientDto.passport())))
+                .andExpect(jsonPath("$.data.patientDto.polis", Is.is(patientDto.polis())))
+                .andExpect(jsonPath("$.data.patientDto.snils", Is.is(patientDto.snils())));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         // Проверяем поиск по талону не принадлежащему доктору и ждем 403

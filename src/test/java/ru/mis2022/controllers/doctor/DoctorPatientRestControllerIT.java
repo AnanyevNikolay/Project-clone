@@ -276,7 +276,7 @@ public class DoctorPatientRestControllerIT extends ContextIT {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.doctorId").value(doctor.getId()))
-                .andExpect(jsonPath("$.data.patient.id").value(patient.getId()))
+                .andExpect(jsonPath("$.data.patientDto.id").value(patient.getId()))
                 .andExpect(jsonPath("$.data.time").value(DATE_TIME_FORMATTER.format(talonTime)));
 
         // Все норм (пациент в талоне отсутствует)
@@ -291,7 +291,7 @@ public class DoctorPatientRestControllerIT extends ContextIT {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.data.doctorId").value(doctor.getId()))
-                .andExpect(jsonPath("$.data.patient.id").value(patient.getId()))
+                .andExpect(jsonPath("$.data.patientDto.id").value(patient.getId()))
                 .andExpect(jsonPath("$.data.time").value(DATE_TIME_FORMATTER.format(talonTime)));
 
         Talon qryTalon = entityManager.createQuery("""
