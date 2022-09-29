@@ -86,6 +86,6 @@ public class RegistrarScheduleRestController {
         ApiValidationUtils
                 .expectedTrue(doctorService.isExistsById(id),
                         414, "Доктора с таким id нет!");
-        return Response.ok(talonDtoService.findAllByDoctorId(id).get());
+        return Response.ok(talonDtoService.findAllByDoctorId(id));
     }
 }

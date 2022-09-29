@@ -5,31 +5,37 @@ import org.springframework.stereotype.Service;
 import ru.mis2022.models.dto.registrar.CurrentDepartamentDoctorTalonsDto;
 import ru.mis2022.models.dto.talon.DoctorTalonsDto;
 import ru.mis2022.models.dto.talon.TalonDto;
+import ru.mis2022.models.dto.talon.converter.TalonDtoConverter;
+import ru.mis2022.models.entity.Talon;
 import ru.mis2022.repositories.TalonRepository;
 import ru.mis2022.service.dto.TalonDtoService;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class TalonDtoServiceImpl implements TalonDtoService {
     private final TalonRepository talonRepository;
+    private final TalonDtoConverter talonDtoConverter;
 
     @Override
-    public Optional<List<TalonDto>> findAllByDoctorId(long doctorId) {
-        return talonRepository.findAllDtoByDoctorId(doctorId);
+    public List<TalonDto> findAllByDoctorId(long doctorId) {
+        List<Talon> talonList = talonRepository.findAllDtoByDoctorId(doctorId);
+        return talonList.stream().map(talonDtoConverter::talonToTalonDto).collect(Collectors.toList());
     }
 
     @Override
     public List<TalonDto> findTalonsByDoctorIdAndTimeBetween(Long doctorId, LocalDateTime timeNow, LocalDateTime timeEnd) {
-        return talonRepository.findTalonsByDoctorIdAndTimeBetween(doctorId, timeNow, timeEnd);
+        List<Talon> talonList = talonRepository.findTalonsByDoctorIdAndTimeBetween(doctorId, timeNow, timeEnd);
+        return talonList.stream().map(talonDtoConverter::talonToTalonDto).collect(Collectors.toList());
     }
 
     @Override
     public List<TalonDto> findAllByPatientId(long patientId) {
-        return talonRepository.findAllDtoByPatientId(patientId);
+        List<Talon> talonList = talonRepository.findAllDtoByPatientId(patientId);
+        return talonList.stream().map(talonDtoConverter::talonToTalonDto).collect(Collectors.toList());
     }
 
 

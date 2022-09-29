@@ -30,7 +30,6 @@ import ru.mis2022.utils.validation.ApiValidationUtils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Collections;
 import java.util.List;
 
 import static ru.mis2022.utils.DateFormatter.DATE_FORMATTER;
@@ -88,7 +87,7 @@ public class DoctorTalonsRestController {
     public Response<List<TalonByDay>> getAllTalonsByCurrentDoctor() {
         long doctorId = ((Doctor) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         return Response.ok(converter.groupByDay(
-                talonDtoService.findAllByDoctorId(doctorId).orElse(Collections.emptyList())));
+                talonDtoService.findAllByDoctorId(doctorId)));
     }
 
     @ApiOperation("Доктор получает свои талоны на сегодня")

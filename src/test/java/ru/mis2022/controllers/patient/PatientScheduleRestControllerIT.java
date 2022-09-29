@@ -339,31 +339,31 @@ public class PatientScheduleRestControllerIT extends ContextIT {
 
                 .andExpect(jsonPath("$.data[0].time", Is.is(fixedTimeNow.plusDays(2).format(DateFormatter.DATE_TIME_FORMATTER))))
                 .andExpect(jsonPath("$.data[0].doctorId", Is.is(doctor.getId().intValue())))
-                .andExpect(jsonPath("$.data[0].patient", Matchers.nullValue()))
+                .andExpect(jsonPath("$.data[0].patientDto", Matchers.nullValue()))
 
                 .andExpect(jsonPath("$.data[1].time", Is.is(fixedTimeNow.plusDays(2).plusHours(1).format(DateFormatter.DATE_TIME_FORMATTER))))
                 .andExpect(jsonPath("$.data[1].doctorId", Is.is(doctor.getId().intValue())))
-                .andExpect(jsonPath("$.data[1].patient", Matchers.nullValue()))
+                .andExpect(jsonPath("$.data[1].patientDto", Matchers.nullValue()))
 
                 .andExpect(jsonPath("$.data[2].time", Is.is(fixedTimeNow.plusDays(2).plusHours(2).format(DateFormatter.DATE_TIME_FORMATTER))))
                 .andExpect(jsonPath("$.data[2].doctorId", Is.is(doctor.getId().intValue())))
-                .andExpect(jsonPath("$.data[2].patient", Matchers.nullValue()))
+                .andExpect(jsonPath("$.data[2].patientDto", Matchers.nullValue()))
 
                 .andExpect(jsonPath("$.data[3].time", Is.is(fixedTimeNow.plusDays(3).format(DateFormatter.DATE_TIME_FORMATTER))))
                 .andExpect(jsonPath("$.data[3].doctorId", Is.is(doctor.getId().intValue())))
-                .andExpect(jsonPath("$.data[3].patient", Matchers.nullValue()))
+                .andExpect(jsonPath("$.data[3].patientDto", Matchers.nullValue()))
 
                 .andExpect(jsonPath("$.data[4].time", Is.is(fixedTimeNow.plusDays(3).plusHours(1).format(DateFormatter.DATE_TIME_FORMATTER))))
                 .andExpect(jsonPath("$.data[4].doctorId", Is.is(doctor.getId().intValue())))
-                .andExpect(jsonPath("$.data[4].patient", Matchers.nullValue()))
+                .andExpect(jsonPath("$.data[4].patientDto", Matchers.nullValue()))
 
                 .andExpect(jsonPath("$.data[5].time", Is.is(fixedTimeNow.plusDays(3).plusHours(2).format(DateFormatter.DATE_TIME_FORMATTER))))
                 .andExpect(jsonPath("$.data[5].doctorId", Is.is(doctor.getId().intValue())))
-                .andExpect(jsonPath("$.data[5].patient", Matchers.nullValue()))
+                .andExpect(jsonPath("$.data[5].patientDto", Matchers.nullValue()))
 
-                .andExpect(jsonPath("$.data[6].time", Is.is(fixedTimeNow.plusDays(7).with(LocalTime.MAX).minusMinutes(29).format(DateFormatter.DATE_TIME_FORMATTER))))
+                .andExpect(jsonPath("$.data[6].time", Is.is(fixedTimeNow.plusDays(7).with(LocalTime.MAX).minusMinutes(30).format(DateFormatter.DATE_TIME_FORMATTER))))
                 .andExpect(jsonPath("$.data[6].doctorId", Is.is(doctor.getId().intValue())))
-                .andExpect(jsonPath("$.data[6].patient", Matchers.nullValue()));
+                .andExpect(jsonPath("$.data[6].patientDto", Matchers.nullValue()));
               //.andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
     }
 }
