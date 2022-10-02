@@ -8,4 +8,6 @@ public interface EconomistService {
     Economist findByEmail(String email);
 
     Economist persist(Economist economist);
+
+    void deleteAll();
 }

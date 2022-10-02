@@ -5,11 +5,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import ru.mis2022.enums.patient.PatientSortingEnum;
 import ru.mis2022.models.dto.patient.CurrentPatientDto;
 import ru.mis2022.models.dto.patient.PatientDto;
 import ru.mis2022.repositories.PatientRepository;
 import ru.mis2022.service.dto.PatientDtoService;
-import ru.mis2022.utils.enums.patient.PatientSortingEnum;
 
 import java.util.List;
 import java.util.Optional;

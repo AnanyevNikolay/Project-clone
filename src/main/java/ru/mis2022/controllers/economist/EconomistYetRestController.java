@@ -105,7 +105,7 @@ public class EconomistYetRestController {
     })
     @GetMapping("/getAllYet")
     public Response<List<YetDto>> getAllYet() {
-        return Response.ok(yetDtoService.findAll());
+        return Response.ok(yetDtoService.findAllYetDto());
     }
 
 }

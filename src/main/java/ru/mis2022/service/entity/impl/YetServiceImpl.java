@@ -5,7 +5,9 @@ import org.springframework.stereotype.Service;
 import ru.mis2022.models.entity.Yet;
 import ru.mis2022.repositories.YetRepository;
 import ru.mis2022.service.entity.YetService;
+
 import java.time.LocalDate;
+import java.util.Comparator;
 import java.util.List;
 
 
@@ -46,4 +48,32 @@ public class YetServiceImpl implements YetService {
         return yetRepository.existYetDayFromDayToExceptCurrentId(id, dayFrom, dayTo);
     }
 
+    @Override
+    public List<Yet> findAllYetsBetweenDayFromAndDayTo(LocalDate dayFrom, LocalDate dayTo) {
+        return yetRepository.findAllYetsBetweenDayFromAndDayTo(dayFrom, dayTo);
+    }
+
+    public boolean checkIfThereAnyDateOverlap(List<Yet> yets) {
+        yets.sort(Comparator.comparing(Yet::getDayTo));
+        LocalDate endDate = null;
+
+        for (Yet yet : yets) {
+            if (endDate == null) {
+                endDate = yet.getDayTo();
+            } else {
+                if (endDate.isAfter(yet.getDayFrom())) {
+                    return true;
+                } else {
+                    endDate = yet.getDayTo();
+                }
+            }
+        }
+
+        return false;
+    }
+
+    @Override
+    public void deleteAll() {
+        yetRepository.deleteAll();
+    }
 }

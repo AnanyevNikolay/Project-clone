@@ -1,4 +1,4 @@
-package ru.mis2022.utils.enums.patient;
+package ru.mis2022.enums.patient;
 
 public enum PatientSortingEnum {
     FIRST_NAME("firstName"), LAST_NAME("lastName"),

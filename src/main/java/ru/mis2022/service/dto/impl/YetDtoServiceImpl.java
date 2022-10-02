@@ -14,7 +14,7 @@ public class YetDtoServiceImpl implements YetDtoService {
     private final YetRepository yetRepository;
 
     @Override
-    public List<YetDto> findAll() {
-        return yetRepository.findAllDto();
+    public List<YetDto> findAllYetDto() {
+        return yetRepository.findAllYetDto();
     }
 }

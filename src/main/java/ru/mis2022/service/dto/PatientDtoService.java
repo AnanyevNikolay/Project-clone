@@ -1,8 +1,8 @@
 package ru.mis2022.service.dto;
 
+import ru.mis2022.enums.patient.PatientSortingEnum;
 import ru.mis2022.models.dto.patient.CurrentPatientDto;
 import ru.mis2022.models.dto.patient.PatientDto;
-import ru.mis2022.utils.enums.patient.PatientSortingEnum;
 
 import java.util.List;
 import java.util.Optional;
