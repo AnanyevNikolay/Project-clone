@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.mis2022.models.dto.yet.YetDto;
 import ru.mis2022.models.entity.Yet;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -20,7 +21,7 @@ public interface YetRepository extends JpaRepository<Yet, Long> {
     List<Yet> existYetDayFromDayToExceptCurrentId(Long id, LocalDate dayFrom, LocalDate dayTo);
 
     @Query("""
-                select y from Yet y where y.id = :id 
+                select y from Yet y where y.id = :id
             """)
     Yet existById(Long id);
 
@@ -33,5 +34,14 @@ public interface YetRepository extends JpaRepository<Yet, Long> {
     )
     FROM Yet y
     """)
-    List<YetDto> findAllDto();
+    List<YetDto> findAllYetDto();
+
+    @Query("""
+            SELECT y
+            FROM Yet y
+            WHERE y.dayFrom >= :dayFrom and y.dayTo <= :dayTo
+            """)
+    List<Yet> findAllYetsBetweenDayFromAndDayTo(LocalDate dayFrom, LocalDate dayTo);
+
+    void deleteAll();
 }

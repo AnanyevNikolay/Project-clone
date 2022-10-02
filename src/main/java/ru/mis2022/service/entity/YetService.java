@@ -1,6 +1,7 @@
 package ru.mis2022.service.entity;
 
 import ru.mis2022.models.entity.Yet;
+
 import java.time.LocalDate;
 import java.util.List;
 
@@ -17,5 +18,11 @@ public interface YetService {
     void deleteById(Long id);
 
     List<Yet> existYetDayFromDayToExceptCurrentId(Long id, LocalDate dayFrom, LocalDate dayTo);
+
+    List<Yet> findAllYetsBetweenDayFromAndDayTo(LocalDate dayFrom, LocalDate dayTo);
+
+    boolean checkIfThereAnyDateOverlap(List<Yet> yets);
+
+    void deleteAll();
 
 }

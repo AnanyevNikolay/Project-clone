@@ -41,4 +41,9 @@ public class MedicalServiceServiceImpl implements MedicalServiceService {
     public Optional<List<MedicalService>> getMedicalServicesDtoVisitedByCurrentPatientWithId(long id) {
         return medicalServiceRepository.getMedicalServicesDtoVisitedByCurrentPatientWithId(id);
     }
+
+    @Override
+    public void deleteAll() {
+        medicalServiceRepository.deleteAll();
+    }
 }

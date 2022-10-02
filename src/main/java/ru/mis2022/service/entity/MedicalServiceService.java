@@ -15,4 +15,6 @@ public interface MedicalServiceService {
 
     Optional<List<MedicalService>> getMedicalServicesDtoVisitedByCurrentPatientWithId(long id);
 
+    void deleteAll();
+
 }

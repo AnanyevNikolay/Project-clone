@@ -24,4 +24,9 @@ public class EconomistServiceImpl implements EconomistService {
         economist.setPassword(encoder.encode(economist.getPassword()));
         return economistRepository.save(economist);
     }
+
+    @Override
+    public void deleteAll() {
+        economistRepository.deleteAll();
+    }
 }

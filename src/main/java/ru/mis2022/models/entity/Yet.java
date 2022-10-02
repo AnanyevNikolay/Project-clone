@@ -44,4 +44,10 @@ public class Yet {
     private LocalDate dayFrom;
 
     private LocalDate dayTo;
+
+    public Yet(Double price, LocalDate dayFrom, LocalDate dayTo) {
+        this.price = price;
+        this.dayFrom = dayFrom;
+        this.dayTo = dayTo;
+    }
 }
