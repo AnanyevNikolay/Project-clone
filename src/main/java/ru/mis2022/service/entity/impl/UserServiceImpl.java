@@ -11,11 +11,13 @@ import ru.mis2022.repositories.UserRepository;
 import ru.mis2022.service.entity.InviteService;
 import ru.mis2022.service.entity.UserService;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {
+
 
     private final UserRepository userRepository;
     private final PasswordEncoder encoder;
@@ -79,5 +81,10 @@ public class UserServiceImpl implements UserService {
         user = userRepository.save(user);
         inviteService.delete(invite);
         return user;
+    }
+
+    @Override
+    public List<User> findPersonalByBirthdayInRange(LocalDate from, LocalDate to) {
+        return userRepository.findPersonalWhoBirthdayInRange(from, to);
     }
 }
