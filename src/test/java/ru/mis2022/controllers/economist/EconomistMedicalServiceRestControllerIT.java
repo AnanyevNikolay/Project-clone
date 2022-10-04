@@ -166,6 +166,8 @@ public class EconomistMedicalServiceRestControllerIT extends ContextIT {
 //                .andDo(result -> System.out.println(result.getResponse().getContentAsString()))
         ;
 
+        // Прошлая цена все еще лежит в базе и пытаемся отправить ее снова
+        // (тем самым создаем пересечение по дате) и ждем 409
         mockMvc.perform(post("/api/economist/medicalService/setPrice/{id}", medicalService.getId())
                         .header("Authorization", accessToken)
                         .content(objectMapper.writeValueAsString(price))
