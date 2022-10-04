@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.mis2022.models.dto.talon.TalonDto;
+import ru.mis2022.models.entity.Doctor;
 import ru.mis2022.models.entity.Patient;
 import ru.mis2022.models.entity.Talon;
 import ru.mis2022.models.response.Response;
@@ -30,6 +31,7 @@ import java.util.List;
 public class PatientTalonsRestController {
     private final TalonService talonService;
     private final TalonDtoService talonDtoService;
+
 
     @ApiOperation("Авторизованный пациент получает все свои талоны на которые у него есть запись")
     @ApiResponses(value = {
@@ -59,5 +61,34 @@ public class PatientTalonsRestController {
         talon.setPatient(null);
         talonService.save(talon);
         return Response.ok();
+    }
+
+    @ApiOperation("Пациент записывается на талон")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Запись прошла успешно"),
+            @ApiResponse(code = 402, message = "Талона с данным id не существует"),
+            @ApiResponse(code = 403, message = "Талон уже занят"),
+            @ApiResponse(code = 404, message = "У вас уже есть запись в данное отделение"),
+            @ApiResponse(code = 405, message = "Врач на данный талон не назначен"),
+            @ApiResponse(code = 406, message = "Вы уже записаны к врачу из данного отделения")
+    })
+    @PatchMapping("/recordOnTalon")
+    public Response<TalonDto> recordOnTalon(Long talonId) {
+        Talon talon = talonService.findTalonByIdWithDoctorAndPatient(talonId);
+        ApiValidationUtils.expectedNotNull(talon,
+                402, "Талона с данным id не существует");
+
+        ApiValidationUtils.expectedNotNull(talon.getDoctor(),
+                405, "Врач на данный талон не назначен");
+        Doctor doctor = talon.getDoctor();
+
+        ApiValidationUtils.expectedTrue(talon.getPatient() == null,
+                403, "Талон уже занят");
+
+        Patient patient = (Patient) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        ApiValidationUtils.expectedFalse(talonService.patientHaveTalonsFromDep(
+                patient.getId(), doctor.getDepartment().getId()),
+                406, "Вы уже записаны к врачу из данного отделения");
+        return Response.ok(talonService.registerPatientInTalon(talon, patient));
     }
 }

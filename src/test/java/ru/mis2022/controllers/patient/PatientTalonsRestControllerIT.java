@@ -10,6 +10,7 @@ import ru.mis2022.models.entity.Patient;
 import ru.mis2022.models.entity.PersonalHistory;
 import ru.mis2022.models.entity.Role;
 import ru.mis2022.models.entity.Talon;
+import ru.mis2022.service.entity.DepartmentService;
 import ru.mis2022.service.entity.DoctorService;
 import ru.mis2022.service.entity.PatientService;
 import ru.mis2022.service.entity.RoleService;
@@ -18,11 +19,13 @@ import ru.mis2022.util.ContextIT;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static ru.mis2022.utils.DateFormatter.DATE_TIME_FORMATTER;
 
 public class PatientTalonsRestControllerIT extends ContextIT {
 
@@ -34,6 +37,8 @@ public class PatientTalonsRestControllerIT extends ContextIT {
     TalonService talonService;
     @Autowired
     DoctorService doctorService;
+    @Autowired
+    DepartmentService departmentService;
 
     Role initRole(String name) {
         return roleService.save(Role.builder()
@@ -71,6 +76,12 @@ public class PatientTalonsRestControllerIT extends ContextIT {
 
     Talon initTalon(LocalDateTime time, Doctor doctor, Patient patient) {
         return new Talon(time, doctor, patient);
+    }
+
+    Department initDepartment(String name) {
+        return departmentService.save(Department.builder()
+                .name(name)
+                .build());
     }
 
     @Test
@@ -209,5 +220,92 @@ public class PatientTalonsRestControllerIT extends ContextIT {
         if (talon.getPatient() != null || talon2.getPatient() == null) {
             throw new Exception("Запись по талону не удалена");
         }
+    }
+
+    @Test
+    public void recordOnTalon() throws Exception {
+        Role patientRole = initRole("PATIENT");
+        Role doctorRole = initRole("DOCTOR");
+        Department department1 = initDepartment("Department1");
+        Department department2 = initDepartment("Department2");
+        Patient patient = initPatient(patientRole, "Patient@gmail.com");
+        Patient patient2 = initPatient(patientRole, "Patient2@gmail.com");
+        Doctor doctor = initDoctor(doctorRole, department1, null, "Doctor@gmail.com");
+        Doctor doctor2 = initDoctor(doctorRole, department2, null, "Doctor2@gmail.com");
+        Talon talon1 = initTalon(LocalDateTime.now(), doctor, null);
+        Talon sameDepTalon = initTalon(LocalDateTime.now().plusHours(1), doctor, null);
+        Talon busyTalon = initTalon(LocalDateTime.now().plusHours(2), doctor, patient2);
+        Talon doc2Talon = initTalon(LocalDateTime.now().plusHours(3), doctor2, null);
+
+        talonService.save(talon1);
+        talonService.save(sameDepTalon);
+        talonService.save(busyTalon);
+        talonService.save(doc2Talon);
+
+        accessToken = tokenUtil.obtainNewAccessToken(patient.getEmail(), "1", mockMvc);
+
+        //УСПЕШНАЯ ЗАПИСЬ НА ТАЛОН
+        mockMvc.perform(patch("/api/patient/talons/recordOnTalon")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("talonId", talon1.getId().toString())
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+
+                .andExpect(jsonPath("$.data.patientDto.id", Is.is(patient.getId().intValue())))
+                .andExpect(jsonPath("$.data.doctorId", Is.is(doctor.getId().intValue())))
+                .andExpect(jsonPath("$.data.id", Is.is(talon1.getId().intValue())))
+                .andExpect(jsonPath("$.data.time", Is.is(DATE_TIME_FORMATTER.format(talon1.getTime()))));
+//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
+        //ПОВТОРНАЯ ЗАПИСЬ В ТОЖЕ ОТДЕЛЕНИЕ
+        patient.setTalons(new ArrayList<>(){{ add(talon1); }});
+
+        mockMvc.perform(patch("/api/patient/talons/recordOnTalon")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("talonId", sameDepTalon.getId().toString())
+                )
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(406)))
+                .andExpect(jsonPath("$.text", Is.is("Вы уже записаны к врачу из данного отделения")));
+
+        //ТАЛОН УЖЕ ЗАНЯТ
+        mockMvc.perform(patch("/api/patient/talons/recordOnTalon")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("talonId", busyTalon.getId().toString())
+                )
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(403)))
+                .andExpect(jsonPath("$.text", Is.is("Талон уже занят")));
+
+        //ТАЛОНА С ТАКИМ ID НЕ СУЩЕСВТУЕТ
+        mockMvc.perform(patch("/api/patient/talons/recordOnTalon")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("talonId", "88888888")
+                )
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(402)))
+                .andExpect(jsonPath("$.text", Is.is("Талона с данным id не существует")));
+
+        //ВРАЧА НА ДАННЫЙ ТАЛОН НЕ НАЗНАЧЕН
+        talon1.setDoctor(null);
+
+        mockMvc.perform(patch("/api/patient/talons/recordOnTalon")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("talonId", talon1.getId().toString())
+                )
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(405)))
+                .andExpect(jsonPath("$.text", Is.is("Врач на данный талон не назначен")));
     }
 }

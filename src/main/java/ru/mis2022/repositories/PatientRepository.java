@@ -71,5 +71,4 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
     Optional<List<PatientDto>> findPatientsByFirstNameOrLastNameOrPolisOrSnilsPattern(
             String firstName, String lastName, String polis, String snils, Pageable pageable
     );
-
 }

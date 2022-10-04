@@ -12,6 +12,7 @@ import ru.mis2022.service.entity.HrManagerService;
 import ru.mis2022.service.entity.RoleService;
 import ru.mis2022.service.entity.UserService;
 import ru.mis2022.util.ContextIT;
+
 import java.time.LocalDate;
 
 import static org.aspectj.runtime.internal.Conversions.intValue;
@@ -48,9 +49,9 @@ public class HrManagerPersonalRestControllerIT extends ContextIT {
         ));
     }
 
-    User initUser(String firstName, String lastName, String email, Role role) {
+    User initUser(String firstName, String lastName, String email, Role role, LocalDate birthday) {
         return userService.persist(new User(
-                email, null, firstName, lastName, null, null, role));
+                email, null, firstName, lastName, null, birthday, role));
     }
     String getFullName(User user) {
         return user.getLastName() + " " + user.getFirstName();
@@ -61,16 +62,16 @@ public class HrManagerPersonalRestControllerIT extends ContextIT {
         Role roleHrManager = initRole("HR_MANAGER");
         Role rolePatient = initRole("PATIENT");
         HrManager hrManager = initHrManager(roleHrManager);
-        User user1 = initUser("Александр", "Александров","email99", roleHrManager);
-        User user2 = initUser("Николай", "Комаров", "email100", roleHrManager);
-        User user3 = initUser("Николай", "Васильев","email101", roleHrManager);
-        User user4 = initUser("Даниил", "Данилов","email102", rolePatient);
-        User user5 = initUser("Ирина", "Данилова","email103", rolePatient);
-        User user6 = initUser("Василий", "Прохоров","email104", roleHrManager);
-        User user7 = initUser("Ирина", "Коробова","email105", roleHrManager);
-        User user8 = initUser("Василий", "Александров","email106", roleHrManager);
-        User user9 = initUser("Сергей", "Сергеев","email107", roleHrManager);
-        User user10 = initUser("Александр", "Коротков","email108", roleHrManager);
+        User user1 = initUser("Александр", "Александров","email99", roleHrManager, null);
+        User user2 = initUser("Николай", "Комаров", "email100", roleHrManager, null);
+        User user3 = initUser("Николай", "Васильев","email101", roleHrManager, null);
+        User user4 = initUser("Даниил", "Данилов","email102", rolePatient, null);
+        User user5 = initUser("Ирина", "Данилова","email103", rolePatient, null);
+        User user6 = initUser("Василий", "Прохоров","email104", roleHrManager, null);
+        User user7 = initUser("Ирина", "Коробова","email105", roleHrManager, null);
+        User user8 = initUser("Василий", "Александров","email106", roleHrManager, null);
+        User user9 = initUser("Сергей", "Сергеев","email107", roleHrManager, null);
+        User user10 = initUser("Александр", "Коротков","email108", roleHrManager, null);
 
         accessToken = tokenUtil.obtainNewAccessToken(hrManager.getEmail(), "1", mockMvc);
         //Сортировка осуществляется в последовательности: фамилия - имя - id
