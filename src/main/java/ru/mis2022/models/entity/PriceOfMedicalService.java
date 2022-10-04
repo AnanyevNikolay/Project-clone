@@ -12,6 +12,7 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity
@@ -24,7 +25,7 @@ public class PriceOfMedicalService {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Double yet;
+    private BigDecimal yet;
 
     private LocalDate dayFrom;
 
@@ -34,7 +35,7 @@ public class PriceOfMedicalService {
     @JoinColumn(name = "medical_service_id")
     private MedicalService medicalService;
 
-    public PriceOfMedicalService(Double yet, LocalDate dayFrom, LocalDate dayTo, MedicalService medicalService) {
+    public PriceOfMedicalService(BigDecimal yet, LocalDate dayFrom, LocalDate dayTo, MedicalService medicalService) {
         this.yet = yet;
         this.dayFrom = dayFrom;
         this.dayTo = dayTo;
