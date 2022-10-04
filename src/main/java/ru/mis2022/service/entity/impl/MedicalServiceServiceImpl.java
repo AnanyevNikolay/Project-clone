@@ -46,4 +46,9 @@ public class MedicalServiceServiceImpl implements MedicalServiceService {
     public void deleteAll() {
         medicalServiceRepository.deleteAll();
     }
+
+    @Override
+    public MedicalService getMedicalServiceById(Long id) {
+        return medicalServiceRepository.getMedicalServiceById(id);
+    }
 }

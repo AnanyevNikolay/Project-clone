@@ -21,4 +21,6 @@ public interface MedicalServiceRepository extends JpaRepository<MedicalService, 
          WHERE ms.visit.appeal.patient.id = :id
          """)
    Optional<List<MedicalService>> getMedicalServicesDtoVisitedByCurrentPatientWithId(long id);
+
+   MedicalService getMedicalServiceById(Long id);
 }
