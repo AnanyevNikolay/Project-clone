@@ -3,6 +3,8 @@ package ru.mis2022.controllers.economist;
 import org.hamcrest.Matchers;
 import org.hamcrest.core.Is;
 import org.hamcrest.core.IsNull;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -10,10 +12,12 @@ import ru.mis2022.models.dto.service.MedicalServiceDto;
 import ru.mis2022.models.dto.service.PriceOfMedicalServiceDto;
 import ru.mis2022.models.entity.Economist;
 import ru.mis2022.models.entity.MedicalService;
+import ru.mis2022.models.entity.PriceOfMedicalService;
 import ru.mis2022.models.entity.Role;
 import ru.mis2022.service.entity.DepartmentService;
 import ru.mis2022.service.entity.EconomistService;
 import ru.mis2022.service.entity.MedicalServiceService;
+import ru.mis2022.service.entity.PriceOfMedicalServiceService;
 import ru.mis2022.service.entity.RoleService;
 import ru.mis2022.util.ContextIT;
 
@@ -39,6 +43,9 @@ public class EconomistMedicalServiceRestControllerIT extends ContextIT {
     @Autowired
     MedicalServiceService medicalServiceService;
 
+    @Autowired
+    PriceOfMedicalServiceService priceOfMedicalServiceService;
+
     Role initRole(String name) {
         return roleService.save(Role.builder()
                 .name(name)
@@ -55,6 +62,14 @@ public class EconomistMedicalServiceRestControllerIT extends ContextIT {
                 LocalDate.now().minusYears(20),
                 role
         ));
+    }
+
+    @AfterEach
+    void clear() {
+        priceOfMedicalServiceService.deleteAll();
+        medicalServiceService.deleteAll();
+        economistService.deleteAll();
+        roleService.deleteAll();
     }
 
     MedicalService initMedicalService(String identifier, String name) {
@@ -148,7 +163,7 @@ public class EconomistMedicalServiceRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data.price", Is.is(1.12)))
                 .andExpect(jsonPath("$.data.dayFrom", Is.is(price.dayFrom().format(DATE_FORMATTER))))
                 .andExpect(jsonPath("$.data.dayTo", Is.is(price.dayTo().format(DATE_FORMATTER))))
-                .andDo(result -> System.out.println(result.getResponse().getContentAsString()))
+//                .andDo(result -> System.out.println(result.getResponse().getContentAsString()))
         ;
 
         mockMvc.perform(post("/api/economist/medicalService/setPrice/{id}", medicalService.getId())
@@ -161,8 +176,31 @@ public class EconomistMedicalServiceRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.success", Is.is(false)))
                 .andExpect(jsonPath("$.data", IsNull.nullValue()))
                 .andExpect(jsonPath("$.text", Is.is("В этот диапазон уже есть действующая цена")))
-                .andDo(result -> System.out.println(result.getResponse().getContentAsString()))
+//                .andDo(result -> System.out.println(result.getResponse().getContentAsString()))
         ;
+
+        // Ручное удаление
+        PriceOfMedicalService priceQry = entityManager.createQuery("""
+                        SELECT pms
+                        FROM PriceOfMedicalService pms
+                            LEFT JOIN MedicalService ms on ms.id = pms.medicalService.id
+                        WHERE pms.medicalService.id = :id
+                        """, PriceOfMedicalService.class)
+                .setParameter("id", medicalService.getId())
+                .getSingleResult();
+
+        Assertions.assertEquals(priceQry.getMedicalService().getId(), medicalService.getId());
+
+        Economist economistQry = entityManager.createQuery("""
+                SELECT e
+                FROM Economist e
+                    LEFT JOIN Role r ON r.id = e.role.id
+                WHERE e.id = :id
+                """, Economist.class)
+                .setParameter("id", economist.getId())
+                .getSingleResult();
+
+        Assertions.assertEquals(economistQry.getId(), economist.getId());
     }
 
 }
