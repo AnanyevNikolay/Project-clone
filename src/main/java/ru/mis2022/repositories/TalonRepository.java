@@ -116,4 +116,23 @@ public interface TalonRepository extends JpaRepository<Talon, Long> {
     """)
     List<CurrentDepartamentDoctorTalonsDto> getCurrentDepartamentDoctorTalonsDto(LocalDateTime timeStrart, LocalDateTime timeEnd);
 
+
+    @Query("""
+SELECT CASE WHEN COUNT(t) = 0
+THEN false  ELSE true END
+FROM Talon t
+JOIN t.doctor.department de
+WHERE t.patient.id = :patientId AND
+de.id = :departmentId AND
+t.time >= CURRENT_TIMESTAMP
+""")
+    Boolean patientHaveTalonsFromThisDep(Long patientId, Long departmentId);
+
+    @Query("""
+SELECT t FROM Talon t
+LEFT JOIN FETCH t.doctor
+LEFT JOIN FETCH t.patient
+WHERE t.id = :id
+""")
+    Talon findTalonByWithDoctorAndPatient(Long id);
 }

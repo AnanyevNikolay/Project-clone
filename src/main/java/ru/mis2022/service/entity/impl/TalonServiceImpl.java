@@ -110,6 +110,16 @@ public class TalonServiceImpl implements TalonService {
     }
 
     @Override
+    public Talon findTalonByIdWithDoctorAndPatient(Long id) {
+        return talonRepository.findTalonByWithDoctorAndPatient(id);
+    }
+
+    @Override
+    public Boolean patientHaveTalonsFromDep(Long patientId, Long departmentId) {
+        return talonRepository.patientHaveTalonsFromThisDep(patientId, departmentId);
+    }
+
+    @Override
     public void deleteAll() {
         talonRepository.deleteAll();
     }

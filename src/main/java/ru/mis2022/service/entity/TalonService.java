@@ -36,5 +36,9 @@ public interface TalonService {
 
     TalonDto registerPatientInTalon(Talon talon, Patient patient);
 
+    Boolean patientHaveTalonsFromDep(Long patientId, Long departmentId);
+
+    Talon findTalonByIdWithDoctorAndPatient(Long id);
+
     void deleteAll();
 }
