@@ -153,4 +153,76 @@ public class HrManagerPersonalRestControllerIT extends ContextIT {
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
     }
+
+    @Test
+    public void findAllBirthdayInRange() throws Exception {
+        Role roleHrManager = initRole("HR_MANAGER");
+        Role rolePatient = initRole("PATIENT");
+        HrManager hrManager = initHrManager(roleHrManager);
+        User user1 = initUser("Александр", "Александров","email99", roleHrManager,
+                LocalDate.now().plusDays(28));
+        User user2 = initUser("Николай", "Комаров", "email100", roleHrManager,
+                LocalDate.now().plusDays(40));
+        User user3 = initUser("Николай", "Васильев","email101", roleHrManager,
+                LocalDate.now().plusDays(7));
+        User user4 = initUser("Даниил", "Данилов","email102", rolePatient,
+                LocalDate.now().plusDays(11));
+        User user5 = initUser("Ирина", "Данилова","email103", rolePatient,
+                LocalDate.now().plusDays(25));
+        User user6 = initUser("Василий", "Прохоров","email104", roleHrManager,
+                LocalDate.now().plusDays(77));
+        User user7 = initUser("Ирина", "Коробова","email105", roleHrManager,
+                LocalDate.now().plusDays(3));
+        User user8 = initUser("Василий", "Александров","email106", roleHrManager,
+                LocalDate.now().plusDays(100));
+        User user9 = initUser("Сергей", "Сергеев","email107", roleHrManager,
+                LocalDate.now().plusDays(10));
+        User user10 = initUser("Александр", "Коротков","email108", roleHrManager,
+                LocalDate.now().plusDays(44));
+
+        accessToken = tokenUtil.obtainNewAccessToken(hrManager.getEmail(), "1", mockMvc);
+
+        //ПОЛУЧАЕМ СПИСОК ИМЕНИННИКОВ НА 20 ДНЕЙ ВПЕРЕД (4)
+        mockMvc.perform(get("/api/hr_manager/findBirthdayInRange")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("daysCount", objectMapper.writeValueAsString(20))
+        )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+                .andExpect(jsonPath("$.data.length()", Is.is(4)))
+
+                //ИВАН ИВАНОВ
+                .andExpect(jsonPath("$.data[0].id", Is.is(hrManager.getId().intValue())))
+                //ИРИНА КОРОБОВА
+                .andExpect(jsonPath("$.data[1].id", Is.is(user7.getId().intValue())))
+                //НИКОЛАЙ ВАСИЛЬЕВ
+                .andExpect(jsonPath("$.data[2].id", Is.is(user3.getId().intValue())))
+                //СЕРГЕЙ СЕРГЕЕВ
+                .andExpect(jsonPath("$.data[3].id", Is.is(user9.getId().intValue())));
+//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
+        //ПОЛУЧАЕМ СПИСОК ИМЕНИННИКОВ НА ДЕФОЛТНОЕ ЗНАЧЕНИЕ = 30 (5)
+        mockMvc.perform(get("/api/hr_manager/findBirthdayInRange")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+                .andExpect(jsonPath("$.data.length()", Is.is(5)))
+
+                //ИВАН ИВАНОВ
+                .andExpect(jsonPath("$.data[0].id", Is.is(hrManager.getId().intValue())))
+                //ИРИНА КОРОБОВА
+                .andExpect(jsonPath("$.data[1].id", Is.is(user7.getId().intValue())))
+                //НИКОЛАЙ ВАСИЛЬЕВ
+                .andExpect(jsonPath("$.data[2].id", Is.is(user3.getId().intValue())))
+                //СЕРГЕЙ СЕРГЕЕВ
+                .andExpect(jsonPath("$.data[3].id", Is.is(user9.getId().intValue())))
+                //АЛЕКСАНДР АЛЕКСАНДРОВ
+                .andExpect(jsonPath("$.data[4].id", Is.is(user1.getId().intValue())));
+//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+    }
 }

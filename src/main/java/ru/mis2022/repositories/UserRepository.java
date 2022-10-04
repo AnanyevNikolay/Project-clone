@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import ru.mis2022.models.dto.user.UserDto;
 import ru.mis2022.models.entity.User;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -72,4 +73,17 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     User findUserById(Long id);
     User save(User user);
+
+
+    @Query("""
+            SELECT u FROM User u
+            JOIN u.role
+            WHERE u.role.name <> 'PATIENT' AND
+            TO_CHAR(cast(u.birthday AS date), 'MM-DD') BETWEEN
+            TO_CHAR(cast(:fromDate AS date), 'MM-DD') AND
+            TO_CHAR(cast(:toDate AS date), 'MM-DD')
+            ORDER BY TO_CHAR(cast(u.birthday AS date), 'MM-DD')
+            """)
+    List<User> findPersonalWhoBirthdayInRange(LocalDate fromDate, LocalDate toDate);
+
 }

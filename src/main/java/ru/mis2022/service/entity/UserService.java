@@ -4,6 +4,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import ru.mis2022.models.entity.Invite;
 import ru.mis2022.models.entity.User;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface UserService extends UserDetailsService {
@@ -20,8 +21,11 @@ public interface UserService extends UserDetailsService {
 
     List<User> findPersonalByFullName(String fullName, String roleName);
 
+    List<User> findPersonalByBirthdayInRange(LocalDate from, LocalDate to);
+
     User persist(User user);
     User findUserById(Long id);
     User save(User user);
     User saveUserByInviteAndDeleteInvite(User user, String password, Invite invite);
+
 }
