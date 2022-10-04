@@ -1,5 +1,6 @@
 package ru.mis2022.service.entity;
 
+import ru.mis2022.models.dto.service.PriceOfMedicalServiceDto;
 import ru.mis2022.models.entity.PriceOfMedicalService;
 import ru.mis2022.models.entity.Yet;
 
@@ -17,4 +18,9 @@ public interface PriceOfMedicalServiceService {
     boolean checkIfThereAnyActiveServiceWhileYetIsNot(List<PriceOfMedicalService> medicalServices, List<Yet> yets);
 
     void deleteAll();
+
+    PriceOfMedicalService getPriceOfMedicalServiceBetweenDayFromAndDayToWithMedicalService(
+            LocalDate dayFrom, LocalDate dayTo, Long medicalServiceId);
+
+    PriceOfMedicalServiceDto setPriceByDtoWithMedicalService(PriceOfMedicalServiceDto priceOfMedicalServiceDto, Long id);
 }
