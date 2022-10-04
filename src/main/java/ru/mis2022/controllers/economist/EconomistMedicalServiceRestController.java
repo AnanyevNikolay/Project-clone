@@ -6,17 +6,22 @@ import io.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.mis2022.models.dto.service.MedicalServiceDto;
+import ru.mis2022.models.dto.service.PriceOfMedicalServiceDto;
 import ru.mis2022.models.dto.service.converter.MedicalServiceDtoConverter;
 import ru.mis2022.models.entity.MedicalService;
 import ru.mis2022.models.response.Response;
 import ru.mis2022.service.entity.MedicalServiceService;
+import ru.mis2022.service.entity.PriceOfMedicalServiceService;
 import ru.mis2022.utils.validation.ApiValidationUtils;
 import ru.mis2022.utils.validation.OnCreate;
+
+import java.time.LocalDate;
 
 @RestController
 @RequiredArgsConstructor
@@ -26,6 +31,7 @@ public class EconomistMedicalServiceRestController {
 
     private final MedicalServiceService medicalServiceService;
     private final MedicalServiceDtoConverter converter;
+    private final PriceOfMedicalServiceService priceOfMedicalServiceService;
 
 
     @ApiOperation(value = "Экономист сохраняет новую медицинскую услугу")
@@ -48,6 +54,26 @@ public class EconomistMedicalServiceRestController {
                         .identifier(medicalServiceDto.identifier())
                         .name(medicalServiceDto.name())
                         .build())));
+
+    }
+
+    @ApiOperation(value = "Экономист устанавливает цену на медицинскую услугу")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Цена установлена"),
+            @ApiResponse(code = 409, message = "В этот диапазон уже есть действующая цена")
+    })
+    @PostMapping("/setPrice/{id}")
+    public Response<PriceOfMedicalServiceDto> setMedicalServicePrice(@RequestBody PriceOfMedicalServiceDto priceOfMedicalServiceDto,
+                                                 @PathVariable("id") Long id) {
+        LocalDate dayFrom = priceOfMedicalServiceDto.dayFrom();
+        LocalDate dayTo = priceOfMedicalServiceDto.dayTo();
+
+        ApiValidationUtils.expectedNull(priceOfMedicalServiceService
+                .getPriceOfMedicalServiceBetweenDayFromAndDayToWithMedicalService(dayFrom, dayTo, id),
+                409,
+                "В этот диапазон уже есть действующая цена");
+
+        return Response.ok(priceOfMedicalServiceService.setPriceByDtoWithMedicalService(priceOfMedicalServiceDto, id));
 
     }
 }
