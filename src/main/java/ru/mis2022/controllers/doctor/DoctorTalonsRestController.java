@@ -96,9 +96,7 @@ public class DoctorTalonsRestController {
     })
     @GetMapping("/onToday")
     public Response <List<DoctorTalonsDto>> talonsOnToday() {
-        User currentUser = (User) SecurityContextHolder.getContext().getAuthentication()
-                .getPrincipal();
-        Doctor doctor = doctorService.findByEmail(currentUser.getEmail());
+        Doctor doctor = (Doctor) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         LocalDateTime startDayTime = LocalDateTime.now().with(LocalTime.MIN);
         LocalDateTime endDayTime = LocalDateTime.now().with(LocalTime.MAX);
         return Response.ok(talonDtoService.getTalonsByDoctorIdAndDay(doctor.getId(), startDayTime, endDayTime));
@@ -113,6 +111,7 @@ public class DoctorTalonsRestController {
     @GetMapping("/{id}")
     public Response<TalonDto> getTalonById(@PathVariable("id") long id) {
         long doctorId = ((Doctor) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        //todo list2 getTalonByIdWithDoctor() не нужен в таком виде здесь - нужен метод который примет в параметры id талона и id доктора и вернет нужный талон. Тогда вторая проверка не понадобится
         Talon talon = talonService.getTalonByIdWithDoctor(id);
         ApiValidationUtils.expectedNotNull(talon, 404, "Талон не найден");
         ApiValidationUtils.expectedTrue(talon.getDoctor().getId().equals(doctorId),

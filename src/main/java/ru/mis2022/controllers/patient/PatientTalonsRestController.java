@@ -32,7 +32,6 @@ public class PatientTalonsRestController {
     private final TalonService talonService;
     private final TalonDtoService talonDtoService;
 
-
     @ApiOperation("Авторизованный пациент получает все свои талоны на которые у него есть запись")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Получение всех талонов, занятых пациентом")

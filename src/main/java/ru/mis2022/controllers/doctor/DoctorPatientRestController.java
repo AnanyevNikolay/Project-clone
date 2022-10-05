@@ -59,6 +59,7 @@ public class DoctorPatientRestController {
                                                      @RequestParam Long patientId) {
         Long currentDocId = ((Doctor) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
 
+        //todo list2 при запросе талона, с ним не связывается доктор. Необходимо создать findTalonWithDoctorAndPatientByTalonId() и в нем связать в запросе связанного доктора что бы тест не ломался.
         Talon talon = talonService.findTalonById(talonId);
         ApiValidationUtils.expectedNotNull(talon, 401,
                 "Талона не существует");

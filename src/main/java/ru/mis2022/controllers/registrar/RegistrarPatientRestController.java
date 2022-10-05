@@ -36,14 +36,10 @@ import java.util.Optional;
 @RequestMapping("/api/registrar/patient")
 @RequiredArgsConstructor
 public class RegistrarPatientRestController {
-
     private final PatientDtoService patientDtoService;
-
     private final PatientService patientService;
     private final UserService userService;
-
     private final PatientDtoConverter patientDtoConverter;
-
     private final TestSystemService testSystemService;
 
     @ApiOperation("Регистратор получает пользователей по паттерну имени, или фамилии, или полиса, или снилса," +

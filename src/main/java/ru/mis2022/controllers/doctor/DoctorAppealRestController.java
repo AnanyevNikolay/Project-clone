@@ -46,6 +46,7 @@ public class DoctorAppealRestController {
                                          @RequestParam Long diseaseId) {
         Patient patient = patientService.findPatientById(patientId);
         ApiValidationUtils
+                //todo list1 проверить ссылку пациента на null а не делать повторный запрос
                 .expectedTrue(patientService.isExistById(patientId), 410, "Пациент не существует");
 
         Disease disease = diseaseService.findDiseaseById(diseaseId);
@@ -54,6 +55,7 @@ public class DoctorAppealRestController {
 
         Doctor currentDoc = ((Doctor) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         ApiValidationUtils
+                //todo list1 неполучать отделения из заболевания и доктора, а написать 2 отдельных метода, которые принимают id отделения и id доктора и через запрос получат отделение
                 .expectedEqual(disease.getDepartment().getId(), currentDoc.getDepartment().getId(), 412,
                 "Заболевание не лечится в текущем отделении");
 
