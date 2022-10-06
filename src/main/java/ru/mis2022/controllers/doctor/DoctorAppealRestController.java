@@ -24,7 +24,6 @@ import ru.mis2022.service.entity.PatientService;
 import ru.mis2022.utils.validation.ApiValidationUtils;
 
 import java.time.LocalDate;
-import java.util.Objects;
 
 @RestController
 @RequiredArgsConstructor
@@ -46,11 +45,12 @@ public class DoctorAppealRestController {
     })
     @PostMapping("/create")
     public Response<AppealDto> addAppeal(@RequestParam Long patientId,
-                                         @RequestParam Long diseaseId) {
+                                         @RequestParam Long diseaseId,
+                                         @RequestParam Long departmentId) {
         Patient patient = patientService.findPatientById(patientId);
+
         ApiValidationUtils
-                //todo list1 проверить ссылку пациента на null а не делать повторный запрос
-                .expectedTrue(!Objects.isNull(patient), 410, "Пациент не существует");
+                .expectedNotNull(patient, 410, "Пациент не существует");
 
         Disease disease = diseaseService.findDiseaseById(diseaseId);
         ApiValidationUtils
@@ -58,8 +58,7 @@ public class DoctorAppealRestController {
 
         Doctor currentDoc = ((Doctor) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         ApiValidationUtils
-                //todo list1 неполучать отделения из заболевания и доктора, а написать 2 отдельных метода, которые принимают id отделения и id доктора и через запрос получат отделение
-                .expectedEqual(departmentService.findDepartmentById(disease.getDepartment().getId()), departmentService.findDepartmentByDoctorId(currentDoc.getId()), 412,
+                .expectedEqual(departmentService.findDepartmentById(departmentId), departmentService.findDepartmentByDoctorId(currentDoc.getId()), 412,
                 "Заболевание не лечится в текущем отделении");
 
         return Response.ok(
