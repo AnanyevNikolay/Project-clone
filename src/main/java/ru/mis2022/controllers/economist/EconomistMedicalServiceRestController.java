@@ -21,8 +21,6 @@ import ru.mis2022.service.entity.PriceOfMedicalServiceService;
 import ru.mis2022.utils.validation.ApiValidationUtils;
 import ru.mis2022.utils.validation.OnCreate;
 
-import java.time.LocalDate;
-
 @RestController
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('ECONOMIST')")
@@ -62,18 +60,19 @@ public class EconomistMedicalServiceRestController {
             @ApiResponse(code = 200, message = "Цена установлена"),
             @ApiResponse(code = 409, message = "В этот диапазон уже есть действующая цена")
     })
-    @PostMapping("/setPrice/{id}")
-    public Response<PriceOfMedicalServiceDto> setMedicalServicePrice(@RequestBody PriceOfMedicalServiceDto priceOfMedicalServiceDto,
-                                                 @PathVariable("id") Long id) {
-        LocalDate dayFrom = priceOfMedicalServiceDto.dayFrom();
-        LocalDate dayTo = priceOfMedicalServiceDto.dayTo();
+    @PostMapping("/setPrice/{medicalServiceId}")
+    public Response<PriceOfMedicalServiceDto> setMedicalServicePrice(
+            @RequestBody PriceOfMedicalServiceDto priceOfMedicalServiceDto,
+            @PathVariable("medicalServiceId") Long medicalServiceId) {
 
         ApiValidationUtils.expectedNull(priceOfMedicalServiceService
-                .getPriceOfMedicalServiceBetweenDayFromAndDayToWithMedicalService(dayFrom, dayTo, id),
+                        .getPriceOfMedicalServiceBetweenDayFromAndDayToWithMedicalService(
+                                priceOfMedicalServiceDto.dayFrom(), priceOfMedicalServiceDto.dayTo(), medicalServiceId),
                 409,
                 "В этот диапазон уже есть действующая цена");
 
-        return Response.ok(priceOfMedicalServiceService.setPriceByDtoWithMedicalService(priceOfMedicalServiceDto, id));
+        return Response.ok(priceOfMedicalServiceService
+                .setPriceByDtoWithMedicalService(priceOfMedicalServiceDto, medicalServiceId));
 
     }
 }
