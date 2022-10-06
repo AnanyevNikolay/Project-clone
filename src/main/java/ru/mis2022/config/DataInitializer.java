@@ -45,6 +45,7 @@ import ru.mis2022.service.entity.VisitService;
 import ru.mis2022.service.entity.YetService;
 
 import javax.annotation.PostConstruct;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -369,7 +370,7 @@ public class DataInitializer {
             //Базовая цена на услугу
             //todo
             // Округлить базовую цену
-            double basePrice = FIVE * intInRange(FIVE, VERY_MANY) / VERY_MANY;
+            BigDecimal basePrice = BigDecimal.valueOf(FIVE * intInRange(FIVE, VERY_MANY) / VERY_MANY);
             dayFrom = BEGIN_DATE.withDayOfMonth(1);
             while (dayFrom.isBefore(LocalDate.now())) {
                 PriceOfMedicalService medicalServicePrice = new PriceOfMedicalService();
@@ -378,7 +379,7 @@ public class DataInitializer {
                 //2 раза в месяц с вероятностью 30% услуга может изменить цену
                 //С вероятностью 50% цена будет +0.05 или -0.1
                 if (Math.random() < 0.3) {
-                    basePrice *= Math.random() < 0.5 ? 1.05 : 0.9;
+                    basePrice = BigDecimal.valueOf(Math.random() < 0.5 ? 1.05 : 0.9 * basePrice.doubleValue());
                 }
                 medicalServicePrice.setDayFrom(dayFrom);
                 medicalServicePrice.setDayTo(dayTo);

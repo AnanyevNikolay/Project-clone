@@ -2,9 +2,13 @@ package ru.mis2022.service.entity.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.mis2022.models.dto.service.PriceOfMedicalServiceDto;
+import ru.mis2022.models.dto.service.converter.PriceMedicalServiceDtoConverter;
+import ru.mis2022.models.entity.MedicalService;
 import ru.mis2022.models.entity.PriceOfMedicalService;
 import ru.mis2022.models.entity.Yet;
 import ru.mis2022.repositories.PriceOfMedicalServiceRepository;
+import ru.mis2022.service.entity.MedicalServiceService;
 import ru.mis2022.service.entity.PriceOfMedicalServiceService;
 
 import java.time.LocalDate;
@@ -18,6 +22,8 @@ import java.util.List;
 public class PriceOfMedicalServiceServiceImpl implements PriceOfMedicalServiceService {
 
     private final PriceOfMedicalServiceRepository priceOfMedicalServiceRepository;
+    private final MedicalServiceService medicalServiceService;
+    private final PriceMedicalServiceDtoConverter priceMedicalServiceDtoConverter;
 
     @Override
     public PriceOfMedicalService save(PriceOfMedicalService priceOfMedicalService) {
@@ -82,5 +88,19 @@ public class PriceOfMedicalServiceServiceImpl implements PriceOfMedicalServiceSe
     @Override
     public void deleteAll() {
         priceOfMedicalServiceRepository.deleteAll();
+    }
+
+    @Override
+    public PriceOfMedicalService getPriceOfMedicalServiceBetweenDayFromAndDayToWithMedicalService(
+            LocalDate dayFrom, LocalDate dayTo, Long medicalServiceId) {
+        return priceOfMedicalServiceRepository.getPriceOfMedicalServiceBetweenDayFromAndDayToWithMedicalService(
+                dayFrom, dayTo, medicalServiceId);
+    }
+
+    @Override
+    public PriceOfMedicalServiceDto setPriceByDtoWithMedicalService(PriceOfMedicalServiceDto priceOfMedicalServiceDto, Long id) {
+        MedicalService medicalService = medicalServiceService.getMedicalServiceById(id);
+        PriceOfMedicalService priceOfMedicalService = priceMedicalServiceDtoConverter.dtoToEntity(priceOfMedicalServiceDto, medicalService);
+        return priceMedicalServiceDtoConverter.entityToDto(priceOfMedicalServiceRepository.save(priceOfMedicalService));
     }
 }

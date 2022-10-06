@@ -17,4 +17,6 @@ public interface MedicalServiceService {
 
     void deleteAll();
 
+    MedicalService getMedicalServiceById(Long id);
+
 }
