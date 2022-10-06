@@ -44,4 +44,11 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
     FROM Department d
     """)
     List<DepartmentDto> getAllDepartments();
+
+    @Query("""
+    SELECT d.department
+    FROM  Doctor d
+    WHERE d.id = :docId
+    """)
+    Department findDepartmentByDoctorId(@Param("docId") Long docId);
 }

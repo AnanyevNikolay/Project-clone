@@ -29,6 +29,11 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    public Department findDepartmentByDoctorId(Long docId) {
+        return departmentRepository.findDepartmentByDoctorId(docId);
+    }
+
+    @Override
     public Department findDepartmentById(Long id) {
         return departmentRepository.findDepartmentById(id);
     }
