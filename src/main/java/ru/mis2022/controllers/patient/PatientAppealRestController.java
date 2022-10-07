@@ -34,7 +34,8 @@ public class PatientAppealRestController {
     public Response<PatientAppealsDto> getCurrentPatientAppeals() {
         Patient patient = (Patient) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         List<CurrentPatientAppealsDto> appealsDto = appealDtoConverter
-                .convertAppealsListToAppealsDtoList(appealService.getAppealsDtoByPatientId(patient.getId()).orElse(null));
+                .convertAppealsListToAppealsDtoList(
+                        appealService.getAppealsDtoByPatientId(patient.getId()).orElse(null));
         return Response.ok(new PatientAppealsDto(
                 patient.getId(),
                 patient.getFirstName() + " " + patient.getLastName() + " " + patient.getSurname(),

@@ -58,7 +58,8 @@ public class DoctorAppealRestController {
 
         Doctor currentDoc = ((Doctor) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         ApiValidationUtils
-                .expectedEqual(departmentService.findDepartmentById(departmentId), departmentService.findDepartmentByDoctorId(currentDoc.getId()), 412,
+                .expectedEqual(departmentService.findDepartmentById(departmentId),
+                        departmentService.findDepartmentByDoctorId(currentDoc.getId()), 412,
                 "Заболевание не лечится в текущем отделении");
 
         return Response.ok(
