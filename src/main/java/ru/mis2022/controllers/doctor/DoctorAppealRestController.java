@@ -18,6 +18,7 @@ import ru.mis2022.models.entity.Doctor;
 import ru.mis2022.models.entity.Patient;
 import ru.mis2022.models.response.Response;
 import ru.mis2022.service.entity.AppealService;
+import ru.mis2022.service.entity.DepartmentService;
 import ru.mis2022.service.entity.DiseaseService;
 import ru.mis2022.service.entity.PatientService;
 import ru.mis2022.utils.validation.ApiValidationUtils;
@@ -33,6 +34,7 @@ public class DoctorAppealRestController {
     private final DiseaseService diseaseService;
     private final AppealService appealService;
     private final AppealDtoConverter converter;
+    private final DepartmentService departmentService;
 
     @ApiOperation("Доктор создает обращение по заболеванию без посещения и счета")
     @ApiResponses(value = {
@@ -43,11 +45,12 @@ public class DoctorAppealRestController {
     })
     @PostMapping("/create")
     public Response<AppealDto> addAppeal(@RequestParam Long patientId,
-                                         @RequestParam Long diseaseId) {
+                                         @RequestParam Long diseaseId,
+                                         @RequestParam Long departmentId) {
         Patient patient = patientService.findPatientById(patientId);
+
         ApiValidationUtils
-                //todo list1 проверить ссылку пациента на null а не делать повторный запрос
-                .expectedTrue(patientService.isExistById(patientId), 410, "Пациент не существует");
+                .expectedNotNull(patient, 410, "Пациент не существует");
 
         Disease disease = diseaseService.findDiseaseById(diseaseId);
         ApiValidationUtils
@@ -55,8 +58,8 @@ public class DoctorAppealRestController {
 
         Doctor currentDoc = ((Doctor) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         ApiValidationUtils
-                //todo list1 неполучать отделения из заболевания и доктора, а написать 2 отдельных метода, которые принимают id отделения и id доктора и через запрос получат отделение
-                .expectedEqual(disease.getDepartment().getId(), currentDoc.getDepartment().getId(), 412,
+                .expectedEqual(departmentService.findDepartmentById(departmentId),
+                        departmentService.findDepartmentByDoctorId(currentDoc.getId()), 412,
                 "Заболевание не лечится в текущем отделении");
 
         return Response.ok(
