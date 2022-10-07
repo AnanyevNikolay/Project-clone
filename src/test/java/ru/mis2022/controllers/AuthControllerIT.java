@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import ru.mis2022.models.dto.user.UserPasswordChangingDto;
 import ru.mis2022.models.entity.Administrator;
 import ru.mis2022.models.entity.Invite;
@@ -24,6 +25,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Transactional
 public class AuthControllerIT extends ContextIT {
 
     RoleService roleService;
@@ -66,6 +68,9 @@ public class AuthControllerIT extends ContextIT {
         roleService.deleteAll();
     }
 
+    // todo list 20 без аннотации Transactional над этим классом метод initInvite падает
+    //  с ошибкой о том, что detached сущность была передана на persist
+    //  понять почему это происходит и попытаться исправить, дабы убрать аннотацию Transactional
     @Test
     public void confirmEmailPasswordTest() throws Exception {
         Role adminRole = initRole("ADMIN");

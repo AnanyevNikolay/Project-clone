@@ -4,6 +4,7 @@ import org.hamcrest.core.Is;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import ru.mis2022.models.entity.Account;
 import ru.mis2022.models.entity.Appeal;
 import ru.mis2022.models.entity.Department;
@@ -35,6 +36,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.mis2022.utils.DateFormatter.DATE_FORMATTER;
 
+// todo list 14 РЅР°РїРёСЃР°С‚СЊ РјРµС‚РѕРґ clear() РґР°Р±С‹ РёР·Р±Р°РІРёС‚СЊСЃСЏ РѕС‚ Р°РЅРЅРѕС‚Р°С†РёРё Transactional
+//  РІ РєРѕРЅС†Рµ РєР°Р¶РґРѕРіРѕ С‚РµСЃС‚Р° РґРѕРїРёСЃР°С‚СЊ Р·Р°РїСЂРѕСЃ РїСЂРѕРІРµСЂСЏСЋС‰РёР№ С‡С‚Рѕ РІСЃРµ РґРµР№СЃС‚РІРёС‚РµР»СЊРЅРѕ Р±С‹Р»Рѕ
+//  РїСЂРѕРёРЅРёС†РёР°Р»РёР·РёСЂРѕРІР°РЅРЅРѕ РІ Р±Рґ. РїРѕ Р°РЅР°Р»РѕРіРёРё СЃ DoctorPatientRestControllerIT#registerPatientInTalon
+@Transactional
 public class PatientAppealRestControllerIT extends ContextIT {
 
     RoleService roleService;
@@ -155,21 +160,22 @@ public class PatientAppealRestControllerIT extends ContextIT {
         ));
     }
 
+    // todo list 14 РїРµСЂРµРєРѕРґРёСЂРѕРІР°С‚СЊ РІСЃРµ СЌС‚Рё РёРµСЂРѕРіР»РёС„С‹
     @Test
     public void getCurrentPatientAppealsTest() throws Exception {
-        // Инитим роли
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ
         Role patientRole = initRole("PATIENT");
         Role doctorRole = initRole("DOCTOR");
 
-        // Инитим двух пациентов
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         Patient patient1 = initPatient("patient1@mail.com", patientRole);
         Patient patient2 = initPatient("patient2@mail.com", patientRole);
 
-        // Инитим аккаунты для пациентов
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         Account patient1Acc = initAccount();
         Account patient2Acc = initAccount();
 
-        // Инитим мед. организацию, департамент и двух докторов в одном отделе
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ. пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ, пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ
         MedicalOrganization medicalOrganization = initMedicalOrganization();
 
         Department department = initDepartment(medicalOrganization);
@@ -177,11 +183,11 @@ public class PatientAppealRestControllerIT extends ContextIT {
         Doctor doctor1 = initDoctor("doctor1@mail.com", doctorRole, department);
         Doctor doctor2 = initDoctor("doctor2@mail.com", doctorRole, department);
 
-        // Инитим два заболевания для двух пациентов
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         Disease patient1Disease1 = initDisease("p1d1");
         Disease patient1Disease2 = initDisease("p1d2");
 
-        // Инитим 6 медицинских услуг по 3 на два посещения
+        // пїЅпїЅпїЅпїЅпїЅпїЅ 6 пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ 3 пїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         MedicalService visit1Ms1 = initMedicalService("ms1");
         MedicalService visit1Ms2 = initMedicalService("ms2");
         MedicalService visit1Ms3 = initMedicalService("ms3");
@@ -190,7 +196,7 @@ public class PatientAppealRestControllerIT extends ContextIT {
         MedicalService visit2Ms2 = initMedicalService("ms5");
         MedicalService visit2Ms3 = initMedicalService("ms6");
 
-        // Собираем мед. услуги в сет и инитим два посещения
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ. пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         Set<MedicalService> visit1ServicesSet = new HashSet<>();
         visit1ServicesSet.add(visit1Ms1);
         visit1ServicesSet.add(visit1Ms2);
@@ -203,32 +209,32 @@ public class PatientAppealRestControllerIT extends ContextIT {
         visit2ServicesSet.add(visit2Ms3);
         Visit appeal1Visit2 = initVisit(LocalDate.now(), doctor2, visit2ServicesSet);
 
-        // Собираем посещения в сет и инитим обращание для первого пациента
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         Set<Visit> appeal1VisitSet = new HashSet<>();
         appeal1VisitSet.add(appeal1Visit1);
         appeal1VisitSet.add(appeal1Visit2);
         Appeal patient1Appeal1 = initAppeal(patient1, patient1Disease1, appeal1VisitSet, patient1Acc, true, LocalDate.now());
 
-        // Инитим 3 услуги для третьего посещения во втором обращание
+        // пїЅпїЅпїЅпїЅпїЅпїЅ 3 пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         MedicalService visit3Ms1 = initMedicalService("ms7");
         MedicalService visit3Ms2 = initMedicalService("ms8");
         MedicalService visit3Ms3 = initMedicalService("ms9");
 
-        // Собираем услуги в сет и инитим посещение
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         Set<MedicalService> visit3ServicesSet = new HashSet<>();
         visit3ServicesSet.add(visit3Ms1);
         visit3ServicesSet.add(visit3Ms2);
         visit3ServicesSet.add(visit3Ms3);
         Visit appeal2Visit1 = initVisit(LocalDate.now(), doctor2, visit3ServicesSet);
 
-        // Собираем посещения в сет и инитим второе обращание для первого пациента
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         Set<Visit> appeal2VisitSet = new HashSet<>();
         appeal2VisitSet.add(appeal2Visit1);
         Appeal patient1Appeal2 = initAppeal(patient1, patient1Disease2, appeal2VisitSet, patient1Acc, false, LocalDate.now());
 
-        // Инитим как обращение для второго пациента
-        // как две капли воды похожее на первое обращаение первого пациента
-        // ожидаем что оно не попадет в ответ от контроллера
+        // пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+        // пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
+        // пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ
         Visit appeal3Visit1 = initVisit(LocalDate.now().minusDays(1), doctor1, visit1ServicesSet);
         Visit appeal3Visit2 = initVisit(LocalDate.now(), doctor2, visit2ServicesSet);
         Set<Visit> appeal3VisitSet = new HashSet<>();
