@@ -2,6 +2,7 @@ package ru.mis2022.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import ru.mis2022.models.entity.Administrator;
 import ru.mis2022.models.entity.Appeal;
@@ -98,6 +99,7 @@ public class DataInitializer {
     private final VisitService visitService;
     private final PriceOfMedicalServiceService priceOfMedicalServiceService;
     private final AdministratorRepository administratorRepository;
+    private final PasswordEncoder passwordEncoder;
 
 
     public DataInitializer(AppealService appealService,
@@ -120,7 +122,8 @@ public class DataInitializer {
                            VacationService vacationService,
                            VisitService visitService,
                            PriceOfMedicalServiceService priceOfMedicalServiceService,
-                           AdministratorRepository administratorRepository) {
+                           AdministratorRepository administratorRepository,
+                           PasswordEncoder passwordEncoder) {
         this.appealService = appealService;
         this.patientService = patientService;
         this.doctorService = doctorService;
@@ -142,6 +145,7 @@ public class DataInitializer {
         this.visitService = visitService;
         this.priceOfMedicalServiceService = priceOfMedicalServiceService;
         this.administratorRepository = administratorRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     private static final int ZERO = 0;
@@ -424,6 +428,7 @@ public class DataInitializer {
                     randomBirthday(),
                     roleRegistrar
             );
+            administrator.setPassword(passwordEncoder.encode(administrator.getPassword()));
             administratorRepository.save(administrator);
         }
 
