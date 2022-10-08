@@ -39,7 +39,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static ru.mis2022.utils.DateFormatter.DATE_FORMATTER;
 import static ru.mis2022.utils.DateFormatter.DATE_TIME_FORMATTER;
 
-// todo list 8 в конце каждого теста дописать запрос проверяющий что все действительно было
+// todo list 5 в конце каждого теста дописать запрос проверяющий что все действительно было
 //  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
 public class DoctorTalonsRestControllerIT extends ContextIT {
 

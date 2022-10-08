@@ -36,7 +36,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.mis2022.utils.DateFormatter.DATE_FORMATTER;
 
-// todo list 14 написать метод clear() дабы избавиться от аннотации Transactional
+// todo list 8 написать метод clear() дабы избавиться от аннотации Transactional
 //  в конце каждого теста дописать запрос проверяющий что все действительно было
 //  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
 @Transactional
@@ -160,7 +160,7 @@ public class PatientAppealRestControllerIT extends ContextIT {
         ));
     }
 
-    // todo list 14 перекодировать все эти иероглифы
+    // todo list 8 перекодировать все эти иероглифы
     @Test
     public void getCurrentPatientAppealsTest() throws Exception {
         // ������ ����

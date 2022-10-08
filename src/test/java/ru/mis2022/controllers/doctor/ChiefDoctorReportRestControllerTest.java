@@ -34,7 +34,7 @@ import static ru.mis2022.models.entity.Role.RolesEnum.DOCTOR;
 import static ru.mis2022.models.entity.Role.RolesEnum.PATIENT;
 import static ru.mis2022.utils.DateFormatter.DATE_FORMATTER;
 
-// todo list 5 написать метод clear() дабы избавиться от аннотации Transactional
+// todo list 4 написать метод clear() дабы избавиться от аннотации Transactional
 //  в конце каждого теста дописать запрос проверяющий что все действительно было
 //  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
 @Transactional

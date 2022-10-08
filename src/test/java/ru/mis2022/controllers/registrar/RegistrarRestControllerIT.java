@@ -32,7 +32,7 @@ import static ru.mis2022.models.entity.Role.RolesEnum.CHIEF_DOCTOR;
 import static ru.mis2022.models.entity.Role.RolesEnum.DOCTOR;
 import static ru.mis2022.models.entity.Role.RolesEnum.PATIENT;
 
-// todo list 18 написать метод clear() дабы избавиться от аннотации Transactional
+// todo list 9 написать метод clear() дабы избавиться от аннотации Transactional
 //  в конце каждого теста дописать запрос проверяющий что все действительно было
 //  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
 @Transactional

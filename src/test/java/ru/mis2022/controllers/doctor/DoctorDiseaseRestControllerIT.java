@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// todo list 6 написать метод clear() дабы избавиться от аннотации Transactional
+// todo list 5 написать метод clear() дабы избавиться от аннотации Transactional
 //  в конце каждого теста дописать запрос проверяющий что все действительно было
 //  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
 @Transactional

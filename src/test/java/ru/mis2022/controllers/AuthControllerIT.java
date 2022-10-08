@@ -68,7 +68,7 @@ public class AuthControllerIT extends ContextIT {
         roleService.deleteAll();
     }
 
-    // todo list 20 без аннотации Transactional над этим классом метод initInvite падает
+    // todo list 10 без аннотации Transactional над этим классом метод initInvite падает
     //  с ошибкой о том, что detached сущность была передана на persist
     //  понять почему это происходит и попытаться исправить, дабы убрать аннотацию Transactional
     @Test
