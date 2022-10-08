@@ -28,8 +28,7 @@ public class EconomistCheckRestController {
 
     @ApiOperation(value = "Экономист проверяет цены на УЕТ")
     @ApiResponses(value = {
-            //todo list2 поле со статусом 200 не должно быть пустым - оно должно отобразить какое задание мы выполнии успешно
-            @ApiResponse(code = 200, message = ""),
+            @ApiResponse(code = 200, message = "У всех цен есть УЕТ"),
             @ApiResponse(code = 409, message = "Есть наложение УЕТ друг на друга или наложение цены услуг"),
             @ApiResponse(code = 417, message = "Есть действующие услуги, когда УЕТ не задано"),
             @ApiResponse(code = 422, message = "Одна из дат не задана")
