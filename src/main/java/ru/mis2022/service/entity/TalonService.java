@@ -42,4 +42,6 @@ public interface TalonService {
 
     void deleteAll();
 
+    Talon findTalonWithDoctorAndPatientByTalonId(Long id);
+
 }

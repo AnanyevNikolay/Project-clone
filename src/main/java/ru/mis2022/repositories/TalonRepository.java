@@ -137,4 +137,8 @@ WHERE t.id = :id
 """)
     Talon findTalonByWithDoctorAndPatient(Long id);
 
+
+    @Query("FROM Talon where id = :id")
+    Talon findTalonWithDoctorAndPatientByTalonId(Long id);
+
 }

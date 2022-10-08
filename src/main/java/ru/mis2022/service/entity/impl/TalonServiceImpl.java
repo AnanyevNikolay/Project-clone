@@ -33,8 +33,6 @@ public class TalonServiceImpl implements TalonService {
     private final TalonDtoConverter talonDtoConverter;
     private final PatientRepository patientRepository;
 
-    private final DoctorRepository doctorRepository;
-
 
     @Override
     public Talon save(Talon talon) {
@@ -129,6 +127,11 @@ public class TalonServiceImpl implements TalonService {
 
     public Long findPatientIdByTalonId(Long talonId){
         return patientRepository.findPatientIdByTalonId(talonId);
+    }
+
+    @Override
+    public Talon findTalonWithDoctorAndPatientByTalonId(Long id) {
+        return talonRepository.findTalonWithDoctorAndPatientByTalonId(id);
     }
 
 }
