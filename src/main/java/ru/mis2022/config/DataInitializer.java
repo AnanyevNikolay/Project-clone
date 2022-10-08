@@ -2,6 +2,7 @@ package ru.mis2022.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import ru.mis2022.models.entity.Administrator;
 import ru.mis2022.models.entity.Appeal;
@@ -23,6 +24,7 @@ import ru.mis2022.models.entity.Talon;
 import ru.mis2022.models.entity.Vacation;
 import ru.mis2022.models.entity.Visit;
 import ru.mis2022.models.entity.Yet;
+import ru.mis2022.repositories.AdministratorRepository;
 import ru.mis2022.service.entity.AdministratorService;
 import ru.mis2022.service.entity.AppealService;
 import ru.mis2022.service.entity.AttestationService;
@@ -96,9 +98,12 @@ public class DataInitializer {
 
     private final VisitService visitService;
     private final PriceOfMedicalServiceService priceOfMedicalServiceService;
+    private final AdministratorRepository administratorRepository;
+    private final PasswordEncoder passwordEncoder;
 
 
-    public DataInitializer(AppealService appealService, PatientService patientService,
+    public DataInitializer(AppealService appealService,
+                           PatientService patientService,
                            DoctorService doctorService,
                            EconomistService economistService,
                            RoleService roleService,
@@ -115,7 +120,10 @@ public class DataInitializer {
                            DiseaseService diseaseService,
                            YetService yetService,
                            VacationService vacationService,
-                           VisitService visitService, PriceOfMedicalServiceService priceOfMedicalServiceService) {
+                           VisitService visitService,
+                           PriceOfMedicalServiceService priceOfMedicalServiceService,
+                           AdministratorRepository administratorRepository,
+                           PasswordEncoder passwordEncoder) {
         this.appealService = appealService;
         this.patientService = patientService;
         this.doctorService = doctorService;
@@ -136,6 +144,8 @@ public class DataInitializer {
         this.vacationService = vacationService;
         this.visitService = visitService;
         this.priceOfMedicalServiceService = priceOfMedicalServiceService;
+        this.administratorRepository = administratorRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     private static final int ZERO = 0;
@@ -418,7 +428,8 @@ public class DataInitializer {
                     randomBirthday(),
                     roleRegistrar
             );
-            administratorService.persist(administrator);
+            administrator.setPassword(passwordEncoder.encode(administrator.getPassword()));
+            administratorRepository.save(administrator);
         }
 
         //HR Manager
