@@ -61,7 +61,7 @@ https://www.youtube.com/watch?v=QDFI19lj4OM
 Избавляет от написания отдельного RestTemplate-приложения
 https://www.baeldung.com/integration-testing-in-spring
 
-**Mockito** -
+**Mockito** - 
 https://habr.com/ru/post/444982/
 https://www.youtube.com/watch?v=Wmrdfzzpr6A
 https://www.youtube.com/watch?v=lpPEAHLGoJg

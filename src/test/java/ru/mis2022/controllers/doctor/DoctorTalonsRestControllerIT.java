@@ -436,16 +436,8 @@ public class DoctorTalonsRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data.patientDto.snils", Is.is(patientDto.snils())));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
-        // Проверяем поиск по талону не принадлежащему доктору и ждем 403
-        mockMvc.perform(get("/api/doctor/talon/{id}", talon2.getId())
-                        .header("Authorization", accessToken)
-                        .contentType(MediaType.APPLICATION_JSON)
-                )
-                .andExpect(status().is4xxClientError())
-                .andExpect(jsonPath("$.success", Is.is(false)))
-                .andExpect(jsonPath("$.code", Is.is(403)))
-                .andExpect(jsonPath("$.data", Is.is(IsNull.nullValue())))
-                .andExpect(jsonPath("$.text", Is.is("Талон принадлежит другому доктору")));
+
+
 
         // Проверяем поиск по несуществуещему талону и ждем 404
         mockMvc.perform(get("/api/doctor/talon/{id}", 888888)

@@ -20,7 +20,6 @@ import ru.mis2022.models.dto.talon.TalonDto;
 import ru.mis2022.models.dto.talon.converter.TalonDtoConverter;
 import ru.mis2022.models.entity.Doctor;
 import ru.mis2022.models.entity.Talon;
-import ru.mis2022.models.entity.User;
 import ru.mis2022.models.response.Response;
 import ru.mis2022.service.dto.TalonDtoService;
 import ru.mis2022.service.entity.DoctorService;
@@ -104,18 +103,13 @@ public class DoctorTalonsRestController {
 
     @ApiOperation("Доктор получает свой талон по id")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Полученный талон"),
-            @ApiResponse(code = 404, message = "Талон не найден"),
-            @ApiResponse(code = 403, message = "Талон принадлежит другому доктору")
+            @ApiResponse(code = 404, message = "Талон не найден")
     })
     @GetMapping("/{id}")
-    public Response<TalonDto> getTalonById(@PathVariable("id") long id) {
+    public Response<TalonDto> getCurrentDoctorTalonById(@PathVariable("id") long id) {
         long doctorId = ((Doctor) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
-        //todo list2 getTalonByIdWithDoctor() не нужен в таком виде здесь - нужен метод который примет в параметры id талона и id доктора и вернет нужный талон. Тогда вторая проверка не понадобится
-        Talon talon = talonService.getTalonByIdWithDoctor(id);
+        Talon talon = talonService.getTalonByIdAndDoctorId(id, doctorId);
         ApiValidationUtils.expectedNotNull(talon, 404, "Талон не найден");
-        ApiValidationUtils.expectedTrue(talon.getDoctor().getId().equals(doctorId),
-                403, "Талон принадлежит другому доктору");
         return Response.ok(converter.talonToTalonDto(talon));
     }
 }
