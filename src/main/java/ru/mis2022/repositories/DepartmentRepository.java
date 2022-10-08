@@ -29,6 +29,7 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
     """)
     List<DepartmentDto> findAllByMedicalOrganizationIdDto(Long medId);
 
+    // todo подтягивать id департамента, используая таблицу Department
     @Query("""
     SELECT d.department.id
     FROM  Doctor d
@@ -44,4 +45,12 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
     FROM Department d
     """)
     List<DepartmentDto> getAllDepartments();
+
+    @Query("""
+    SELECT dep
+    FROM Department dep
+    LEFT JOIN Doctor doc ON dep.id = doc.department.id
+    WHERE doc.id = :docId
+    """)
+    Department findDepartmentByDoctorId(@Param("docId") Long docId);
 }

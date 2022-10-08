@@ -20,6 +20,7 @@ import ru.mis2022.service.entity.RoleService;
 import ru.mis2022.service.entity.YetService;
 import ru.mis2022.util.ContextIT;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -72,7 +73,7 @@ public class EconomistCheckRestControllerIT extends ContextIT {
 
     PriceOfMedicalService initPriceOfMedicalService(LocalDate dayFrom, LocalDate dayTo, MedicalService medicalService) {
         return priceOfMedicalServiceService.save(new PriceOfMedicalService(
-                1.0,
+                BigDecimal.valueOf(1.0),
                 dayFrom,
                 dayTo,
                 medicalService
