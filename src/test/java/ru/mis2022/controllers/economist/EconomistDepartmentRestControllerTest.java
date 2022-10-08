@@ -1,10 +1,10 @@
 package ru.mis2022.controllers.economist;
 
-import org.hamcrest.Matchers;
 import org.hamcrest.core.Is;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import ru.mis2022.models.entity.Department;
 import ru.mis2022.models.entity.Economist;
 import ru.mis2022.models.entity.Role;
@@ -19,6 +19,10 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+// todo list 6 написать метод clear() дабы избавиться от аннотации Transactional
+//  в конце каждого теста дописать запрос проверяющий что все действительно было
+//  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
+@Transactional
 class EconomistDepartmentRestControllerTest extends ContextIT {
     @Autowired
     DepartmentService departmentService;

@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import ru.mis2022.models.entity.Appeal;
 import ru.mis2022.models.entity.Department;
 import ru.mis2022.models.entity.Disease;
@@ -30,6 +31,10 @@ import static ru.mis2022.models.entity.Role.RolesEnum.DOCTOR;
 import static ru.mis2022.models.entity.Role.RolesEnum.PATIENT;
 import static ru.mis2022.utils.DateFormatter.DATE_FORMATTER;
 
+// todo list 4 написать метод clear() дабы избавиться от аннотации Transactional
+//  в конце каждого теста дописать запрос проверяющий что все действительно было
+//  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
+@Transactional
 public class DoctorAppealRestControllerIT extends ContextIT {
     @Autowired
     DoctorService doctorService;

@@ -1,7 +1,7 @@
 package ru.mis2022.controllers.registrar;
 
-import org.hamcrest.Matchers;
 import feign.FeignException;
+import org.hamcrest.Matchers;
 import org.hamcrest.core.Is;
 import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.AfterEach;
@@ -9,12 +9,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import ru.mis2022.models.dto.patient.PatientDto;
-import ru.mis2022.feign.TestSystemFeignClient;
+import org.springframework.transaction.annotation.Transactional;
 import ru.mis2022.feign.AuthRequestDtoTS;
 import ru.mis2022.feign.AuthTokenTS;
 import ru.mis2022.feign.PatientRequestDtoTS;
 import ru.mis2022.feign.PatientResponseDtoTS;
+import ru.mis2022.feign.TestSystemFeignClient;
+import ru.mis2022.models.dto.patient.PatientDto;
 import ru.mis2022.models.entity.Patient;
 import ru.mis2022.models.entity.Registrar;
 import ru.mis2022.models.entity.Role;
@@ -22,11 +23,13 @@ import ru.mis2022.service.entity.PatientService;
 import ru.mis2022.service.entity.RegistrarService;
 import ru.mis2022.service.entity.RoleService;
 import ru.mis2022.util.ContextIT;
+
 import java.time.LocalDate;
 import java.util.Collections;
-import static org.mockito.Mockito.when;
+
 import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -34,6 +37,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static ru.mis2022.models.entity.Role.RolesEnum.PATIENT;
 import static ru.mis2022.models.entity.Role.RolesEnum.REGISTRAR;
 import static ru.mis2022.utils.DateFormatter.DATE_FORMATTER;
+
+// todo list 9 дополнить метод clear() дабы избавиться от аннотации Transactional
+//  в конце каждого теста дописать запрос проверяющий что все действительно было
+//  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
+@Transactional
 @MockBean(TestSystemFeignClient.class)
 public class RegistrarPatientRestControllerIT extends ContextIT {
 

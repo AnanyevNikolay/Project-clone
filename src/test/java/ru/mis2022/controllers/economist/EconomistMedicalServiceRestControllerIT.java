@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.transaction.annotation.Transactional;
 import ru.mis2022.models.dto.service.MedicalServiceDto;
 import ru.mis2022.models.dto.service.PriceOfMedicalServiceDto;
 import ru.mis2022.models.entity.Economist;
@@ -29,6 +30,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.mis2022.utils.DateFormatter.DATE_FORMATTER;
 
+// todo list 4 дополнить метод clear() дабы избавиться от аннотации Transactional
+//  в конце каждого теста дописать запрос проверяющий что все действительно было
+//  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
+@Transactional
 public class EconomistMedicalServiceRestControllerIT extends ContextIT {
 
     @Autowired

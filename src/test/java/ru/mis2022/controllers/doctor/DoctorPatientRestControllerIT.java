@@ -32,6 +32,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static ru.mis2022.models.entity.Role.RolesEnum.DOCTOR;
 import static ru.mis2022.utils.DateFormatter.DATE_TIME_FORMATTER;
 
+// todo list 5 в конце каждого теста дописать запрос проверяющий что все действительно было
+//  проинициализированно в бд. по аналогии с registerPatientInTalon в этом классе
 public class DoctorPatientRestControllerIT extends ContextIT {
     @Autowired
     private DoctorService doctorService;
