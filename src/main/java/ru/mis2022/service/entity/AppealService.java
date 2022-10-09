@@ -11,4 +11,5 @@ public interface AppealService {
     Appeal save(Appeal appeal);
 
     Optional<List<Appeal>> getAppealsDtoByPatientId(long patientId);
+    void deleteAll();
 }

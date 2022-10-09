@@ -2,11 +2,11 @@ package ru.mis2022.controllers.doctor;
 
 import org.hamcrest.Matchers;
 import org.hamcrest.core.Is;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.transaction.annotation.Transactional;
 import ru.mis2022.models.entity.Appeal;
 import ru.mis2022.models.entity.Department;
 import ru.mis2022.models.entity.Disease;
@@ -31,10 +31,6 @@ import static ru.mis2022.models.entity.Role.RolesEnum.DOCTOR;
 import static ru.mis2022.models.entity.Role.RolesEnum.PATIENT;
 import static ru.mis2022.utils.DateFormatter.DATE_FORMATTER;
 
-// todo list 4 написать метод clear() дабы избавиться от аннотации Transactional
-//  в конце каждого теста дописать запрос проверяющий что все действительно было
-//  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
-@Transactional
 public class DoctorAppealRestControllerIT extends ContextIT {
     @Autowired
     DoctorService doctorService;
@@ -74,7 +70,8 @@ public class DoctorAppealRestControllerIT extends ContextIT {
         ));
     }
 
-    Patient initPatient(String email, String firstName, String lastName, String surname, Role role, String passport, String polis, String snils) {
+    Patient initPatient(String email, String firstName, String lastName, String surname,
+                        Role role, String passport, String polis, String snils) {
         return patientService.persist(new Patient(
                 email,
                 String.valueOf("1"),
@@ -98,6 +95,16 @@ public class DoctorAppealRestControllerIT extends ContextIT {
                 .build());
     }
 
+    @AfterEach
+    protected void clear() {
+        appealService.deleteAll();
+        diseaseService.deleteAll();
+        doctorService.deleteAll();
+        patientService.deleteAll();
+        roleService.deleteAll();
+        departmentService.deleteAll();
+    }
+
 
     @Test
     void addAppealTest() throws Exception {
@@ -109,7 +116,8 @@ public class DoctorAppealRestControllerIT extends ContextIT {
         Disease disease2 = initDisease("T12", "disease_name2", department2);
 
         Doctor doctor = initDoctor(roleDoc, department1, null, "doc@email.com");
-        Patient patient = initPatient("email1@mail.ru", "Alexandr", "Alexandrov", "Alexandrovich",
+        Patient patient = initPatient("email1@mail.ru", "Alexandr",
+                "Alexandrov", "Alexandrovich",
                 rolePatient, "1234 112233", "123456", "434-111-222 66");
 
 
@@ -187,18 +195,21 @@ public class DoctorAppealRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data.localDate").value(LocalDate.now().format(DATE_FORMATTER)))
                 .andExpect(jsonPath("$.data.isClosed").value(false));
 
-        Assertions.assertNotNull(entityManager.createQuery("""
+        Appeal qryAppeals = entityManager.createQuery("""
                         SELECT a
                         FROM Appeal a
                         LEFT JOIN Disease d
-                        ON d.id = a.disease.id
+                            ON d.id = a.disease.id
                         LEFT JOIN Patient p
-                        ON p.id = a.patient.id
+                            ON p.id = a.patient.id
                         WHERE d.id = :disId
-                        AND p.id = :patientId
+                            AND p.id = :patientId
                         """, Appeal.class)
                 .setParameter("disId", disease1.getId())
                 .setParameter("patientId", patient.getId())
-                .getResultList());
+                        .getResultList().get(0);
+
+        Assertions.assertEquals(qryAppeals.getDisease().getId(), disease1.getId());
+        Assertions.assertEquals(qryAppeals.getPatient().getId(), patient.getId());
     }
 }

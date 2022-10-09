@@ -2,13 +2,14 @@ package ru.mis2022.controllers.administrator;
 
 import org.hamcrest.Matchers;
 import org.hamcrest.core.Is;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.transaction.annotation.Transactional;
+import org.junit.jupiter.api.Assertions;
 import ru.mis2022.models.entity.Administrator;
 import ru.mis2022.models.entity.Role;
 import ru.mis2022.service.entity.AdministratorService;
@@ -22,10 +23,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// todo list 4 написать метод clear() дабы избавиться от аннотации Transactional
-//  в конце каждого теста дописать запрос проверяющий что все действительно было
-//  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
-@Transactional
 public class AdministratorRestControllerIT extends ContextIT {
 
     RoleService roleService;
@@ -59,6 +56,12 @@ public class AdministratorRestControllerIT extends ContextIT {
         ));
     }
 
+    @AfterEach
+    protected void clear() {
+        administratorService.deleteAll();
+        roleService.deleteAll();
+    }
+
     @Test
     public void getCurrentUserTest() throws Exception {
         Mockito.when(generator.getRndStr(randomPasswordLength)).thenReturn("12345");
@@ -78,6 +81,19 @@ public class AdministratorRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data.firstName", Is.is("f_name")))
                 .andExpect(jsonPath("$.data.birthday", Matchers.notNullValue()));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
+        Administrator qryAdmin = entityManager.createQuery("""
+            SELECT adm
+            FROM Administrator adm
+            LEFT JOIN Role r
+                ON adm.role.id = r.id
+            WHERE r.id = :roleId
+            """, Administrator.class)
+                .setParameter("roleId", role.getId())
+                .getSingleResult();
+
+        Assertions.assertEquals(qryAdmin.getId(), administrator.getId());
+        Assertions.assertEquals(qryAdmin.getRole().getId(), role.getId());
     }
 
 

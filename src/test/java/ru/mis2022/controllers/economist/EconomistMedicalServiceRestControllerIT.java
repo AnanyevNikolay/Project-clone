@@ -11,10 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
 import ru.mis2022.models.dto.service.MedicalServiceDto;
 import ru.mis2022.models.dto.service.PriceOfMedicalServiceDto;
-import ru.mis2022.models.entity.Economist;
-import ru.mis2022.models.entity.MedicalService;
-import ru.mis2022.models.entity.PriceOfMedicalService;
-import ru.mis2022.models.entity.Role;
+import ru.mis2022.models.entity.*;
 import ru.mis2022.service.entity.DepartmentService;
 import ru.mis2022.service.entity.EconomistService;
 import ru.mis2022.service.entity.MedicalServiceService;
@@ -30,10 +27,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.mis2022.utils.DateFormatter.DATE_FORMATTER;
 
-// todo list 4 дополнить метод clear() дабы избавиться от аннотации Transactional
-//  в конце каждого теста дописать запрос проверяющий что все действительно было
-//  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
-@Transactional
 public class EconomistMedicalServiceRestControllerIT extends ContextIT {
 
     @Autowired
@@ -108,6 +101,16 @@ public class EconomistMedicalServiceRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data.identifier", Is.is(dto1.identifier())))
                 .andExpect(jsonPath("$.data.name", Is.is(dto1.name())));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
+        MedicalService qryMedicalService = entityManager.createQuery("""
+                        SELECT ms
+                        FROM MedicalService ms
+                            WHERE ms.identifier = :identifier
+                        """, MedicalService.class)
+                .setParameter("identifier", dto1.identifier())
+                .getSingleResult();
+
+        Assertions.assertEquals(qryMedicalService.getIdentifier(), dto1.identifier());
 
         //в базе уже есть мед.услуга с таким идентификатором
         MedicalServiceDto dto2 = MedicalServiceDto.builder()

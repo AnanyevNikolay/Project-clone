@@ -2,11 +2,12 @@ package ru.mis2022.controllers.doctor;
 
 import org.hamcrest.Matchers;
 import org.hamcrest.core.Is;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.transaction.annotation.Transactional;
 import ru.mis2022.models.entity.Department;
 import ru.mis2022.models.entity.Doctor;
 import ru.mis2022.models.entity.Patient;
@@ -34,10 +35,7 @@ import static ru.mis2022.models.entity.Role.RolesEnum.DOCTOR;
 import static ru.mis2022.models.entity.Role.RolesEnum.PATIENT;
 import static ru.mis2022.utils.DateFormatter.DATE_FORMATTER;
 
-// todo list 4 написать метод clear() дабы избавиться от аннотации Transactional
-//  в конце каждого теста дописать запрос проверяющий что все действительно было
-//  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
-@Transactional
+// todo list 11 сократить длину строк, чтобы не вылезало за линию
 class ChiefDoctorReportRestControllerTest extends ContextIT {
     RoleService roleService;
 
@@ -77,6 +75,7 @@ class ChiefDoctorReportRestControllerTest extends ContextIT {
         ));
     }
 
+    // todo list 11 исправить ошибку в названии метода
     Department initDepartement(String name) {
         return departmentService.save(Department.builder()
                 .name(name)
@@ -98,10 +97,23 @@ class ChiefDoctorReportRestControllerTest extends ContextIT {
                 "address"));
     }
 
+    // todo list 11 return value of the method is never used
     Talon initTalon(LocalDateTime time, Doctor doctor, Patient patient) {
         return talonService.save(new Talon(time, doctor, patient));
     }
 
+    @AfterEach
+    protected void clear() {
+        talonService.deleteAll();
+        doctorService.deleteAll();
+        patientService.deleteAll();
+        roleService.deleteAll();
+        departmentService.deleteAll();
+    }
+
+    // todo list 11 roleCheaf исправить ошибку в названии
+    // todo list 11 убрать переменные, которые не используются, либо сделать так, чтобы они использовались
+    // todo list 11 назвать переменные нормально, в некоторых моментах непонятно, что описано
     @Test
     void getWorkloadReport() throws Exception {
         Role roleCheaf = initRole(CHIEF_DOCTOR.name());
@@ -146,6 +158,56 @@ class ChiefDoctorReportRestControllerTest extends ContextIT {
                 .andExpect(jsonPath("$.data[2].talons[0].busyTalons", Is.is(0)))
                 .andExpect(jsonPath("$.data[2].talons[0].totalTalons", Is.is(3)))
                 .andReturn();
+
+        Doctor qryChiefDoctor = entityManager.createQuery("""
+                        SELECT doc
+                        FROM Doctor doc
+                        LEFT JOIN Department dep
+                            ON dep.id = doc.department.id
+                        LEFT JOIN Role r
+                            ON r.id = doc.role.id
+                        WHERE doc.department.id = :depId
+                            AND doc.role.id = :roleId
+                        """, Doctor.class)
+                .setParameter("depId", department.getId())
+                .setParameter("roleId", roleCheaf.getId())
+                .getSingleResult();
+
+        Assertions.assertEquals(qryChiefDoctor.getId(), ChiefDoctor.getId());
+        Assertions.assertEquals(qryChiefDoctor.getDepartment().getId(), ChiefDoctor.getDepartment().getId());
+        Assertions.assertEquals(qryChiefDoctor.getRole().getId(), ChiefDoctor.getRole().getId());
+
+        Doctor qryDocWithAllFreeTalons = entityManager.createQuery("""
+                        SELECT doc
+                        FROM Doctor doc
+                        LEFT JOIN Department dep
+                            ON dep.id = doc.department.id
+                        LEFT JOIN Role r
+                            ON r.id = doc.role.id
+                        WHERE doc.department.id = :depId
+                            AND doc.role.id = :roleId
+                        """, Doctor.class)
+                .setParameter("depId", department.getId())
+                .setParameter("roleId", roleDoc.getId())
+                .getResultList().get(1);
+
+        Assertions.assertEquals(qryDocWithAllFreeTalons.getId(), docWithAllFreeTalons.getId());
+        Assertions.assertEquals(qryDocWithAllFreeTalons.getDepartment().getId(),
+                docWithAllFreeTalons.getDepartment().getId());
+        Assertions.assertEquals(qryDocWithAllFreeTalons.getRole().getId(), docWithAllFreeTalons.getRole().getId());
+
+        Patient qryPatient = entityManager.createQuery("""
+                        SELECT p
+                        FROM Patient p
+                        LEFT JOIN Role r
+                            ON r.id = p.role.id
+                        WHERE r.id = :roleId
+                        """, Patient.class)
+                .setParameter("roleId", rolePatient.getId())
+                .getSingleResult();
+
+        Assertions.assertEquals(qryPatient.getId(), patient.getId());
+        Assertions.assertEquals(qryPatient.getRole().getId(), patient.getRole().getId());
 
     }
 }
