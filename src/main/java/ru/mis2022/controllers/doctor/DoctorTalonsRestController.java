@@ -20,6 +20,7 @@ import ru.mis2022.models.dto.talon.TalonDto;
 import ru.mis2022.models.dto.talon.converter.TalonDtoConverter;
 import ru.mis2022.models.entity.Doctor;
 import ru.mis2022.models.entity.Talon;
+import ru.mis2022.models.entity.User;
 import ru.mis2022.models.response.Response;
 import ru.mis2022.service.dto.TalonDtoService;
 import ru.mis2022.service.entity.DoctorService;
@@ -103,13 +104,13 @@ public class DoctorTalonsRestController {
 
     @ApiOperation("Доктор получает свой талон по id")
     @ApiResponses(value = {
-            @ApiResponse(code = 404, message = "Талон не найден")
+            @ApiResponse(code = 200, message = "Полученный талон")
     })
-    @GetMapping("/{id}")
-    public Response<TalonDto> getCurrentDoctorTalonById(@PathVariable("id") long id) {
+    @GetMapping("/{talon_id}")
+    public Response<TalonDto> getCurrentDoctorTalonById(@PathVariable("talon_id") long id) {
         long doctorId = ((Doctor) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         Talon talon = talonService.getTalonByIdAndDoctorId(id, doctorId);
-        ApiValidationUtils.expectedNotNull(talon, 404, "Талон не найден");
+        ApiValidationUtils.expectedNotNull(talon, 200, "Полученный талон");
         return Response.ok(converter.talonToTalonDto(talon));
     }
 }
