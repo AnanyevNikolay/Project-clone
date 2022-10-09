@@ -57,7 +57,7 @@ public class AdministratorRestControllerIT extends ContextIT {
     }
 
     @AfterEach
-    protected void clear() {
+    void clear() {
         administratorService.deleteAll();
         roleService.deleteAll();
     }

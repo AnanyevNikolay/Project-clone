@@ -8,10 +8,12 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.transaction.annotation.Transactional;
 import ru.mis2022.models.dto.service.MedicalServiceDto;
 import ru.mis2022.models.dto.service.PriceOfMedicalServiceDto;
-import ru.mis2022.models.entity.*;
+import ru.mis2022.models.entity.Economist;
+import ru.mis2022.models.entity.Role;
+import ru.mis2022.models.entity.MedicalService;
+import ru.mis2022.models.entity.PriceOfMedicalService;
 import ru.mis2022.service.entity.DepartmentService;
 import ru.mis2022.service.entity.EconomistService;
 import ru.mis2022.service.entity.MedicalServiceService;
@@ -68,6 +70,7 @@ public class EconomistMedicalServiceRestControllerIT extends ContextIT {
         medicalServiceService.deleteAll();
         economistService.deleteAll();
         roleService.deleteAll();
+        departmentService.deleteAll();
     }
 
     MedicalService initMedicalService(String identifier, String name) {
@@ -102,16 +105,6 @@ public class EconomistMedicalServiceRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data.name", Is.is(dto1.name())));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
-        MedicalService qryMedicalService = entityManager.createQuery("""
-                        SELECT ms
-                        FROM MedicalService ms
-                            WHERE ms.identifier = :identifier
-                        """, MedicalService.class)
-                .setParameter("identifier", dto1.identifier())
-                .getSingleResult();
-
-        Assertions.assertEquals(qryMedicalService.getIdentifier(), dto1.identifier());
-
         //в базе уже есть мед.услуга с таким идентификатором
         MedicalServiceDto dto2 = MedicalServiceDto.builder()
                 .identifier("K12")
@@ -144,6 +137,26 @@ public class EconomistMedicalServiceRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.code", Is.is(412)))
                 .andExpect(jsonPath("$.text", Is.is("Медицинская услуга с таким именем уже существует")));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
+        MedicalService qryMedicalService = entityManager.createQuery("""
+                        SELECT ms
+                        FROM MedicalService ms
+                            WHERE ms.identifier = :identifier
+                        """, MedicalService.class)
+                .setParameter("identifier", dto1.identifier())
+                .getSingleResult();
+
+        Assertions.assertEquals(qryMedicalService.getIdentifier(), dto1.identifier());
+
+        Economist qryEconomist = entityManager.createQuery("""
+                        SELECT econ
+                        FROM Economist econ
+                        WHERE econ.id = :econId
+                        """, Economist.class)
+                .setParameter("econId", economist.getId())
+                .getSingleResult();
+
+        Assertions.assertEquals(qryEconomist.getId(), economist.getId());
     }
 
     @Test

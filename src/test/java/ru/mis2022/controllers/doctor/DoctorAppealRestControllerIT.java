@@ -95,8 +95,16 @@ public class DoctorAppealRestControllerIT extends ContextIT {
                 .build());
     }
 
+    Appeal initAppeal(Patient patient, Disease disease) {
+        return appealService.save(new Appeal(
+                patient,
+                disease,
+                LocalDate.now().minusYears(20)
+        ));
+    }
+
     @AfterEach
-    protected void clear() {
+    void clear() {
         appealService.deleteAll();
         diseaseService.deleteAll();
         doctorService.deleteAll();
@@ -119,6 +127,8 @@ public class DoctorAppealRestControllerIT extends ContextIT {
         Patient patient = initPatient("email1@mail.ru", "Alexandr",
                 "Alexandrov", "Alexandrovich",
                 rolePatient, "1234 112233", "123456", "434-111-222 66");
+
+        Appeal appeal = initAppeal(patient, disease1);
 
 
         accessToken = tokenUtil.obtainNewAccessToken(doctor.getEmail(), "1", mockMvc);
@@ -195,6 +205,7 @@ public class DoctorAppealRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data.localDate").value(LocalDate.now().format(DATE_FORMATTER)))
                 .andExpect(jsonPath("$.data.isClosed").value(false));
 
+        // TODO ТУПА ПРОВЕРИТЬ
         Appeal qryAppeals = entityManager.createQuery("""
                         SELECT a
                         FROM Appeal a
@@ -204,12 +215,25 @@ public class DoctorAppealRestControllerIT extends ContextIT {
                             ON p.id = a.patient.id
                         WHERE d.id = :disId
                             AND p.id = :patientId
+                            AND a.id = :appealId
                         """, Appeal.class)
                 .setParameter("disId", disease1.getId())
                 .setParameter("patientId", patient.getId())
-                        .getResultList().get(0);
+                .setParameter("appealId", appeal.getId())
+                        .getSingleResult();
 
         Assertions.assertEquals(qryAppeals.getDisease().getId(), disease1.getId());
         Assertions.assertEquals(qryAppeals.getPatient().getId(), patient.getId());
+
+        Doctor qryDoctor = entityManager.createQuery("""
+                        SELECT doc
+                        FROM Doctor doc
+                        WHERE doc.department.id = :departmentId
+                        """, Doctor.class)
+                .setParameter("departmentId", department1.getId())
+                .getSingleResult();
+
+        Assertions.assertEquals(qryDoctor.getId(), doctor.getId());
+        Assertions.assertEquals(qryDoctor.getDepartment().getId(), department1.getId());
     }
 }

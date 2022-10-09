@@ -60,7 +60,7 @@ public class ChiefDoctorRestControllerT extends ContextIT {
     }
 
     @AfterEach
-    protected void clear() {
+    void clear() {
         doctorService.deleteAll();
         roleService.deleteAll();
         departmentService.deleteAll();
@@ -102,7 +102,7 @@ public class ChiefDoctorRestControllerT extends ContextIT {
                 .getSingleResult();
 
         Assertions.assertEquals(qryDoctor.getId(), doctor.getId());
-        Assertions.assertEquals(qryDoctor.getDepartment().getId(), doctor.getDepartment().getId());
-        Assertions.assertEquals(qryDoctor.getRole().getId(), doctor.getRole().getId());
+        Assertions.assertEquals(qryDoctor.getDepartment().getId(), department.getId());
+        Assertions.assertEquals(qryDoctor.getRole().getId(), role.getId());
     }
 }
