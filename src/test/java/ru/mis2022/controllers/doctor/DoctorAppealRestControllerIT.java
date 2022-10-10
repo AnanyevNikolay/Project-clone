@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import ru.mis2022.models.entity.Appeal;
 import ru.mis2022.models.entity.Department;
 import ru.mis2022.models.entity.Disease;
 import ru.mis2022.models.entity.Doctor;
@@ -95,14 +94,6 @@ public class DoctorAppealRestControllerIT extends ContextIT {
                 .build());
     }
 
-    Appeal initAppeal(Patient patient, Disease disease) {
-        return appealService.save(new Appeal(
-                patient,
-                disease,
-                LocalDate.now().minusYears(20)
-        ));
-    }
-
     @AfterEach
     void clear() {
         appealService.deleteAll();
@@ -127,9 +118,6 @@ public class DoctorAppealRestControllerIT extends ContextIT {
         Patient patient = initPatient("email1@mail.ru", "Alexandr",
                 "Alexandrov", "Alexandrovich",
                 rolePatient, "1234 112233", "123456", "434-111-222 66");
-
-        Appeal appeal = initAppeal(patient, disease1);
-
 
         accessToken = tokenUtil.obtainNewAccessToken(doctor.getEmail(), "1", mockMvc);
 
@@ -205,35 +193,45 @@ public class DoctorAppealRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data.localDate").value(LocalDate.now().format(DATE_FORMATTER)))
                 .andExpect(jsonPath("$.data.isClosed").value(false));
 
-        // TODO ТУПА ПРОВЕРИТЬ
-        Appeal qryAppeals = entityManager.createQuery("""
-                        SELECT a
-                        FROM Appeal a
-                        LEFT JOIN Disease d
-                            ON d.id = a.disease.id
-                        LEFT JOIN Patient p
-                            ON p.id = a.patient.id
-                        WHERE d.id = :disId
-                            AND p.id = :patientId
-                            AND a.id = :appealId
-                        """, Appeal.class)
-                .setParameter("disId", disease1.getId())
-                .setParameter("patientId", patient.getId())
-                .setParameter("appealId", appeal.getId())
-                        .getSingleResult();
-
-        Assertions.assertEquals(qryAppeals.getDisease().getId(), disease1.getId());
-        Assertions.assertEquals(qryAppeals.getPatient().getId(), patient.getId());
-
         Doctor qryDoctor = entityManager.createQuery("""
                         SELECT doc
                         FROM Doctor doc
-                        WHERE doc.department.id = :departmentId
+                        LEFT JOIN Department dep
+                            ON dep.id = doc.department.id
+                        LEFT JOIN Role role
+                            ON role.id = doc.role.id
+                        WHERE dep.id = :departmentId
+                            AND role.id = :roleId
                         """, Doctor.class)
                 .setParameter("departmentId", department1.getId())
+                .setParameter("roleId", roleDoc.getId())
                 .getSingleResult();
 
         Assertions.assertEquals(qryDoctor.getId(), doctor.getId());
         Assertions.assertEquals(qryDoctor.getDepartment().getId(), department1.getId());
+        Assertions.assertEquals(qryDoctor.getRole().getId(), roleDoc.getId());
+
+        Patient qryPatient = entityManager.createQuery("""
+                        SELECT pat
+                        FROM Patient pat
+                        LEFT JOIN Role role
+                            ON role.id = pat.role.id
+                        WHERE role.id = :roleId
+                        """, Patient.class)
+                .setParameter("roleId", rolePatient.getId())
+                .getSingleResult();
+
+        Assertions.assertEquals(qryPatient.getId(), patient.getId());
+        Assertions.assertEquals(qryPatient.getRole().getId(), rolePatient.getId());
+
+        Disease qryDisease = entityManager.createQuery("""
+                        SELECT dis
+                        FROM Disease dis
+                            WHERE dis.id = :disId
+                        """, Disease.class)
+                .setParameter("disId", disease1.getId())
+                .getSingleResult();
+
+        Assertions.assertEquals(qryDisease.getId(), disease1.getId());
     }
 }
