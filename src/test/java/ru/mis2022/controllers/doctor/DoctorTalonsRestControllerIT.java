@@ -437,8 +437,17 @@ public class DoctorTalonsRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data.patientDto.snils", Is.is(patientDto.snils())));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
-        // Проверяем поиск по несуществуещему талону и ждем 404
-        // А бывает ли такого что у талона нет id? У талона же 100% будет id.
+        // Проверяем поиск по талону не принадлежащему доктору и ждем 404
+        mockMvc.perform(get("/api/doctor/talon/{id}", talon2.getId())
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().is4xxClientError())
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(404)))
+                .andExpect(jsonPath("$.data", Is.is(IsNull.nullValue())))
+                .andExpect(jsonPath("$.text", Is.is("Талон не найден")));
+
 
     }
 }
