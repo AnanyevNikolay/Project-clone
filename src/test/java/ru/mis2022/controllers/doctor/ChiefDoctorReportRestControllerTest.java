@@ -103,7 +103,7 @@ class ChiefDoctorReportRestControllerTest extends ContextIT {
     }
 
     @AfterEach
-    protected void clear() {
+    void clear() {
         talonService.deleteAll();
         doctorService.deleteAll();
         patientService.deleteAll();
