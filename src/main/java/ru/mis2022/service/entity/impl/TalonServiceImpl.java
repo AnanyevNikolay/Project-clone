@@ -9,6 +9,7 @@ import ru.mis2022.models.dto.talon.converter.TalonDtoConverter;
 import ru.mis2022.models.entity.Doctor;
 import ru.mis2022.models.entity.Patient;
 import ru.mis2022.models.entity.Talon;
+import ru.mis2022.repositories.DoctorRepository;
 import ru.mis2022.repositories.PatientRepository;
 import ru.mis2022.repositories.TalonRepository;
 import ru.mis2022.service.entity.TalonService;
@@ -92,8 +93,8 @@ public class TalonServiceImpl implements TalonService {
         return talonRepository.findTalonById(id);
     }
     @Override
-    public Talon getTalonByIdWithDoctor(Long id) {
-        return talonRepository.getTalonByIdWithDoctor(id);
+    public Talon getTalonByIdAndDoctorId(Long talonId, Long doctorId) {
+        return talonRepository.getTalonByIdAndDoctorId(talonId, doctorId);
     }
     @Override
     public List<Doctor> findDoctorsWithTalonsSpecificTimeRange(int countDays, Long departmentId) {
@@ -127,4 +128,10 @@ public class TalonServiceImpl implements TalonService {
     public Long findPatientIdByTalonId(Long talonId){
         return patientRepository.findPatientIdByTalonId(talonId);
     }
+
+    @Override
+    public Talon findTalonWithDoctorAndPatientByTalonId(Long id) {
+        return talonRepository.findTalonWithDoctorAndPatientByTalonId(id);
+    }
+
 }

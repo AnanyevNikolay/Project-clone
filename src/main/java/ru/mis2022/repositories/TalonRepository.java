@@ -41,10 +41,11 @@ public interface TalonRepository extends JpaRepository<Talon, Long> {
 
     @Query("""
             SELECT t FROM Talon t
-                JOIN FETCH t.doctor
-            WHERE t.id = :id
+                left join Doctor d ON d.id = t.doctor.id
+                left join Patient p ON p.id = t.patient.id
+            WHERE t.id = :talonId and t.doctor.id = :doctorId
             """)
-    Talon getTalonByIdWithDoctor(Long id);
+    Talon getTalonByIdAndDoctorId(Long talonId, Long doctorId);
 
 
     @Query("""
@@ -135,4 +136,13 @@ LEFT JOIN FETCH t.patient
 WHERE t.id = :id
 """)
     Talon findTalonByWithDoctorAndPatient(Long id);
+
+
+    @Query("""
+    SELECT t FROM Talon t 
+        left join Doctor d on d.id = t.doctor.id
+    WHERE t.id = :id   
+    """)
+    Talon findTalonWithDoctorAndPatientByTalonId(Long id);
+
 }
