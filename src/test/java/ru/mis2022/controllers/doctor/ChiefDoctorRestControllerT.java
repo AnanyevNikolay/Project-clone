@@ -2,10 +2,11 @@ package ru.mis2022.controllers.doctor;
 
 import org.hamcrest.Matchers;
 import org.hamcrest.core.Is;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.transaction.annotation.Transactional;
 import ru.mis2022.models.entity.Department;
 import ru.mis2022.models.entity.Doctor;
 import ru.mis2022.models.entity.PersonalHistory;
@@ -21,10 +22,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// todo list 4 написать метод clear() дабы избавиться от аннотации Transactional
-//  в конце каждого теста дописать запрос проверяющий что все действительно было
-//  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
-@Transactional
 public class ChiefDoctorRestControllerT extends ContextIT {
 
     RoleService roleService;
@@ -65,6 +62,13 @@ public class ChiefDoctorRestControllerT extends ContextIT {
                 .build());
     }
 
+    @AfterEach
+    void clear() {
+        doctorService.deleteAll();
+        roleService.deleteAll();
+        departmentService.deleteAll();
+    }
+
     @Test
     public void getCurrentUserTest() throws Exception {
         Role role = initRole("CHIEF_DOCTOR");
@@ -85,5 +89,23 @@ public class ChiefDoctorRestControllerT extends ContextIT {
                 .andExpect(jsonPath("$.data.departmentName", Is.is("Therapy")))
                 .andExpect(jsonPath("$.data.birthday", Matchers.notNullValue()));
         //          .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
+        Doctor qryDoctor = entityManager.createQuery("""
+                        SELECT doc
+                        FROM Doctor doc
+                        LEFT JOIN Department dep
+                            ON doc.department.id = dep.id
+                        LEFT JOIN Role rol
+                            on doc.role.id = rol.id
+                        WHERE dep.id = :depId
+                            AND rol.id = :rolId
+                        """, Doctor.class)
+                .setParameter("depId", department.getId())
+                .setParameter("rolId", role.getId())
+                .getSingleResult();
+
+        Assertions.assertEquals(qryDoctor.getId(), doctor.getId());
+        Assertions.assertEquals(qryDoctor.getDepartment().getId(), department.getId());
+        Assertions.assertEquals(qryDoctor.getRole().getId(), role.getId());
     }
 }

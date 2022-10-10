@@ -12,4 +12,5 @@ public interface DiseaseService {
     void deleteById (Long id);
     Disease save(Disease disease);
     Disease findDiseaseById(Long id);
+    void deleteAll();
 }

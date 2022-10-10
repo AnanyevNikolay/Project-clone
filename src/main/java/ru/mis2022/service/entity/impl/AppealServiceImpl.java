@@ -25,4 +25,9 @@ public class AppealServiceImpl implements AppealService {
     public Optional<List<Appeal>> getAppealsDtoByPatientId(long patientId) {
         return appealRepository.getAppealsDtoByPatientId(patientId);
     }
+
+    @Override
+    public void deleteAll() {
+        appealRepository.deleteAll();
+    }
 }

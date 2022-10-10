@@ -45,4 +45,9 @@ public class DiseaseServiceImpl implements DiseaseService {
     public Disease findDiseaseById(Long id) {
         return diseaseRepository.findDiseaseById(id);
     }
+
+    @Override
+    public void deleteAll() {
+        diseaseRepository.deleteAll();
+    }
 }
