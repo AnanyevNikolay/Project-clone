@@ -104,13 +104,14 @@ public class DoctorTalonsRestController {
 
     @ApiOperation("Доктор получает свой талон по id")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Полученный талон")
+            @ApiResponse(code = 200, message = "Полученный талон"),
+            @ApiResponse(code = 404, message = "Талон не найден")
     })
     @GetMapping("/{talon_id}")
     public Response<TalonDto> getCurrentDoctorTalonById(@PathVariable("talon_id") long id) {
         long doctorId = ((Doctor) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         Talon talon = talonService.getTalonByIdAndDoctorId(id, doctorId);
-        ApiValidationUtils.expectedNotNull(talon, 200, "Полученный талон");
+        ApiValidationUtils.expectedNotNull(talon, 404, "Талон не найден");
         return Response.ok(converter.talonToTalonDto(talon));
     }
 }
