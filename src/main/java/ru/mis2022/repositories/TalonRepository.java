@@ -140,8 +140,8 @@ WHERE t.id = :id
 
     @Query("""
     SELECT t FROM Talon t 
-    LEFT JOIN FETCH t.doctor
-    WHERE t.id = :id
+        left join Doctor d on d.id = t.doctor.id
+    WHERE t.id = :id   
     """)
     Talon findTalonWithDoctorAndPatientByTalonId(Long id);
 
