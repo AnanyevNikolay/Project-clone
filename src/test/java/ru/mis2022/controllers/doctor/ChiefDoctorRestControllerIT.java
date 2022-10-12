@@ -22,7 +22,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-public class ChiefDoctorRestControllerT extends ContextIT {
+public class ChiefDoctorRestControllerIT extends ContextIT {
 
     RoleService roleService;
 
@@ -31,7 +31,7 @@ public class ChiefDoctorRestControllerT extends ContextIT {
     DepartmentService departmentService;
 
     @Autowired
-    public ChiefDoctorRestControllerT(RoleService roleService, DoctorService doctorService, DepartmentService departmentService) {
+    public ChiefDoctorRestControllerIT(RoleService roleService, DoctorService doctorService, DepartmentService departmentService) {
         this.roleService = roleService;
         this.doctorService = doctorService;
         this.departmentService = departmentService;
@@ -56,7 +56,7 @@ public class ChiefDoctorRestControllerT extends ContextIT {
         ));
     }
 
-    Department initDepartement(String name) {
+    Department initDepartment(String name) {
         return departmentService.save(Department.builder()
                 .name(name)
                 .build());
@@ -72,7 +72,7 @@ public class ChiefDoctorRestControllerT extends ContextIT {
     @Test
     public void getCurrentUserTest() throws Exception {
         Role role = initRole("CHIEF_DOCTOR");
-        Department department = initDepartement("Therapy");
+        Department department = initDepartment("Therapy");
         Doctor doctor = initDoctor(role, department, null);
 
         accessToken = tokenUtil.obtainNewAccessToken(doctor.getEmail(), "1", mockMvc);

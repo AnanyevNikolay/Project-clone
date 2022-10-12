@@ -7,7 +7,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.test.web.servlet.MvcResult;
 import ru.mis2022.models.entity.Department;
 import ru.mis2022.models.entity.Doctor;
 import ru.mis2022.models.entity.Patient;
@@ -35,8 +34,7 @@ import static ru.mis2022.models.entity.Role.RolesEnum.DOCTOR;
 import static ru.mis2022.models.entity.Role.RolesEnum.PATIENT;
 import static ru.mis2022.utils.DateFormatter.DATE_FORMATTER;
 
-// todo list 11 сократить длину строк, чтобы не вылезало за линию
-class ChiefDoctorReportRestControllerTest extends ContextIT {
+class ChiefDoctorReportRestControllerIT extends ContextIT {
     RoleService roleService;
 
     DoctorService doctorService;
@@ -48,7 +46,9 @@ class ChiefDoctorReportRestControllerTest extends ContextIT {
     PatientService patientService;
 
     @Autowired
-    public ChiefDoctorReportRestControllerTest(RoleService roleService, DoctorService doctorService, DepartmentService departmentService, TalonService talonService, PatientService patientService) {
+    public ChiefDoctorReportRestControllerIT(RoleService roleService, DoctorService doctorService,
+                                             DepartmentService departmentService,
+                                             TalonService talonService, PatientService patientService) {
         this.roleService = roleService;
         this.doctorService = doctorService;
         this.departmentService = departmentService;
@@ -62,10 +62,11 @@ class ChiefDoctorReportRestControllerTest extends ContextIT {
                 .build());
     }
 
-    Doctor initDoctor(Role role, Department department, String email, String firstName, String lastName, PersonalHistory personalHistory) {
+    Doctor initDoctor(Role role, Department department, String email, String firstName,
+                      String lastName, PersonalHistory personalHistory) {
         return doctorService.persist(new Doctor(
                 email,
-                String.valueOf("1"),
+                "1",
                 firstName,
                 lastName,
                 "surname",
@@ -75,8 +76,7 @@ class ChiefDoctorReportRestControllerTest extends ContextIT {
         ));
     }
 
-    // todo list 11 исправить ошибку в названии метода
-    Department initDepartement(String name) {
+    Department initDepartment(String name) {
         return departmentService.save(Department.builder()
                 .name(name)
                 .build());
@@ -85,7 +85,7 @@ class ChiefDoctorReportRestControllerTest extends ContextIT {
     Patient initPatient(Role role) {
         return patientService.persist(new Patient(
                 "patient1@email.com",
-                String.valueOf("1"),
+                "1",
                 "Patient test",
                 "супер пац",
                 "surname",
@@ -97,9 +97,8 @@ class ChiefDoctorReportRestControllerTest extends ContextIT {
                 "address"));
     }
 
-    // todo list 11 return value of the method is never used
-    Talon initTalon(LocalDateTime time, Doctor doctor, Patient patient) {
-        return talonService.save(new Talon(time, doctor, patient));
+    void initTalon(LocalDateTime time, Doctor doctor, Patient patient) {
+        talonService.save(new Talon(time, doctor, patient));
     }
 
     @AfterEach
@@ -111,42 +110,41 @@ class ChiefDoctorReportRestControllerTest extends ContextIT {
         departmentService.deleteAll();
     }
 
-    // todo list 11 roleCheaf исправить ошибку в названии
-    // todo list 11 убрать переменные, которые не используются, либо сделать так, чтобы они использовались
-    // todo list 11 назвать переменные нормально, в некоторых моментах непонятно, что описано
     @Test
     void getWorkloadReport() throws Exception {
-        Role roleCheaf = initRole(CHIEF_DOCTOR.name());
+        Role roleChief = initRole(CHIEF_DOCTOR.name());
         Role rolePatient = initRole(PATIENT.name());
         Role roleDoc = initRole(DOCTOR.name());
 
-        Department department = initDepartement("Therapy");
-        Department deptDantist = initDepartement("Dantist");
+        Department depTherapy = initDepartment("Therapy");
 
-        Doctor ChiefDoctor = initDoctor(roleCheaf, department, "mainDoctor1@email.com", "главный", "Доктор" ,  null);
-        Doctor docWithOutTalons = initDoctor(roleDoc, department, "docWithOutTalons@email.com", "доктор вообще", "без талонов" ,  null);
-        Doctor docWithAllFreeTalons = initDoctor(roleDoc, department, "docWithAllFreeTalons@email.com", "доктор со всеми", "свободными талонами" ,  null);
+        Doctor chiefDoctor = initDoctor(roleChief, depTherapy, "mainDoctor1@email.com", "главный",
+                "Доктор", null);
+        Doctor docWithOutTalons = initDoctor(roleDoc, depTherapy, "docWithOutTalons@email.com",
+                "доктор вообще", "без талонов", null);
+        Doctor docWithAllFreeTalons = initDoctor(roleDoc, depTherapy, "docWithAllFreeTalons@email.com",
+                "доктор со всеми", "свободными талонами", null);
 
         Patient patient = initPatient(rolePatient);
-        initTalon(LocalDateTime.now().with(LocalTime.MAX).minusHours(2), ChiefDoctor, patient);
-        initTalon(LocalDateTime.now().with(LocalTime.MIN).plusHours(1), ChiefDoctor, null);
+        initTalon(LocalDateTime.now().with(LocalTime.MAX).minusHours(2), chiefDoctor, patient);
+        initTalon(LocalDateTime.now().with(LocalTime.MIN).plusHours(1), chiefDoctor, null);
 
         initTalon(LocalDateTime.now().with(LocalTime.MAX).minusHours(1), docWithAllFreeTalons, null);
         initTalon(LocalDateTime.now().with(LocalTime.MIN).plusHours(1), docWithAllFreeTalons, null);
         initTalon(LocalDateTime.now().with(LocalTime.MIN).plusHours(2), docWithAllFreeTalons, null);
 
 
-        accessToken = tokenUtil.obtainNewAccessToken(ChiefDoctor.getEmail(), "1", mockMvc);
+        accessToken = tokenUtil.obtainNewAccessToken(chiefDoctor.getEmail(), "1", mockMvc);
 
         LocalDate ldNow = LocalDate.now();
-        MvcResult result = mockMvc.perform(get("/api/chief/doctor/workload_employees_report")
-                        .param("dateStart", ldNow.with(firstDayOfYear()).format(DATE_FORMATTER).toString())
-                        .param("dateEnd", ldNow.with(lastDayOfYear()).format(DATE_FORMATTER).toString())
+        mockMvc.perform(get("/api/chief/doctor/workload_employees_report")
+                        .param("dateStart", ldNow.with(firstDayOfYear()).format(DATE_FORMATTER))
+                        .param("dateEnd", ldNow.with(lastDayOfYear()).format(DATE_FORMATTER))
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.data[0].doctorId", Is.is(ChiefDoctor.getId().intValue())))
+                .andExpect(jsonPath("$.data[0].doctorId", Is.is(chiefDoctor.getId().intValue())))
                 .andExpect(jsonPath("$.data[0].talons[0].busyTalons", Is.is(1)))
                 .andExpect(jsonPath("$.data[0].talons[0].totalTalons", Is.is(2)))
 
@@ -169,13 +167,13 @@ class ChiefDoctorReportRestControllerTest extends ContextIT {
                         WHERE doc.department.id = :depId
                             AND doc.role.id = :roleId
                         """, Doctor.class)
-                .setParameter("depId", department.getId())
-                .setParameter("roleId", roleCheaf.getId())
+                .setParameter("depId", depTherapy.getId())
+                .setParameter("roleId", roleChief.getId())
                 .getSingleResult();
 
-        Assertions.assertEquals(qryChiefDoctor.getId(), ChiefDoctor.getId());
-        Assertions.assertEquals(qryChiefDoctor.getDepartment().getId(), ChiefDoctor.getDepartment().getId());
-        Assertions.assertEquals(qryChiefDoctor.getRole().getId(), ChiefDoctor.getRole().getId());
+        Assertions.assertEquals(qryChiefDoctor.getId(), chiefDoctor.getId());
+        Assertions.assertEquals(qryChiefDoctor.getDepartment().getId(), chiefDoctor.getDepartment().getId());
+        Assertions.assertEquals(qryChiefDoctor.getRole().getId(), chiefDoctor.getRole().getId());
 
         Doctor qryDocWithAllFreeTalons = entityManager.createQuery("""
                         SELECT doc
@@ -187,7 +185,7 @@ class ChiefDoctorReportRestControllerTest extends ContextIT {
                         WHERE doc.department.id = :depId
                             AND doc.role.id = :roleId
                         """, Doctor.class)
-                .setParameter("depId", department.getId())
+                .setParameter("depId", depTherapy.getId())
                 .setParameter("roleId", roleDoc.getId())
                 .getResultList().get(1);
 
