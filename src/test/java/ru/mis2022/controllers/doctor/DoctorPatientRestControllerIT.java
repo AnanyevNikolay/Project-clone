@@ -12,11 +12,11 @@ import ru.mis2022.models.entity.Patient;
 import ru.mis2022.models.entity.PersonalHistory;
 import ru.mis2022.models.entity.Role;
 import ru.mis2022.models.entity.Talon;
-import ru.mis2022.service.entity.DepartmentService;
-import ru.mis2022.service.entity.DoctorService;
-import ru.mis2022.service.entity.PatientService;
-import ru.mis2022.service.entity.RoleService;
-import ru.mis2022.service.entity.TalonService;
+import ru.mis2022.repositories.DepartmentRepository;
+import ru.mis2022.repositories.DoctorRepository;
+import ru.mis2022.repositories.PatientRepository;
+import ru.mis2022.repositories.RoleRepository;
+import ru.mis2022.repositories.TalonRepository;
 import ru.mis2022.util.ContextIT;
 
 import java.time.LocalDate;
@@ -32,36 +32,35 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static ru.mis2022.models.entity.Role.RolesEnum.DOCTOR;
 import static ru.mis2022.utils.DateFormatter.DATE_TIME_FORMATTER;
 
-// todo list 5 в конце каждого теста дописать запрос проверяющий что все действительно было
-//  проинициализированно в бд. по аналогии с registerPatientInTalon в этом классе
 public class DoctorPatientRestControllerIT extends ContextIT {
     @Autowired
-    private DoctorService doctorService;
+    private RoleRepository roleRepository;
     @Autowired
-    private RoleService roleService;
+    private DepartmentRepository departmentRepository;
     @Autowired
-    private DepartmentService departmentService;
+    private TalonRepository talonRepository;
     @Autowired
-    private PatientService patientService;
+    DoctorRepository doctorRepository;
     @Autowired
-    private TalonService talonService;
+    PatientRepository patientRepository;
+
 
     Role initRole(String name) {
-        return roleService.save(Role.builder()
+        return roleRepository.save(Role.builder()
                 .name(name)
                 .build());
     }
 
     Department initDepartment(String name) {
-        return departmentService.save(Department.builder()
+        return departmentRepository.save(Department.builder()
                 .name(name)
                 .build());
     }
 
     Doctor initDoctor(Role role, Department department, PersonalHistory personalHistory, String email) {
-        return doctorService.persist(new Doctor(
+        return doctorRepository.save(new Doctor(
                 email,
-                String.valueOf("1"),
+                passwordEncoder.encode("1"),
                 "f_name",
                 "l_name",
                 "surname",
@@ -72,9 +71,9 @@ public class DoctorPatientRestControllerIT extends ContextIT {
     }
 
     Patient initPatient(String email, String firstName, String lastName, String surname, Role role, String passport, String polis, String snils) {
-        return patientService.persist(new Patient(
+        return patientRepository.save(new Patient(
                 email,
-                String.valueOf("1"),
+                passwordEncoder.encode("1"),
                 firstName,
                 lastName,
                 surname,
@@ -88,16 +87,16 @@ public class DoctorPatientRestControllerIT extends ContextIT {
     }
 
     Talon initTalon(LocalDateTime time, Doctor doctor, Patient patient) {
-        return talonService.save(new Talon(time, doctor, patient));
+        return talonRepository.save(new Talon(time, doctor, patient));
     }
 
     @AfterEach
     public void clear() {
-        talonService.deleteAll();
-        doctorService.deleteAll();
-        patientService.deleteAll();
-        departmentService.deleteAll();
-        roleService.deleteAll();
+        talonRepository.deleteAll();
+        doctorRepository.deleteAll();
+        patientRepository.deleteAll();
+        departmentRepository.deleteAll();
+        roleRepository.deleteAll();
     }
 
     @Test
@@ -224,7 +223,7 @@ public class DoctorPatientRestControllerIT extends ContextIT {
 
         // Талон занят
         talon.setPatient(otherPatient);
-        talonService.save(talon);
+        talonRepository.save(talon);
         mockMvc.perform(post("/api/doctor/patient/registerInTalon")
                         .param("talonId", talon.getId().toString())
                         .param("patientId", patient.getId().toString())
@@ -239,7 +238,7 @@ public class DoctorPatientRestControllerIT extends ContextIT {
         // У талона нет доктора
         talon.setPatient(patient);
         talon.setDoctor(null);
-        talonService.save(talon);
+        talonRepository.save(talon);
         mockMvc.perform(post("/api/doctor/patient/registerInTalon")
                         .param("talonId", talon.getId().toString())
                         .param("patientId", patient.getId().toString())
@@ -254,7 +253,7 @@ public class DoctorPatientRestControllerIT extends ContextIT {
         // У талона другой доктор, а не под которым зашли
         talon.setPatient(patient);
         talon.setDoctor(otherDoctor);
-        talonService.save(talon);
+        talonRepository.save(talon);
         mockMvc.perform(post("/api/doctor/patient/registerInTalon")
                         .param("talonId", talon.getId().toString())
                         .param("patientId", patient.getId().toString())
@@ -269,7 +268,7 @@ public class DoctorPatientRestControllerIT extends ContextIT {
         // Все норм (пациент в талоне есть, но тот же самый, которого пытаются записать)
         talon.setPatient(patient);
         talon.setDoctor(doctor);
-        talonService.save(talon);
+        talonRepository.save(talon);
         mockMvc.perform(post("/api/doctor/patient/registerInTalon")
                         .param("talonId", talon.getId().toString())
                         .param("patientId", patient.getId().toString())
@@ -284,7 +283,7 @@ public class DoctorPatientRestControllerIT extends ContextIT {
         // Все норм (пациент в талоне отсутствует)
         talon.setPatient(null);
         talon.setDoctor(doctor);
-        talonService.save(talon);
+        talonRepository.save(talon);
         mockMvc.perform(post("/api/doctor/patient/registerInTalon")
                         .param("talonId", talon.getId().toString())
                         .param("patientId", patient.getId().toString())
@@ -296,22 +295,15 @@ public class DoctorPatientRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data.patientDto.id").value(patient.getId()))
                 .andExpect(jsonPath("$.data.time").value(DATE_TIME_FORMATTER.format(talonTime)));
 
-        Talon qryTalon = entityManager.createQuery("""
-            SELECT t
-            FROM Talon t
-            LEFT JOIN Doctor d
-                 ON d.id = t.doctor.id
-            LEFT JOIN Patient p
-                 ON p.id = t.patient.id
-            WHERE d.id = :docId
-                 AND p.id = :patientId
+        // Проверяем сохранение пациента к талону.
+        Talon talon1 = entityManager.createQuery("""
+            SELECT t FROM Talon t
+            JOIN Patient p ON p.id = t.patient.id
+            WHERE p.id = :patId
             """, Talon.class)
-                .setParameter("docId", doctor.getId())
-                .setParameter("patientId", patient.getId())
+                .setParameter("patId", patient.getId())
                 .getSingleResult();
 
-
-        Assertions.assertEquals(qryTalon.getDoctor().getId(), doctor.getId());
-        Assertions.assertEquals(qryTalon.getPatient().getId(), patient.getId());
+        Assertions.assertEquals(talon1.getPatient().getId(), patient.getId());
     }
 }
