@@ -31,7 +31,7 @@ import javax.validation.Valid;
 @RestController
 @RequiredArgsConstructor
 @PreAuthorize("hasRole('HR_MANAGER')")
-@RequestMapping("/api/hr_manager")
+@RequestMapping("/api/hr_manager/admin")
 public class HrManagerAdminRestController {
     private final AdministratorService administratorService;
     private final AdministratorDtoConverter administratorDtoConverter;
@@ -46,7 +46,7 @@ public class HrManagerAdminRestController {
             @ApiResponse(code = 412, message = "Такой адрес электронной почты уже используется!")
     })
     @Validated(OnCreate.class)
-    @PostMapping("/admin/createAdmin")
+    @PostMapping("/createAdmin")
     public Response<AdministratorDto> createAdmin(@Valid @RequestBody AdministratorDto administratorDto) {
         ApiValidationUtils
                 .expectedFalse(userService.existsByEmail(administratorDto.getEmail()),
@@ -64,7 +64,7 @@ public class HrManagerAdminRestController {
             @ApiResponse(code = 412, message = "Такой адрес электронной почты уже используется.")
     })
     @Validated(OnUpdate.class)
-    @PutMapping("/admin/updateAdmin")
+    @PutMapping("/updateAdmin")
     public Response<AdministratorDto> updateAdmin(@Valid @RequestBody AdministratorDto administratorDto) {
         ApiValidationUtils
                 .expectedTrue(administratorService.isExistById(administratorDto.getId()),

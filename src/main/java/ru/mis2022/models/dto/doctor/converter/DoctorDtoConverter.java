@@ -2,19 +2,34 @@ package ru.mis2022.models.dto.doctor.converter;
 
 import org.springframework.stereotype.Component;
 import ru.mis2022.models.dto.doctor.DoctorDto;
-import ru.mis2022.models.entity.Doctor;
-import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 import ru.mis2022.models.dto.registrar.DoctorsWithTalonsDto;
 import ru.mis2022.models.dto.registrar.TalonsWithoutDoctorDto;
+import ru.mis2022.models.entity.Doctor;
+import ru.mis2022.service.entity.DepartmentService;
+import ru.mis2022.service.entity.RoleService;
+
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeFormatterBuilder;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @Component
 public class DoctorDtoConverter {
+
+    private final RoleService roleService;
+    private final DepartmentService departmentService;
+
+    public DoctorDtoConverter(RoleService roleService, DepartmentService departmentService) {
+        this.roleService = roleService;
+        this.departmentService = departmentService;
+    }
+
     public List<DoctorsWithTalonsDto> groupTalonsByDoctor(List<DoctorsWithTalonsDto> docs) {
 
         if(docs == null) return null;
@@ -69,5 +84,41 @@ public class DoctorDtoConverter {
                     .build());
         }
         return setDto;
+    }
+
+    public DoctorDto toDto(Doctor entity) {
+        String roleName = String.valueOf(entity.getRole());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd.MM.yyyy");
+        String birthday = entity.getBirthday().format(formatter);
+
+        return DoctorDto.builder()
+                .id(entity.getId())
+                .email(entity.getEmail())
+                .password(entity.getPassword())
+                .firstName(entity.getFirstName())
+                .lastName(entity.getLastName())
+                .surname(entity.getSurname())
+                .role(roleName.substring(roleName.lastIndexOf("=")).replaceAll("[^A-Z]", ""))
+                .birthday(birthday.replaceAll("-", "."))
+                .department(entity.getDepartment().getName())
+                .build();
+    }
+
+    public Doctor toEntity(DoctorDto dto) {
+        DateTimeFormatter df = new DateTimeFormatterBuilder()
+                .parseCaseInsensitive()
+                .appendPattern("dd.MM.yyyy")
+                .toFormatter(Locale.ENGLISH);
+
+        return new Doctor(
+                dto.getEmail(),
+                dto.getPassword(),
+                dto.getFirstName(),
+                dto.getLastName(),
+                dto.getSurname(),
+                LocalDate.parse(dto.getBirthday(), df),
+                roleService.findByName(dto.getRole()),
+                departmentService.findDepartmentByDoctorId(dto.getId())
+        );
     }
 }
