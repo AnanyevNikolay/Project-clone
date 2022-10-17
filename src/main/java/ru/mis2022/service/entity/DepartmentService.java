@@ -12,5 +12,6 @@ public interface DepartmentService {
     boolean isExistById(Long departmentId);
 
     void deleteAll();
+
     Department findDepartmentByDoctorId(Long docId);
 }

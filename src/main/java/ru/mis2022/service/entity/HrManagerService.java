@@ -7,4 +7,6 @@ public interface HrManagerService {
     HrManager findByEmail(String email);
 
     HrManager persist(HrManager hrManager);
+
+    void deleteAll();
 }

@@ -26,4 +26,9 @@ public class HrManagerServiceImpl implements HrManagerService {
         hrManager.setPassword(passwordEncoder.encode(hrManager.getPassword()));
         return hrManagerRepository.save(hrManager);
     }
+
+    @Override
+    public void deleteAll() {
+        hrManagerRepository.deleteAll();
+    }
 }
