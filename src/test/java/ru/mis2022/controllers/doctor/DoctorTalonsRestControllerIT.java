@@ -4,6 +4,7 @@ import org.hamcrest.Matchers;
 import org.hamcrest.core.Is;
 import org.hamcrest.core.IsNull;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,46 +18,40 @@ import ru.mis2022.models.entity.Patient;
 import ru.mis2022.models.entity.PersonalHistory;
 import ru.mis2022.models.entity.Role;
 import ru.mis2022.models.entity.Talon;
+import ru.mis2022.repositories.DepartmentRepository;
+import ru.mis2022.repositories.DoctorRepository;
+import ru.mis2022.repositories.PatientRepository;
 import ru.mis2022.repositories.RoleRepository;
+import ru.mis2022.repositories.TalonRepository;
 import ru.mis2022.service.dto.TalonDtoService;
-import ru.mis2022.service.entity.DepartmentService;
-import ru.mis2022.service.entity.DoctorService;
-import ru.mis2022.service.entity.PatientService;
-import ru.mis2022.service.entity.RoleService;
 import ru.mis2022.service.entity.TalonService;
 import ru.mis2022.util.ContextIT;
-
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.mis2022.utils.DateFormatter.DATE_FORMATTER;
 import static ru.mis2022.utils.DateFormatter.DATE_TIME_FORMATTER;
-
-// todo list 5 в конце каждого теста дописать запрос проверяющий что все действительно было
-//  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
 public class DoctorTalonsRestControllerIT extends ContextIT {
-
     @Autowired
-    TalonService talonService;
+    private TalonRepository talonRepository;
     @Autowired
-    TalonDtoService talonDtoService;
+    private TalonDtoService talonDtoService;
     @Autowired
-    DoctorService doctorService;
-    @Autowired
-    RoleService roleService;
+    private DoctorRepository doctorRepository;
     @Autowired
     RoleRepository roleRepository;
     @Autowired
-    DepartmentService departmentService;
+    private DepartmentRepository departmentRepository;
     @Autowired
-    PatientService patientService;
+    PatientRepository patientRepository;
+    @Autowired
+    private TalonService talonService;
 
     @Value("${mis.property.doctorSchedule}")
     private Integer numberOfDays;
@@ -65,21 +60,21 @@ public class DoctorTalonsRestControllerIT extends ContextIT {
     private Integer numbersOfTalons;
 
     Role initRole(String name) {
-        return roleService.save(Role.builder()
+        return roleRepository.save(Role.builder()
                 .name(name)
                 .build());
     }
 
     Department initDepartment(String name) {
-        return departmentService.save(Department.builder()
+        return departmentRepository.save(Department.builder()
                 .name(name)
                 .build());
     }
 
     Doctor initDoctor(Role role, Department department, PersonalHistory personalHistory, String email) {
-        return doctorService.persist(new Doctor(
+        return doctorRepository.save(new Doctor(
                 email,
-                "1",
+                passwordEncoder.encode("1"),
                 "f_name",
                 "l_name",
                 "surname",
@@ -90,9 +85,9 @@ public class DoctorTalonsRestControllerIT extends ContextIT {
     }
 
     Patient initPatient(Role role) {
-        return patientService.persist(new Patient(
+        return patientRepository.save(new Patient(
                 "patient1@email.com",
-                "1",
+                passwordEncoder.encode("1"),
                 "f_name",
                 "l_name",
                 "surname",
@@ -105,7 +100,7 @@ public class DoctorTalonsRestControllerIT extends ContextIT {
     }
 
     Talon initTalon(Talon talon) {
-        return talonService.save(talon);
+        return talonRepository.save(talon);
     }
 
     private String formatDate(LocalDate date, int hour) {
@@ -120,11 +115,11 @@ public class DoctorTalonsRestControllerIT extends ContextIT {
 
     @AfterEach
     public void clear() {
-        talonService.deleteAll();
-        doctorService.deleteAll();
-        patientService.deleteAll();
-        departmentService.deleteAll();
-        roleService.deleteAll();
+        talonRepository.deleteAll();
+        doctorRepository.deleteAll();
+        patientRepository.deleteAll();
+        departmentRepository.deleteAll();
+        roleRepository.deleteAll();
     }
 
     @Test
@@ -181,7 +176,7 @@ public class DoctorTalonsRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.code", Is.is(401)))
                 .andExpect(jsonPath("$.text", Is.is("У доктора есть талоны на данные дни")));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
-        talonService.deleteAll();
+        talonRepository.deleteAll();
 
         //СОЗДАНИЕ ТАЛОННОВ НА ПЕРЕДАННЫЕ ДАТЫ
         mockMvc.perform(post("/api/doctor/talon/add")
@@ -239,7 +234,17 @@ public class DoctorTalonsRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.code", Is.is(401)))
                 .andExpect(jsonPath("$.text", Is.is("У доктора есть талоны на данные дни")));
 
+        // Проверяю, что у doctor1 действительно инициализируется department в БД
+        Talon checkTalonByDoctorId = entityManager.createQuery("""
+            SELECT t FROM Talon t
+            JOIN Doctor d ON d.id = t.doctor.id
+            WHERE d.id = :docId
+        """, Talon.class)
+                .setMaxResults(1)
+                .setParameter("docId", doctor1.getId())
+                .getSingleResult();
 
+        Assertions.assertEquals(checkTalonByDoctorId.getDoctor().getId(), doctor1.getId());
     }
 
     @Test
@@ -307,7 +312,7 @@ public class DoctorTalonsRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data.length()", Is.is(0)));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
-        talonService.deleteAll();
+        talonRepository.deleteAll();
         // ТЕСТ НА СТЫКЕ ДАТ
         accessToken = tokenUtil.obtainNewAccessToken(doctor1.getEmail(), "1", mockMvc);
 
@@ -330,6 +335,7 @@ public class DoctorTalonsRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[0].talonsDto[0].time", Is.is(junction_talon1.getTime().format(DATE_TIME_FORMATTER))))
                 .andExpect(jsonPath("$.data[1].talonsDto[0].time", Is.is(junction_talon2.getTime().format(DATE_TIME_FORMATTER))))
                 .andExpect(jsonPath("$.data[2].talonsDto[0].time", Is.is(junction_talon3.getTime().format(DATE_TIME_FORMATTER))));
+
     }
 
     @Test
@@ -382,6 +388,7 @@ public class DoctorTalonsRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[3].time", Is.is(todayTimeTalon(11))))
                 .andExpect(jsonPath("$.data[3].patientId", Is.is(patient.getId().intValue())));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
     }
 
     @Test
@@ -447,7 +454,6 @@ public class DoctorTalonsRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.code", Is.is(404)))
                 .andExpect(jsonPath("$.data", Is.is(IsNull.nullValue())))
                 .andExpect(jsonPath("$.text", Is.is("Талон не найден")));
-
 
     }
 }
