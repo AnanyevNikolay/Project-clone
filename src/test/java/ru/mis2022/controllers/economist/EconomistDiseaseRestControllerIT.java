@@ -2,20 +2,21 @@ package ru.mis2022.controllers.economist;
 
 import org.hamcrest.Matchers;
 import org.hamcrest.core.Is;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.mis2022.models.dto.disease.DiseaseDto;
 import ru.mis2022.models.entity.Department;
 import ru.mis2022.models.entity.Disease;
 import ru.mis2022.models.entity.Economist;
 import ru.mis2022.models.entity.Role;
-import ru.mis2022.service.entity.DepartmentService;
-import ru.mis2022.service.entity.DiseaseService;
-import ru.mis2022.service.entity.EconomistService;
-import ru.mis2022.service.entity.RoleService;
+import ru.mis2022.repositories.DepartmentRepository;
+import ru.mis2022.repositories.DiseaseRepository;
+import ru.mis2022.repositories.EconomistRepository;
+import ru.mis2022.repositories.RoleRepository;
 import ru.mis2022.util.ContextIT;
 
 import java.time.LocalDate;
@@ -30,30 +31,28 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // todo list 6 написать метод clear() дабы избавиться от аннотации Transactional
 //  в конце каждого теста дописать запрос проверяющий что все действительно было
 //  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
-@Transactional
+
 public class EconomistDiseaseRestControllerIT extends ContextIT {
-
     @Autowired
-    DepartmentService departmentService;
-
+    DepartmentRepository departmentRepository;
     @Autowired
-    RoleService roleService;
-
+    RoleRepository roleRepository;
     @Autowired
-    EconomistService economistService;
-
+    EconomistRepository economistRepository;
     @Autowired
-    DiseaseService diseaseService;
+    DiseaseRepository diseaseRepository;
+    @Autowired
+    PasswordEncoder encoder;
 
 
     Role initRole(String name) {
-        return roleService.save(Role.builder()
+        return roleRepository.save(Role.builder()
                 .name(name)
                 .build());
     }
 
     Economist initEconomist(Role role) {
-        return economistService.persist(new Economist(
+        Economist economist = new Economist(
                 "economist1@email.com",
                 String.valueOf("1"),
                 "f_name",
@@ -61,11 +60,13 @@ public class EconomistDiseaseRestControllerIT extends ContextIT {
                 "surname",
                 LocalDate.now().minusYears(20),
                 role
-        ));
+        );
+        economist.setPassword(encoder.encode(economist.getPassword()));
+        return economistRepository.save(economist);
     }
 
     Disease initDisease(String identifier, String name){
-        return diseaseService.save(Disease.builder()
+        return diseaseRepository.save(Disease.builder()
                 .identifier(identifier)
                 .name(name)
                 .build());
@@ -79,10 +80,17 @@ public class EconomistDiseaseRestControllerIT extends ContextIT {
     }
 
     Department initDepartment(String name) {
-        return departmentService.save(Department.builder()
+        return departmentRepository.save(Department.builder()
                 .name(name)
                 .build());
+    }
 
+    @AfterEach
+    public void clear() {
+        diseaseRepository.deleteAll();
+        economistRepository.deleteAll();
+        roleRepository.deleteAll();
+        departmentRepository.deleteAll();
     }
 
 
@@ -102,7 +110,8 @@ public class EconomistDiseaseRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.success", Is.is(true)))
                 .andExpect(jsonPath("$.code", Is.is(200)))
                 .andExpect(jsonPath("$.data.length()", Is.is(0)));
-//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
+
 
         //ВАЛИДНЫЙ КЕЙС
         Disease disease1 = initDisease("12345", "dis1name");
@@ -124,7 +133,17 @@ public class EconomistDiseaseRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[1].id", Is.is(disease2.getId().intValue())))
                 .andExpect(jsonPath("$.data[1].identifier", Is.is(disease2.getIdentifier())))
                 .andExpect(jsonPath("$.data[1].name", Is.is(disease2.getName())));
-//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
+        // Наличие в БД проинициализорованных сущностей
+        Assertions.assertNotNull(entityManager
+                .createQuery("select dis from Disease dis where dis.id = :id", Disease.class)
+                .setParameter("id", disease1.getId()));
+        Assertions.assertNotNull(entityManager
+                .createQuery("select dis from Disease dis where dis.id = :id")
+                .setParameter("id", disease2.getId()));
+        Assertions.assertNotNull(entityManager
+                .createQuery("select e from Economist e where e.id = :id")
+                .setParameter("id", economist.getId()));
     }
 
     @Test
@@ -180,6 +199,11 @@ public class EconomistDiseaseRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data.identifier", Is.is(dto3.identifier())))
                 .andExpect(jsonPath("$.data.name", Is.is(dto3.name())));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
+        // Проверка корректности сохраненных заболеваний в БД
+        Assertions.assertEquals(entityManager
+                .createQuery("select d from Disease d", Disease.class)
+                .getResultList().size(), 2);
     }
 
     @Test
@@ -193,8 +217,8 @@ public class EconomistDiseaseRestControllerIT extends ContextIT {
 
         //ВАЛИДНЫЙ ТЕСТ
         mockMvc.perform(delete("/api/economist/disease/delete/{diseaseId}", disease1.getId())
-                                .header("Authorization", accessToken)
-                                .contentType(MediaType.APPLICATION_JSON)
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", Is.is(true)))
@@ -254,7 +278,7 @@ public class EconomistDiseaseRestControllerIT extends ContextIT {
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(diseaseDto))
-        )
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", Is.is(true)))
                 .andExpect(jsonPath("$.code", Is.is(200)))
@@ -268,11 +292,20 @@ public class EconomistDiseaseRestControllerIT extends ContextIT {
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(diseaseDto2))
-        )
+                )
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.success", Is.is(false)))
                 .andExpect(jsonPath("$.code", Is.is(411)))
                 .andExpect(jsonPath("$.text", Is.is("Заболевания с переданным id не существует")));
+
+        // Проверка инициализированных заболеваний
+        Assertions.assertTrue(2L >
+                entityManager.createQuery("select count(d) from Disease d", Long.class).getSingleResult());
+
+        Disease diseaseInDb = entityManager.createQuery("select d from Disease d", Disease.class).getSingleResult();
+
+        Assertions.assertEquals(diseaseInDb.getId(), disease.getId());
+        Assertions.assertEquals(diseaseInDb.getIdentifier(), diseaseDto.identifier());
     }
 
     @Test
@@ -294,14 +327,25 @@ public class EconomistDiseaseRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.success", Is.is(true)))
                 .andExpect(jsonPath("$.code", Is.is(200)));
 
-        Assertions.assertEquals(disease.getDepartment().getId(), department.getId());
-        Assertions.assertEquals(disease.getDepartment().getName(), department.getName());
+        // Запрос в БД для проверки инициализации изменений
+        Disease diseaseInDepartment =
+                entityManager.createQuery("""
+                    select dis from Disease dis 
+                    left join fetch Department dep on dis.department.id = dep.id
+                        where dis.id = :disId and dep.id = :depId
+                """, Disease.class)
+                        .setParameter("disId", disease.getId())
+                        .setParameter("depId", department.getId())
+                        .getSingleResult();
+
+        Assertions.assertEquals(diseaseInDepartment.getId(), disease.getId());
+        Assertions.assertEquals(diseaseInDepartment.getDepartment().getId(), department.getId());
 
         //РАЗРЫВАЕМ СВЯЗЬ ЗАБОЛЕВАНИЯ С ТЕКУЩИМ ДЕПАРТАМЕНТОМ
         mockMvc.perform(get("/api/economist/disease/assignDepartment/{diseaseId}", disease.getId())
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
-        )
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", Is.is(true)))
                 .andExpect(jsonPath("$.code", Is.is(200)));
@@ -324,7 +368,7 @@ public class EconomistDiseaseRestControllerIT extends ContextIT {
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                         .param("departmentId", objectMapper.writeValueAsString(department.getId()))
-        )
+                )
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.success", Is.is(false)))
                 .andExpect(jsonPath("$.code", Is.is(412)))
