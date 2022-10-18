@@ -122,17 +122,5 @@ class EconomistDepartmentRestControllerTest extends ContextIT {
                 .createQuery("select dep from Department dep where dep.id = :id")
                 .setParameter("id", dept3.getId()));
 
-        // Проверка наличия в БД инициализированного Економиста
-        Economist economistInDB = entityManager.createQuery("""
-                select e from Economist e
-                join fetch Role r 
-                    on r.id = e.role.id
-                where r.id = :id
-                """, Economist.class)
-                .setParameter("id", economist.getId())
-                .getSingleResult();
-        Assertions.assertEquals(economist.getId(), economistInDB.getId());
-        Assertions.assertEquals(economist.getEmail(), economistInDB.getEmail());
-
     }
 }
