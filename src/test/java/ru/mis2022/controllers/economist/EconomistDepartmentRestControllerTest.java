@@ -1,16 +1,19 @@
 package ru.mis2022.controllers.economist;
 
 import org.hamcrest.core.Is;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import ru.mis2022.models.entity.Department;
 import ru.mis2022.models.entity.Economist;
 import ru.mis2022.models.entity.Role;
-import ru.mis2022.service.entity.DepartmentService;
+import ru.mis2022.repositories.DepartmentRepository;
+import ru.mis2022.repositories.EconomistRepository;
+import ru.mis2022.repositories.RoleRepository;
 import ru.mis2022.service.entity.EconomistService;
-import ru.mis2022.service.entity.RoleService;
 import ru.mis2022.util.ContextIT;
 
 import java.time.LocalDate;
@@ -22,27 +25,32 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 // todo list 6 написать метод clear() дабы избавиться от аннотации Transactional
 //  в конце каждого теста дописать запрос проверяющий что все действительно было
 //  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
-@Transactional
+
 class EconomistDepartmentRestControllerTest extends ContextIT {
+
     @Autowired
-    DepartmentService departmentService;
+    DepartmentRepository departmentRepository;
     @Autowired
-    RoleService roleService;
+    RoleRepository roleRepository;
     @Autowired
-    EconomistService economistService;
+    EconomistRepository economistRepository;
+    @Autowired
+    PasswordEncoder encoder;
+
+
     Department initDepartment(String name) {
-        return departmentService.save(Department.builder()
+        return departmentRepository.save(Department.builder()
                 .name(name)
                 .build());
     }
 
     Role initRole(String name) {
-        return roleService.save(Role.builder()
+        return roleRepository.save(Role.builder()
                 .name(name)
                 .build());
     }
     Economist initEconomist(Role role) {
-        return economistService.persist(new Economist(
+        Economist economist = new Economist(
                 "economist1@email.com",
                 String.valueOf("1"),
                 "f_name",
@@ -50,9 +58,17 @@ class EconomistDepartmentRestControllerTest extends ContextIT {
                 "surname",
                 LocalDate.now().minusYears(20),
                 role
-        ));
+        );
+        economist.setPassword(encoder.encode(economist.getPassword()));
+        return economistRepository.save(economist);
     }
 
+    @AfterEach
+    public void clear() {
+        departmentRepository.deleteAll();
+        economistRepository.deleteAll();
+        roleRepository.deleteAll();
+    }
 
     @Test
     void getAllDepartments()  throws Exception{
@@ -93,6 +109,30 @@ class EconomistDepartmentRestControllerTest extends ContextIT {
 
                 .andExpect(jsonPath("$.data[2].id", Is.is(dept3.getId().intValue())))
                 .andExpect(jsonPath("$.data[2].name", Is.is(dept3.getName())));
+
+
+        // Проверка наличия в БД трех проинициализированных отделений
+        Assertions.assertNotNull(entityManager
+                .createQuery("select dep from Department dep where dep.id = :id")
+                .setParameter("id", dept1.getId()));
+        Assertions.assertNotNull(entityManager
+                .createQuery("select dep from Department dep where dep.id = :id")
+                .setParameter("id", dept2.getId()));
+        Assertions.assertNotNull(entityManager
+                .createQuery("select dep from Department dep where dep.id = :id")
+                .setParameter("id", dept3.getId()));
+
+        // Проверка наличия в БД инициализированного Економиста
+        Economist economistInDB = entityManager.createQuery("""
+                select e from Economist e
+                join fetch Role r 
+                    on r.id = e.role.id
+                where r.id = :id
+                """, Economist.class)
+                .setParameter("id", economist.getId())
+                .getSingleResult();
+        Assertions.assertEquals(economist.getId(), economistInDB.getId());
+        Assertions.assertEquals(economist.getEmail(), economistInDB.getEmail());
 
     }
 }
