@@ -17,8 +17,6 @@ public interface UserService extends UserDetailsService {
 
     boolean isExistsByNameAndId(String name,Long id);
 
-    User findByEmailAndExceptCurrentId(String email, Long id);
-
     List<User> findPersonalByFullName(String fullName, String roleName);
 
     List<User> findPersonalByBirthdayInRange(LocalDate from, LocalDate to);

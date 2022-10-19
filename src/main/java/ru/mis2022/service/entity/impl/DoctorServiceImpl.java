@@ -21,11 +21,6 @@ public class DoctorServiceImpl implements DoctorService {
     }
 
     @Override
-    public Doctor findById(Long id) {
-        return doctorRepository.findDoctorById(id);
-    }
-
-    @Override
     @Transactional
     public Doctor persist(Doctor doctor) {
         doctor.setPassword(encoder.encode(doctor.getPassword()));

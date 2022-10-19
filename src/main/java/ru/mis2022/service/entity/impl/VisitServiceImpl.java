@@ -20,9 +20,4 @@ public class VisitServiceImpl implements VisitService {
     public Visit save(Visit visit) {
         return visitRepository.save(visit);
     }
-
-    @Override
-    public Optional<List<Visit>> getVisitsOfCurrentPatientById(long id) {
-        return visitRepository.getVisitsOfCurrentPatientById(id);
-    }
 }

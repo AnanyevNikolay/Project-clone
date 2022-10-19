@@ -10,11 +10,6 @@ import java.util.List;
 
 public interface MedicalOrganizationRepository extends JpaRepository<MedicalOrganization, Long> {
 
-    @Query("SELECT m FROM MedicalOrganization m WHERE m.id = :id")
-    MedicalOrganization findMedicalOrganizationById(Long id);
-
-    MedicalOrganization findMedicalOrganizationByName(String name);
-
     @Query("""
     SELECT  new  ru.mis2022.models.dto.organization.MedicalOrganizationDto(
     m.id,

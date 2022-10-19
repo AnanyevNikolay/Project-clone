@@ -7,8 +7,6 @@ public interface DoctorService {
 
     Doctor findByEmail(String email);
 
-    Doctor findById(Long id);
-
     Doctor persist(Doctor doctor);
 
     Doctor merge(Doctor doctor);

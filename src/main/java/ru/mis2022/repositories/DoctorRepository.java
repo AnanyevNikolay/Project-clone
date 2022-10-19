@@ -31,8 +31,6 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
 
     Doctor findByEmail(String email);
 
-    List<Doctor> findAllByDepartmentId(Long id);
-
     @Query("""
     SELECT new ru.mis2022.models.dto.doctor.DoctorDto(
         d.id,
@@ -52,30 +50,6 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
     
     """)
     List<DoctorDto> findAllByDepartmentIdDto(Long deptId);
-
-    @Query("""
-        SELECT new ru.mis2022.models.dto.doctor.CurrentDoctorDto(
-            doc.firstName,
-            doc.lastName,
-            doc.birthday,
-            role.name,
-            dep.name)
-        FROM Doctor doc
-            JOIN Role role ON doc.role.id = role.id
-            JOIN Department dep ON doc.department.id = dep.id
-        WHERE doc.email = :email
-        AND doc.department = :department
-        """)
-        //todo имя метода неправильное - отобразить получение коллекции
-    List<CurrentDoctorDto> findDoctorDtoByDepartment(Department department);
-
-    //todo надо искать по ид департамента и необходимо писать запрос с джойнами
-    List<DoctorDto> findDoctorsDtoByDepartmentId (Long departmentId);
-
-    @Query("""
-            SELECT d FROM Doctor d WHERE d.id = :id
-            """)
-    Doctor findDoctorById(Long id);
 
     //Отчет заведующего отделения по загруженности докторов его департамента
     @Query("""

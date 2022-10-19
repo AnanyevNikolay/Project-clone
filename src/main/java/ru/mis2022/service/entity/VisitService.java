@@ -8,6 +8,4 @@ import java.util.Optional;
 public interface VisitService {
 
     Visit save(Visit visit);
-
-    Optional<List<Visit>> getVisitsOfCurrentPatientById(long id);
 }
