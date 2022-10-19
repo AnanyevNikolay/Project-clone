@@ -1,7 +1,8 @@
 package ru.mis2022.models.entity;
 
 
-import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import lombok.experimental.SuperBuilder;
 import org.springframework.lang.Nullable;
 
 import javax.persistence.Entity;
@@ -19,7 +20,8 @@ import java.time.LocalDate;
 
 
 @Entity
-@NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder
 public class Registrar extends User {
     public Registrar(String email, String password, String firstName, String lastName, @Nullable String surname,
                    LocalDate birthday, Role role) {
