@@ -26,11 +26,6 @@ public class AdministratorServiceImpl implements AdministratorService {
     }
 
     @Override
-    public Administrator findAdministratorById(Long id) {
-        return administratorRepository.findAdministratorById(id);
-    }
-
-    @Override
     @Transactional
     public Administrator persist(Administrator administrator) {
         administrator.setPassword(encoder.encode(generator.getRndStr(randomPasswordLength)));

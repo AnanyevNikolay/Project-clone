@@ -10,8 +10,6 @@ import java.util.List;
 
 public interface DepartmentRepository extends JpaRepository<Department, Long> {
 
-    List<Department> findAllByMedicalOrganizationId(Long id);
-
     @Query("""
             SELECT d FROM Department d WHERE d.id = :id
             """)

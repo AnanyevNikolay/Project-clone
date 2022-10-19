@@ -50,11 +50,6 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User findByEmailAndExceptCurrentId(String email, Long id) {
-        return userRepository.findByEmailAndExceptCurrentId(email, id);
-    }
-
-    @Override
     public List<User> findPersonalByFullName(String fullName, String roleName) {
         return userRepository.findPersonalByFullName(fullName, roleName);
     }

@@ -13,8 +13,6 @@ public interface MedicalServiceService {
 
     boolean isExistByName(String name);
 
-    Optional<List<MedicalService>> getMedicalServicesDtoVisitedByCurrentPatientWithId(long id);
-
     void deleteAll();
 
     MedicalService getMedicalServiceById(Long id);

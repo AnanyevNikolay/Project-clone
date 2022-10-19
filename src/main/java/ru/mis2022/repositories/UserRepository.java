@@ -20,11 +20,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     boolean existsByEmailAndId(String name, Long id);
 
     @Query("""
-            SELECT u FROM User u JOIN FETCH u.role WHERE (u.email = :email AND u.id <> :id)
-            """)
-    User findByEmailAndExceptCurrentId(String email, Long id);
-
-    @Query("""
             SELECT u FROM User u
                 JOIN FETCH u.role
             WHERE u.role.name <> :roleName

@@ -23,9 +23,4 @@ public interface AdministratorRepository extends JpaRepository<Administrator, Lo
     CurrentAdministratorDto getCurrentAdministratorDtoByEmail(String email);
 
     Administrator findByEmail(String email);
-
-    @Query("""
-            SELECT a FROM Administrator a JOIN FETCH a.role WHERE a.id = :id
-            """)
-    Administrator findAdministratorById(Long id);
 }

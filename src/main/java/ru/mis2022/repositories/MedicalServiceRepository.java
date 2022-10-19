@@ -13,14 +13,5 @@ public interface MedicalServiceRepository extends JpaRepository<MedicalService, 
 
    boolean existsByName(String name);
 
-   @Query(value = """
-         SELECT ms
-         FROM MedicalService ms
-            JOIN Visit v ON ms.visit.id = v.id
-            JOIN Appeal a ON v.appeal.id = a.id
-         WHERE ms.visit.appeal.patient.id = :id
-         """)
-   Optional<List<MedicalService>> getMedicalServicesDtoVisitedByCurrentPatientWithId(long id);
-
    MedicalService getMedicalServiceById(Long id);
 }
