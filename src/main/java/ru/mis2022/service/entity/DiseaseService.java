@@ -13,4 +13,5 @@ public interface DiseaseService {
     Disease save(Disease disease);
     Disease findDiseaseById(Long id);
     void deleteAll();
+    Disease findDiseaseByIdAndChangeDisabled(Long diseaseId);
 }

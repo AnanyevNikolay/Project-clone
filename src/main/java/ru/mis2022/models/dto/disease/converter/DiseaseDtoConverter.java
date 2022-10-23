@@ -12,6 +12,7 @@ public class DiseaseDtoConverter {
                 .identifier(disease.getIdentifier())
                 .name(disease.getName())
                 .id(disease.getId())
+                .disabled(disease.isDisabled())
                 .build();
     }
 
@@ -20,6 +21,7 @@ public class DiseaseDtoConverter {
                 .id(diseaseDto.id())
                 .name(diseaseDto.name())
                 .identifier(diseaseDto.identifier())
+                .disabled(diseaseDto.disabled())
                 .build();
     }
 }

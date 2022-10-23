@@ -27,9 +27,9 @@ public class DoctorDiseaseRestController {
     private final DoctorService doctorService;
     private final DiseaseDtoService diseaseDtoService;
 
-    @ApiOperation("Получение всех заболеваний отделения доктора")
+    @ApiOperation("Получение всех доступных заболеваний отделения доктора.")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Список всех заболеваний отделения доктора"),
+            @ApiResponse(code = 200, message = "Список всех заболеваний отделения доктора."),
             @ApiResponse(code = 414, message = "Доктора с таким id нет!"),
     })
     @GetMapping("/{doctorId}/getAllDisease")

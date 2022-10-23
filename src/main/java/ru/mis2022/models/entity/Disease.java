@@ -46,6 +46,8 @@ public class Disease {
     @JoinColumn(name = "department_id")
     private Department department;
 
+    private boolean disabled;
+
     public Disease(String identifier, String name) {
         this.identifier = identifier;
         this.name = name;

@@ -16,7 +16,8 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
             SELECT new ru.mis2022.models.dto.disease.DiseaseDto(
                 d.id,
                 d.identifier,
-                d.name)
+                d.name,
+                d.disabled)
             FROM Disease d
             """)
     List<DiseaseDto> findAllDiseaseDto();
@@ -28,12 +29,13 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
             select new  ru.mis2022.models.dto.disease.DiseaseDto(
             dis.id,
             dis.identifier,
-            dis.name
-            )
+            dis.name,
+            dis.disabled)
             from Disease dis
             join Department dep on dep.id = dis.department.id
             join Doctor doc on dep.id = doc.department.id
             where doc.id=:docId
+                AND dis.disabled = false
             """)
     List<DiseaseDto> findDiseaseByDepartmentDoctors(@Param("docId") Long docId);
     Disease findDiseaseById(Long id);

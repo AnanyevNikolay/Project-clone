@@ -50,4 +50,12 @@ public class DiseaseServiceImpl implements DiseaseService {
     public void deleteAll() {
         diseaseRepository.deleteAll();
     }
+
+    // Заблокировать/разблокировать заболевание!
+    @Override
+    public Disease findDiseaseByIdAndChangeDisabled(Long diseaseId) {
+        Disease disease = diseaseRepository.findDiseaseById(diseaseId);
+        disease.setDisabled(!disease.isDisabled());
+        return save(disease);
+    }
 }

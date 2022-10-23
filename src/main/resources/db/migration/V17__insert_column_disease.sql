@@ -1,0 +1,1 @@
+ALTER TABLE disease ADD disabled BOOLEAN;
