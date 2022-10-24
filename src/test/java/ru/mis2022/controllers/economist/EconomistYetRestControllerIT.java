@@ -2,17 +2,17 @@ package ru.mis2022.controllers.economist;
 
 import org.hamcrest.Matchers;
 import org.hamcrest.core.Is;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.transaction.annotation.Transactional;
 import ru.mis2022.models.dto.yet.YetDto;
 import ru.mis2022.models.dto.yet.converter.YetDtoConverter;
 import ru.mis2022.models.entity.Economist;
 import ru.mis2022.models.entity.Role;
-import ru.mis2022.service.entity.EconomistService;
-import ru.mis2022.service.entity.RoleService;
-import ru.mis2022.service.entity.YetService;
+import ru.mis2022.repositories.EconomistRepository;
+import ru.mis2022.repositories.RoleRepository;
+import ru.mis2022.repositories.YetRepository;
 import ru.mis2022.util.ContextIT;
 
 import java.time.LocalDate;
@@ -29,31 +29,28 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// todo list 7 написать метод clear() дабы избавиться от аннотации Transactional
-//  в конце каждого теста дописать запрос проверяющий что все действительно было
-//  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
-@Transactional
+
 public class EconomistYetRestControllerIT extends ContextIT {
 
     @Autowired
-    RoleService roleService;
+    RoleRepository roleRepository;
     @Autowired
-    EconomistService economistService;
+    EconomistRepository economistRepository;
     @Autowired
-    YetService yetService;
+    YetRepository yetRepository;
     @Autowired
     YetDtoConverter yetDtoConverter;
 
     Role initRole(String name) {
-        return roleService.save(Role.builder()
+        return roleRepository.save(Role.builder()
                 .name(name)
                 .build());
     }
 
     Economist initEconomist(Role role) {
-        return economistService.persist(new Economist(
+        return economistRepository.save(new Economist(
                 "economist1@email.com",
-                String.valueOf("1"),
+                passwordEncoder.encode(String.valueOf("1")),
                 "f_name",
                 "l_name",
                 "surname",
@@ -70,6 +67,13 @@ public class EconomistYetRestControllerIT extends ContextIT {
         YearMonth dayFrom = parseDay(stRdayFrom);
         YearMonth dayTo = parseDay(stRdayTo);
         return new YetDto(id, price, dayFrom, dayTo);
+    }
+
+    @AfterEach
+    public void clear() {
+        economistRepository.deleteAll();
+        yetRepository.deleteAll();
+        roleRepository.deleteAll();
     }
 
     //Создание ует
@@ -143,7 +147,7 @@ public class EconomistYetRestControllerIT extends ContextIT {
 
         //Создаем в базе второй ует
         YetDto newYet = initYetDto(null, 1000, "07.2000", "09.2000");
-        yetService.save(yetDtoConverter.toEntity(newYet));
+        yetRepository.save(yetDtoConverter.toEntity(newYet));
 
         //Валидный ует, новый интервал ует перекрывает 2 существующих полностью
         YetDto noValidDayFromDayToDtoCreate2 = initYetDto(null, 500, "01.2000", "12.2000");
@@ -199,8 +203,8 @@ public class EconomistYetRestControllerIT extends ContextIT {
 
         //Создаем в базе ует, находим его id.
         YetDto newYet = initYetDto(null, 1000, "07.2000", "09.2000");
-        yetService.save(yetDtoConverter.toEntity(newYet));
-        Long idDto = yetService.findAll().listIterator().next().getId();
+        yetRepository.save(yetDtoConverter.toEntity(newYet));
+        Long idDto = yetRepository.findAll().listIterator().next().getId();
 
         //Валидный ует, обновляем ует.
         YetDto validDtoUpdate = initYetDto(idDto, 500, "02.2000", "06.2000");
@@ -222,7 +226,7 @@ public class EconomistYetRestControllerIT extends ContextIT {
 
         //Создаем в базе еще один ует.
         YetDto newYet1 = initYetDto(null, 1000, "02.2001", "09.2001");
-        yetService.save(yetDtoConverter.toEntity(newYet1));
+        yetRepository.save(yetDtoConverter.toEntity(newYet1));
 
         //Валидный ует, обновляем ует. Обновленный ует перекрывает полностью существующий интервал
         YetDto validDtoUpdate1 = initYetDto(idDto, 900, "01.2001", "10.2001");
@@ -256,7 +260,7 @@ public class EconomistYetRestControllerIT extends ContextIT {
 
         //Создаем в базе еще один ует.
         YetDto newYet2 = initYetDto(null, 1000, "10.2001", "12.2001");
-        yetService.save(yetDtoConverter.toEntity(newYet2));
+        yetRepository.save(yetDtoConverter.toEntity(newYet2));
 
         //Валидный ует, обновляем ует. Интервал обновленного ует перекрывает частично 2 существующих
         YetDto validDtoUpdate3 = initYetDto(idDto, 900, "08.2001", "11.2001");
@@ -312,8 +316,8 @@ public class EconomistYetRestControllerIT extends ContextIT {
 
         //Создаем в базе ует, находим его id.
         YetDto newYet = initYetDto(null, 1000, "07.2000", "09.2000");
-        yetService.save(yetDtoConverter.toEntity(newYet));
-        Long idDto = yetService.findAll().listIterator().next().getId();
+        yetRepository.save(yetDtoConverter.toEntity(newYet));
+        Long idDto = yetRepository.findAll().listIterator().next().getId();
 
         accessToken = tokenUtil.obtainNewAccessToken(economist.getEmail(), "1", mockMvc);
 
@@ -348,16 +352,16 @@ public class EconomistYetRestControllerIT extends ContextIT {
         accessToken = tokenUtil.obtainNewAccessToken(economist.getEmail(), "1", mockMvc);
 
         YetDto newYetDto = initYetDto(null, 100, "01.2001", "06.2001");
-        yetService.save(yetDtoConverter.toEntity(newYetDto));
+        yetRepository.save(yetDtoConverter.toEntity(newYetDto));
         YetDto newYetDto1 = initYetDto(null, 200, "01.2002", "06.2002");
-        yetService.save(yetDtoConverter.toEntity(newYetDto1));
+        yetRepository.save(yetDtoConverter.toEntity(newYetDto1));
         YetDto newYetDto2 = initYetDto(null, 300, "01.2003", "02.2003");
-        yetService.save(yetDtoConverter.toEntity(newYetDto2));
+        yetRepository.save(yetDtoConverter.toEntity(newYetDto2));
         YetDto newYetDto3 = initYetDto(null, 400, "01.2004", "06.2004");
-        yetService.save(yetDtoConverter.toEntity(newYetDto3));
+        yetRepository.save(yetDtoConverter.toEntity(newYetDto3));
         YetDto newYetDto4 = initYetDto(null, 500, "01.2005", "02.2005");
-        yetService.save(yetDtoConverter.toEntity(newYetDto4));
-        Long idDto = yetService.findAll().listIterator().next().getId();
+        yetRepository.save(yetDtoConverter.toEntity(newYetDto4));
+        Long idDto = yetRepository.findAll().listIterator().next().getId();
 
         //Вывод списка записей Yet
         mockMvc.perform(get("/api/economist/yet/getAllYet")

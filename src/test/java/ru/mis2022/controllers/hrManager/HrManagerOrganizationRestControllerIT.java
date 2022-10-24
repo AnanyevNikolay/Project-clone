@@ -3,6 +3,7 @@ package ru.mis2022.controllers.hrManager;
 
 import org.hamcrest.Matchers;
 import org.hamcrest.core.Is;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,12 +16,12 @@ import ru.mis2022.models.entity.HrManager;
 import ru.mis2022.models.entity.MedicalOrganization;
 import ru.mis2022.models.entity.Role;
 import ru.mis2022.models.entity.User;
-import ru.mis2022.service.entity.DepartmentService;
-import ru.mis2022.service.entity.DoctorService;
-import ru.mis2022.service.entity.HrManagerService;
-import ru.mis2022.service.entity.MedicalOrganizationService;
-import ru.mis2022.service.entity.RoleService;
-import ru.mis2022.service.entity.UserService;
+import ru.mis2022.repositories.DepartmentRepository;
+import ru.mis2022.repositories.DoctorRepository;
+import ru.mis2022.repositories.HrManagerRepository;
+import ru.mis2022.repositories.MedicalOrganizationRepository;
+import ru.mis2022.repositories.RoleRepository;
+import ru.mis2022.repositories.UserRepository;
 import ru.mis2022.util.ContextIT;
 
 import java.time.LocalDate;
@@ -32,35 +33,32 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// todo list 7 написать метод clear() дабы избавиться от аннотации Transactional
-//  в конце каждого теста дописать запрос проверяющий что все действительно было
-//  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
-@Transactional
+
 public class HrManagerOrganizationRestControllerIT extends ContextIT {
     @Autowired
-    HrManagerService hrManagerService;
+    HrManagerRepository hrManagerRepository;
     @Autowired
-    RoleService roleService;
+    RoleRepository roleRepository;
     @Autowired
-    MedicalOrganizationService medicalOrganizationService;
+    MedicalOrganizationRepository medicalOrganizationRepository;
     @Autowired
-    DepartmentService departmentService;
+    DepartmentRepository departmentRepository;
     @Autowired
-    DoctorService doctorService;
+    DoctorRepository doctorRepository;
     @Autowired
-    UserService userService;
+    UserRepository userRepository;
 
 
     Role initRole(String name) {
-        return roleService.save(Role.builder()
+        return roleRepository.save(Role.builder()
                 .name(name)
                 .build());
     }
 
     HrManager initHrManager(Role role) {
-        return hrManagerService.persist(new HrManager(
+        return hrManagerRepository.save(new HrManager(
                 "hrManager1@email.com",
-                String.valueOf("1"),
+                passwordEncoder.encode(String.valueOf("1")),
                 "f_name",
                 "l_name",
                 "surName",
@@ -70,23 +68,23 @@ public class HrManagerOrganizationRestControllerIT extends ContextIT {
     }
 
     MedicalOrganization initMedicalOrganizations(String name, String address) {
-        return medicalOrganizationService.save(MedicalOrganization.builder()
+        return medicalOrganizationRepository.save(MedicalOrganization.builder()
                 .name(name)
                 .address(address)
                 .build());
     }
 
     Department initDepartment(String name, MedicalOrganization medicalOrganization) {
-        return departmentService.save(Department.builder()
+        return departmentRepository.save(Department.builder()
                 .name(name)
                 .medicalOrganization(medicalOrganization)
                 .build());
     }
 
     Doctor initDoctor(String email, String password, String firstName, String lastName, String surName, LocalDate age, Role role, Department department) {
-        return doctorService.persist(new Doctor(
+        return doctorRepository.save(new Doctor(
                 email,
-                password,
+                passwordEncoder.encode(password),
                 firstName,
                 lastName,
                 surName,
@@ -97,8 +95,18 @@ public class HrManagerOrganizationRestControllerIT extends ContextIT {
     }
 
     User initUser(String firstName, String lastName, String surname, LocalDate birthday, String email, Role role) {
-        return userService.persist(new User(
+        return userRepository.save(new User(
                 email, null, firstName, lastName, surname, birthday, role));
+    }
+
+    @AfterEach
+    public void clear() {
+        userRepository.deleteAll();
+        hrManagerRepository.deleteAll();
+        departmentRepository.deleteAll();
+        doctorRepository.deleteAll();
+        medicalOrganizationRepository.deleteAll();
+        roleRepository.deleteAll();
     }
 
     @Test
@@ -141,7 +149,7 @@ public class HrManagerOrganizationRestControllerIT extends ContextIT {
     }
 
     @Test
-    public void HrManagerCreatOrganizationTest() throws Exception {
+    public void HrManagerCreateOrganizationTest() throws Exception {
         Role role = initRole("HR_MANAGER");
         HrManager hrManager = initHrManager(role);
 
@@ -226,6 +234,17 @@ public class HrManagerOrganizationRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.text", Is.is(
                         "По переданному id медицинская организация не найдена.")));
         //        .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
+        // Проверка изменений в БД
+        Assertions.assertEquals(
+                entityManager.createQuery("""
+                    select med from MedicalOrganization med
+                    where med.id = :id
+                """, MedicalOrganization.class)
+                        .setParameter("id", validMedOrganizationUpdate.getId())
+                        .getSingleResult().getAddress(),
+                "Москва, Разина, 55"
+        );
     }
 
     @Test
@@ -307,7 +326,7 @@ public class HrManagerOrganizationRestControllerIT extends ContextIT {
     }
 
     @Test
-    public void getAllEmployesByDepartmentId() throws Exception {
+    public void getAllEmployeesByDepartmentId() throws Exception {
         Role roleHrManager = initRole("HR_MANAGER");
         HrManager hrManager = initHrManager(roleHrManager);
         MedicalOrganization medicalOrganization = initMedicalOrganizations("Городской госпиталь", "Москва, ул. Ленина д. 7");
