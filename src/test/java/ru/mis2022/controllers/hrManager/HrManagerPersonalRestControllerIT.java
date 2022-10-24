@@ -2,6 +2,7 @@ package ru.mis2022.controllers.hrManager;
 
 
 import org.hamcrest.core.Is;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -9,9 +10,9 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.mis2022.models.entity.HrManager;
 import ru.mis2022.models.entity.Role;
 import ru.mis2022.models.entity.User;
-import ru.mis2022.service.entity.HrManagerService;
-import ru.mis2022.service.entity.RoleService;
-import ru.mis2022.service.entity.UserService;
+import ru.mis2022.repositories.HrManagerRepository;
+import ru.mis2022.repositories.RoleRepository;
+import ru.mis2022.repositories.UserRepository;
 import ru.mis2022.util.ContextIT;
 
 import java.time.LocalDate;
@@ -21,31 +22,28 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-// todo list 7 написать метод clear() дабы избавиться от аннотации Transactional
-//  в конце каждого теста дописать запрос проверяющий что все действительно было
-//  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
-@Transactional
+
 public class HrManagerPersonalRestControllerIT extends ContextIT {
 
     @Autowired
-    HrManagerService hrManagerService;
+    HrManagerRepository hrManagerRepository;
 
     @Autowired
-    RoleService roleService;
+    RoleRepository roleRepository;
 
     @Autowired
-    UserService userService;
+    UserRepository userRepository;
 
     Role initRole(String name) {
-        return roleService.save(Role.builder()
+        return roleRepository.save(Role.builder()
                 .name(name)
                 .build());
     }
 
     HrManager initHrManager(Role role) {
-        return hrManagerService.persist(new HrManager(
+        return hrManagerRepository.save(new HrManager(
                 "hrManager@email.com",
-                String.valueOf("1"),
+                passwordEncoder.encode(String.valueOf("1")),
                 "Иванов",
                 "Иван",
                 "Иванович",
@@ -55,11 +53,18 @@ public class HrManagerPersonalRestControllerIT extends ContextIT {
     }
 
     User initUser(String firstName, String lastName, String email, Role role, LocalDate birthday) {
-        return userService.persist(new User(
+        return userRepository.save(new User(
                 email, null, firstName, lastName, null, birthday, role));
     }
     String getFullName(User user) {
         return user.getLastName() + " " + user.getFirstName();
+    }
+
+    @AfterEach
+    public void clear() {
+        hrManagerRepository.deleteAll();
+        userRepository.deleteAll();
+        roleRepository.deleteAll();
     }
 
     @Test
