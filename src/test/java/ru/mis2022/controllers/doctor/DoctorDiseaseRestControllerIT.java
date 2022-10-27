@@ -15,6 +15,7 @@ import ru.mis2022.repositories.DiseaseRepository;
 import ru.mis2022.repositories.DoctorRepository;
 import ru.mis2022.repositories.RoleRepository;
 import ru.mis2022.util.ContextIT;
+
 import java.time.LocalDate;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -65,6 +66,15 @@ public class DoctorDiseaseRestControllerIT extends ContextIT {
                 .identifier(identifier)
                 .name(name)
                 .department(department)
+                .build());
+    }
+
+    Disease initDisease(String identifier, String name, Department department, boolean disabled) {
+        return diseaseRepository.save(Disease.builder()
+                .identifier(identifier)
+                .name(name)
+                .department(department)
+                .disabled(disabled)
                 .build());
     }
 
@@ -128,12 +138,35 @@ public class DoctorDiseaseRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[0].id", Is.is(disease1.getId().intValue())))
                 .andExpect(jsonPath("$.data[0].identifier", Is.is(disease1.getIdentifier())))
                 .andExpect(jsonPath("$.data[0].name", Is.is(disease1.getName())))
+                .andExpect(jsonPath("$.data[0].disabled", Is.is(disease1.isDisabled())))
 
 
                 .andExpect(jsonPath("$.data[1].id", Is.is(disease2.getId().intValue())))
                 .andExpect(jsonPath("$.data[1].name", Is.is(disease2.getName())))
-                .andExpect(jsonPath("$.data[1].identifier", Is.is(disease2.getIdentifier())));
+                .andExpect(jsonPath("$.data[1].identifier", Is.is(disease2.getIdentifier())))
+                .andExpect(jsonPath("$.data[1].disabled", Is.is(disease2.isDisabled())));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
+        Department department2 = initDepartment("department2");
+        Doctor doctor1 = initDoctor(role, department2, null, "Doctor1@gmail.com");
+        // неактивное заболевание!
+        Disease disease5 = initDisease("G4", "disease5", department2, true);
+        // активное заболевание!
+        Disease disease6 = initDisease("G5", "disease6", department2);
+
+        // Нормальный сценарий, только активные заболевания!
+        mockMvc.perform(get("/api/doctor/disease/{doctorId}/getAllDisease", doctor1.getId())
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+                .andExpect(jsonPath("$.data.length()", Is.is(1)))
+
+                .andExpect(jsonPath("$.data[0].id", Is.is(disease6.getId().intValue())))
+                .andExpect(jsonPath("$.data[0].identifier", Is.is(disease6.getIdentifier())))
+                .andExpect(jsonPath("$.data[0].name", Is.is(disease6.getName())))
+                .andExpect(jsonPath("$.data[0].disabled", Is.is(disease6.isDisabled())));
     }
 }
