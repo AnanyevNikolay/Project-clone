@@ -53,9 +53,13 @@ public class DiseaseServiceImpl implements DiseaseService {
 
     // Заблокировать/разблокировать заболевание!
     @Override
-    public Disease findDiseaseByIdAndChangeDisabled(Long diseaseId) {
-        Disease disease = diseaseRepository.findDiseaseById(diseaseId);
-        disease.setDisabled(!disease.isDisabled());
+    public Disease changeDisabledDisease(Disease disease, boolean disabled) {
+        disease.setDisabled(disabled);
         return save(disease);
+    }
+
+    @Override
+    public boolean existsDiseaseByDiseaseIdAndDoctorId(long diseaseId, long doctorId) {
+        return diseaseRepository.existsDiseaseByDiseaseIdAndDoctorId(diseaseId, doctorId);
     }
 }

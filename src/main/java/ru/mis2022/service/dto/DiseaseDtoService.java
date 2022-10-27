@@ -8,5 +8,5 @@ public interface DiseaseDtoService {
 
     List<DiseaseDto> findAllDiseaseDto();
 
-    List<DiseaseDto> findDiseaseByDepartmentDoctors(Long docId);
+    List<DiseaseDto> findDiseaseByDepartmentDoctors(Long docId, boolean disabled);
 }

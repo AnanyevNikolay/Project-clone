@@ -20,7 +20,7 @@ public class DiseaseDtoServiceImpl implements DiseaseDtoService {
     }
 
     @Override
-    public List<DiseaseDto> findDiseaseByDepartmentDoctors(Long docId) {
-        return diseaseRepository.findDiseaseByDepartmentDoctors(docId);
+    public List<DiseaseDto> findDiseaseByDepartmentDoctors(Long docId, boolean disabled) {
+        return diseaseRepository.findDiseaseByDepartmentDoctors(docId, disabled);
     }
 }

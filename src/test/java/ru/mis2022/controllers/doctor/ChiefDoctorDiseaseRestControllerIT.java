@@ -94,7 +94,7 @@ public class ChiefDoctorDiseaseRestControllerIT extends ContextIT {
         accessToken = tokenUtil.obtainNewAccessToken(doctor.getEmail(), "1", mockMvc);
 
         // Нормальный сценарий!
-        mockMvc.perform(patch("/api/chief/doctor/changeDisabledOnTrue/{id}", disease1.getId())
+        mockMvc.perform(patch("/api/chief-doctor/disease/changeDisabledOnTrue/{diseaseId}", disease1.getId())
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -109,7 +109,7 @@ public class ChiefDoctorDiseaseRestControllerIT extends ContextIT {
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         // Заболевания не существует! 410
-        mockMvc.perform(patch("/api/chief/doctor/changeDisabledOnTrue/{id}", 8888)
+        mockMvc.perform(patch("/api/chief-doctor/disease/changeDisabledOnTrue/{diseaseId}", 8888)
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -123,7 +123,7 @@ public class ChiefDoctorDiseaseRestControllerIT extends ContextIT {
         Disease disease2 = initDisease("963bBMAKHUU3Bi444", department2, "disease1");
 
         // Заболеваним не занимается данный доктор! 411
-        mockMvc.perform(patch("/api/chief/doctor/changeDisabledOnTrue/{id}", disease2.getId())
+        mockMvc.perform(patch("/api/chief-doctor/disease/changeDisabledOnTrue/{diseaseId}", disease2.getId())
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -144,7 +144,7 @@ public class ChiefDoctorDiseaseRestControllerIT extends ContextIT {
         accessToken = tokenUtil.obtainNewAccessToken(doctor.getEmail(), "1", mockMvc);
 
         // Нормальный сценарий!
-        mockMvc.perform(patch("/api/chief/doctor/changeDisabledOnFalse/{id}", disease1.getId())
+        mockMvc.perform(patch("/api/chief-doctor/disease/changeDisabledOnFalse/{diseaseId}", disease1.getId())
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -159,7 +159,7 @@ public class ChiefDoctorDiseaseRestControllerIT extends ContextIT {
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         // Заболевания не существует! 410
-        mockMvc.perform(patch("/api/chief/doctor/changeDisabledOnFalse/{id}", 8888)
+        mockMvc.perform(patch("/api/chief-doctor/disease/changeDisabledOnFalse/{diseaseId}", 8888)
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                 )
@@ -173,7 +173,7 @@ public class ChiefDoctorDiseaseRestControllerIT extends ContextIT {
         Disease disease2 = initDisease("963bBMAKHUU3Bi444", department2, "disease1", true);
 
         // Заболеваним не занимается данный доктор! 411
-        mockMvc.perform(patch("/api/chief/doctor/changeDisabledOnFalse/{id}", disease2.getId())
+        mockMvc.perform(patch("/api/chief-doctor/disease/changeDisabledOnFalse/{diseaseId}", disease2.getId())
                         .header("Authorization", accessToken)
                         .contentType(MediaType.APPLICATION_JSON)
                 )

@@ -37,6 +37,6 @@ public class DoctorDiseaseRestController {
         ApiValidationUtils
                 .expectedTrue(doctorService.isExistsById(doctorId),
                         414, "Доктора с таким id нет!");
-        return Response.ok(diseaseDtoService.findDiseaseByDepartmentDoctors(doctorId));
+        return Response.ok(diseaseDtoService.findDiseaseByDepartmentDoctors(doctorId, false));
     }
 }
