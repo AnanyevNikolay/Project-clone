@@ -11,7 +11,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.mis2022.models.dto.disease.DiseaseDto;
-import ru.mis2022.models.dto.disease.converter.DiseaseDtoConverter;
 import ru.mis2022.models.entity.Disease;
 import ru.mis2022.models.entity.Doctor;
 import ru.mis2022.models.response.Response;
