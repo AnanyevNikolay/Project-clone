@@ -13,6 +13,6 @@ public interface DiseaseService {
     Disease save(Disease disease);
     Disease findDiseaseById(Long id);
     void deleteAll();
-    Disease changeDisabledDisease(Disease disease, boolean disabled);
+    DiseaseDto changeDisabledDisease(Disease disease, boolean disabled);
     boolean existsDiseaseByDiseaseIdAndDoctorId(long diseaseId, long doctorId);
 }

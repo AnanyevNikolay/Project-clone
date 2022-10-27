@@ -23,9 +23,7 @@ import ru.mis2022.utils.validation.ApiValidationUtils;
 @PreAuthorize("hasRole('CHIEF_DOCTOR')")
 @RequestMapping("/api/chief-doctor/disease")
 public class ChiefDoctorDiseaseRestController {
-
     private final DiseaseService diseaseService;
-    private final DiseaseDtoConverter diseaseDtoConverter;
 
     @ApiOperation("Заведущий отделения блокирует заболевание от отделения.")
     @ApiResponses(value = {
@@ -35,10 +33,10 @@ public class ChiefDoctorDiseaseRestController {
     })
     @PatchMapping("/changeDisabledOnTrue/{diseaseId}")
     public Response<DiseaseDto> changeDisabledOnTrue(@PathVariable Long diseaseId) {
-        Doctor doctor = ((Doctor) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        Long doctorId = ((Doctor) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         Disease disease = diseaseService.findDiseaseById(diseaseId);
-        validationEndpoint(doctor, disease);
-        return Response.ok(diseaseDtoConverter.toDiseaseDto(diseaseService.changeDisabledDisease(disease, true)));
+        validationEndpoint(doctorId, disease);
+        return Response.ok(diseaseService.changeDisabledDisease(disease, true));
     }
 
     @ApiOperation("Заведущий отделения разблокирует заболевание от отделения.")
@@ -49,20 +47,20 @@ public class ChiefDoctorDiseaseRestController {
     })
     @PatchMapping("/changeDisabledOnFalse/{diseaseId}")
     public Response<DiseaseDto> changeDisabledOnFalse(@PathVariable Long diseaseId) {
-        Doctor doctor = ((Doctor) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        Long doctorId = ((Doctor) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         Disease disease = diseaseService.findDiseaseById(diseaseId);
-        validationEndpoint(doctor, disease);
-        return Response.ok(diseaseDtoConverter.toDiseaseDto(diseaseService.changeDisabledDisease(disease, false)));
+        validationEndpoint(doctorId, disease);
+        return Response.ok(diseaseService.changeDisabledDisease(disease, false));
     }
 
-    private void validationEndpoint(Doctor doctor, Disease disease) {
+    private void validationEndpoint(Long doctorId, Disease disease) {
         ApiValidationUtils.expectedNotNull(
                 disease,
                 410,
                 "Заболевания не существует.");
 
         ApiValidationUtils.expectedTrue(
-                diseaseService.existsDiseaseByDiseaseIdAndDoctorId(disease.getId(), doctor.getId()),
+                diseaseService.existsDiseaseByDiseaseIdAndDoctorId(disease.getId(), doctorId),
                 411,
                 "Заболеваним не занимается данный доктор.");
     }
