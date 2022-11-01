@@ -14,5 +14,14 @@ public interface DoctorService {
     boolean isExistsById(long doctorId);
 
     void deleteAll();
+    Doctor findByIdAndDepartment(long doctorId, long departmentId);
+
+    boolean countOfChiefDoctorInDepartment(long departmentId);
+
+    Doctor changeRoleDoctor(Doctor doctor, String roleName);
+
+    Doctor findById(long doctorId);
+
+    boolean findByIdForMain();
 
 }

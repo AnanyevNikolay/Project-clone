@@ -432,6 +432,7 @@ public class DataInitializer {
                             .birthday(getRandomBirthday())
                             .department(department)
                             .personalHistory(personalHistory)
+                            .enabled(true)
                             .role(intInRange(0, 1) == 1 ? roleDoctor : roleChiefDoctor)
                             .build();
                     DOCTORS_LIST.add(doctorRepository.save(doctor));
@@ -514,6 +515,7 @@ public class DataInitializer {
                             .birthday(getRandomBirthday())
                             .department(department)
                             .personalHistory(personalHistory)
+                            .enabled(true)
                             .role(roleMainDoctor)
                             .build();
                     MAIN_DOCTOR_LIST.add(doctorRepository.save(mainDoctorObject));
@@ -582,6 +584,7 @@ public class DataInitializer {
                     .firstName("patentFirstName" + patient)
                     .lastName("patientLastName" + patient)
                     .surname("patientSurname" + patient)
+                    .enabled(true)
                     .address("patientAddress" + patient)
                     .polis("polis" + patient)
                     .snils("snils" + patient)
@@ -651,6 +654,7 @@ public class DataInitializer {
                     .lastName("adminLastName" + admin)
                     .surname("adminSurname" + admin)
                     .birthday(dateInRange(LocalDate.now().minusYears(50), LocalDate.now().minusYears(30)))
+                    .enabled(true)
                     .role(roleAdmin)
                     .build();
             ADMIN_LIST.add(administratorRepository.save(administrator));
@@ -666,6 +670,7 @@ public class DataInitializer {
                     .lastName("hrLastName" + hr)
                     .surname("hrSurname" + hr)
                     .birthday(dateInRange(LocalDate.now().minusYears(50), LocalDate.now().minusYears(30)))
+                    .enabled(true)
                     .role(roleHrManager)
                     .build();
             HR_LIST.add(hrManagerRepository.save(hrManager));
@@ -681,6 +686,7 @@ public class DataInitializer {
                     .lastName("registrarLastName" + registrar)
                     .surname("registrarSurname" + registrar)
                     .birthday(dateInRange(LocalDate.now().minusYears(50), LocalDate.now().minusYears(30)))
+                    .enabled(true)
                     .role(roleRegistrar)
                     .build();
             REGISTRAR_LIST.add(registrarRepository.save(registrarObject));
@@ -696,6 +702,7 @@ public class DataInitializer {
                     .lastName("economistLastName" + economist)
                     .surname("economistSurname" + economist)
                     .birthday(dateInRange(LocalDate.now().minusYears(50), LocalDate.now().minusYears(30)))
+                    .enabled(true)
                     .role(roleEconomist)
                     .build();
             ECONOMIST_LIST.add(economistRepository.save(economistObject));

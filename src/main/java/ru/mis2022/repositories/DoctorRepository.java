@@ -6,7 +6,6 @@ import org.springframework.data.repository.query.Param;
 import ru.mis2022.models.dto.doctor.CurrentChiefReportDto;
 import ru.mis2022.models.dto.doctor.CurrentDoctorDto;
 import ru.mis2022.models.dto.doctor.DoctorDto;
-import ru.mis2022.models.entity.Department;
 import ru.mis2022.models.entity.Doctor;
 
 import java.time.LocalDateTime;
@@ -86,7 +85,33 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
 """)
     List<CurrentChiefReportDto> getWorkloadEmployeesReport(@Param("deptId") Long deptId, @Param("dateHome") LocalDateTime dateHome, @Param("DateEnd") LocalDateTime DateEnd);
 
+    @Query("""
+    SELECT d
+    FROM Doctor d
+        JOIN Department dep ON dep.id = d.department.id
+    WHERE d.id = :doctorId AND d.department.id = :departmentId
+    """)
+    Doctor findByIdAndDepartment(long doctorId,
+                                 long departmentId);
 
+    @Query("""
+    SELECT COUNT (d.id) FROM Doctor d
+    WHERE d.department.id = :departmentId AND d.role.name LIKE ('CHIEF_DOCTOR')
+    """)
+    int findByRoleForChief(@Param("departmentId") long departmentId);
 
+    @Query("""
+    SELECT d
+    FROM Doctor d
+        JOIN Department dep ON dep.id = d.department.id
+    WHERE d.id = :doctorId
+    """)
+    Doctor findDoctorById(long doctorId);
+
+    @Query("""
+    SELECT COUNT (d.id) FROM Doctor d
+    WHERE d.role.name LIKE ('MAIN_DOCTOR')
+    """)
+    int findByRoleForMain();
 
 }

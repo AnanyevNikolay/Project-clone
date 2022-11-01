@@ -3,22 +3,30 @@ package ru.mis2022.controllers.hrManager;
 
 import org.hamcrest.core.Is;
 import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.transaction.annotation.Transactional;
+import ru.mis2022.models.entity.Department;
+import ru.mis2022.models.entity.Doctor;
 import ru.mis2022.models.entity.HrManager;
+import ru.mis2022.models.entity.MedicalOrganization;
 import ru.mis2022.models.entity.Role;
 import ru.mis2022.models.entity.User;
+import ru.mis2022.repositories.DepartmentRepository;
+import ru.mis2022.repositories.DoctorRepository;
 import ru.mis2022.repositories.HrManagerRepository;
 import ru.mis2022.repositories.RoleRepository;
 import ru.mis2022.repositories.UserRepository;
 import ru.mis2022.util.ContextIT;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.aspectj.runtime.internal.Conversions.intValue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -33,6 +41,12 @@ public class HrManagerPersonalRestControllerIT extends ContextIT {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    DepartmentRepository departmentRepository;
+
+    @Autowired
+    DoctorRepository doctorRepository;
 
     Role initRole(String name) {
         return roleRepository.save(Role.builder()
@@ -56,6 +70,34 @@ public class HrManagerPersonalRestControllerIT extends ContextIT {
         return userRepository.save(new User(
                 email, null, firstName, lastName, null, birthday, role));
     }
+
+    Department initDepartment(String name, MedicalOrganization medicalOrganization) {
+        return departmentRepository.save(Department.builder()
+                .name(name)
+                .medicalOrganization(medicalOrganization)
+                .build());
+    }
+
+    Department initDepartmentForChief(String name, MedicalOrganization medicalOrganization, List<Doctor> doctors) {
+        return departmentRepository.save(Department.builder()
+                .name(name)
+                .medicalOrganization(medicalOrganization)
+                .build());
+    }
+
+    Doctor initDoctor(String email, String password, String firstName, String lastName, String surName, LocalDate age, Role role, Department department) {
+        return doctorRepository.save(new Doctor(
+                email,
+                password,
+                firstName,
+                lastName,
+                surName,
+                age,
+                role,
+                department
+        ));
+    }
+
     String getFullName(User user) {
         return user.getLastName() + " " + user.getFirstName();
     }
@@ -235,4 +277,152 @@ public class HrManagerPersonalRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[4].id", Is.is(user1.getId().intValue())));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
     }
+
+    @Test
+    public void addChiefDoctorTest() throws Exception {
+        Role roleHrManager = initRole("HR_MANAGER");
+        Role roleDoctor = initRole("DOCTOR");
+        Role roleChiefDoctor = initRole("CHIEF_DOCTOR");
+
+        HrManager hrManager = initHrManager(roleHrManager);
+        Department department = initDepartment("Surgery", null);
+        Department department1 = initDepartment("Pediarty", null);
+
+        Doctor doctor = initDoctor("mukagali@mail.com", "1", "Mukagali",
+                "Orazbakov", "Nurgaliuly", LocalDate.now().minusYears(25), roleDoctor, department);
+
+        Doctor doctor1 = initDoctor("muka@mail.com", "1", "Mukagali",
+                "Orazbakov", "Nurgaliuly", LocalDate.now().minusYears(25), roleChiefDoctor, null);
+
+        // Данные для теста "В отделении уже 2 заведующих"
+        Doctor doctor2 = initDoctor("mukkagali@mail.com", "1", "Mukagali",
+                "Orazbakov", "Nurgaliuly", LocalDate.now().minusYears(25), roleChiefDoctor, department1);
+
+        Doctor doctor3 = initDoctor("mukar@mail.com", "1", "Mukagali",
+                "Orazbakov", "Nurgaliuly", LocalDate.now().minusYears(25), roleChiefDoctor, department1);
+
+        Doctor doctor4 = initDoctor("m@mail.com", "1", "Mukagali",
+                "Orazbakov", "Nurgaliuly", LocalDate.now().minusYears(25), roleDoctor, department1);
+
+        List<Doctor> doctors = new ArrayList<>();
+
+        doctors.add(doctor4);
+        doctors.add(doctor3);
+        doctors.add(doctor2);
+
+        Department department2 = initDepartmentForChief("Surgery", null, doctors);
+
+        accessToken = tokenUtil.obtainNewAccessToken(hrManager.getEmail(), "1", mockMvc);
+
+        //Валидный тест(Назначаем к department зав.врача и ждем 200 code)
+        mockMvc.perform(post("/api/hr_manager/addChiefDoctorForDepartment")
+                .param("departmentId", department.getId().toString())
+                .param("doctorId", doctor.getId().toString())
+                .header("Authorization", accessToken)
+                .contentType(MediaType.APPLICATION_JSON))
+
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)));
+
+//        //Доктор с таким id(777777) не существует
+        mockMvc.perform(post("/api/hr_manager/addChiefDoctorForDepartment")
+                .param("departmentId", department.getId().toString())
+                .param("doctorId", "777777")
+                .header("Authorization", accessToken)
+                .contentType(MediaType.APPLICATION_JSON))
+
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(411)))
+                .andExpect(jsonPath("$.text", Is.is("Доктора с таким id не существует")));
+
+        //В отделении уже 2 заведующих
+        mockMvc.perform(post("/api/hr_manager/addChiefDoctorForDepartment")
+                        .param("departmentId", department1.getId().toString())
+                        .param("doctorId", doctor4.getId().toString())
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON))
+
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(412)))
+                .andExpect(jsonPath("$.text", Is.is("В отделении уже две заведующих отделением")));
+
+    }
+
+    @Test
+    public void addMainDoctorTest() throws Exception {
+
+        Role roleChiefDoctor = initRole("CHIEF_DOCTOR");
+        Role roleMainDoctor = initRole("MAIN_DOCTOR");
+        Role roleHrManager = initRole("HR_MANAGER");
+
+        Department department = initDepartment("Surgery", null);
+
+        HrManager hrManager = initHrManager(roleHrManager);
+
+        Doctor doctor = initDoctor("muka@mail.com", "1", "Mukagali",
+                "Orazbakov", "Nurgaliuly", LocalDate.now().minusYears(25), roleChiefDoctor, department);
+
+        accessToken = tokenUtil.obtainNewAccessToken(hrManager.getEmail(), "1", mockMvc);
+
+        //Валидный тест, назначаем врачу роль MAIN_DOCTOR и ждем 200
+        mockMvc.perform(post("/api/hr_manager/addMainDoctorForOrganization")
+                        .param("doctorId", doctor.getId().toString())
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON))
+
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)));
+
+//        //Доктора с таким id(99999) не существует
+        mockMvc.perform(post("/api/hr_manager/addMainDoctorForOrganization")
+                        .param("doctorId", "99999")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON))
+
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(411)))
+                .andExpect(jsonPath("$.text", Is.is("Доктора с таким id не существует")));
+
+    }
+
+    @Test
+    public void addMainDoctorForMainTest() throws Exception {
+
+        Role roleChiefDoctor = initRole("CHIEF_DOCTOR");
+        Role roleMainDoctor = initRole("MAIN_DOCTOR");
+        Role roleHrManager = initRole("HR_MANAGER");
+
+        Department department = initDepartment("Surgery", null);
+
+        HrManager hrManager = initHrManager(roleHrManager);
+
+        Doctor doctor = initDoctor("muka@mail.com", "1", "Mukagali",
+                "Orazbakov", "Nurgaliuly", LocalDate.now().minusYears(25), roleMainDoctor, department);
+
+        Doctor doctor1 = initDoctor("muk@mail.com", "1", "Mukagali",
+                "Orazbakov", "Nurgaliuly", LocalDate.now().minusYears(25), roleMainDoctor, department);
+
+        Doctor doctor2 = initDoctor("muka@mail.co", "1", "Mukagali",
+                "Orazbakov", "Nurgaliuly", LocalDate.now().minusYears(25), roleChiefDoctor, department);
+
+        accessToken = tokenUtil.obtainNewAccessToken(hrManager.getEmail(), "1", mockMvc);
+
+        //В организации уже две главных врачей
+        mockMvc.perform(post("/api/hr_manager/addMainDoctorForOrganization")
+                        .param("doctorId", doctor2.getId().toString())
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON))
+
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(412)))
+                .andExpect(jsonPath("$.text", Is.is("В организации уже две главных врачей")));
+
+    }
+
 }
