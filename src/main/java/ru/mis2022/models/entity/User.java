@@ -54,7 +54,7 @@ public class User implements UserDetails {
 
     private LocalDate birthday;
 
-    private Boolean enabled = true;
+    private boolean enabled = true;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "role_id")
@@ -92,7 +92,7 @@ public class User implements UserDetails {
     }
 
     public boolean isEnabled() {
-        return this.enabled;
+        return enabled;
     }
 
     public User(String email, String password, String firstName, String lastName, @Nullable String surname,
