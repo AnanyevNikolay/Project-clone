@@ -30,4 +30,9 @@ public class AppealServiceImpl implements AppealService {
     public void deleteAll() {
         appealRepository.deleteAll();
     }
+
+    @Override
+    public Appeal findAppealById(Long id) {
+        return appealRepository.findAppealById(id);
+    }
 }
