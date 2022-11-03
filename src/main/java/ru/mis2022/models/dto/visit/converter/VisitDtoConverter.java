@@ -40,4 +40,14 @@ public class VisitDtoConverter {
         return visitDtoList;
     }
 
+    public VisitDto toDto(Visit visit) {
+        Doctor doctor = visit.getDoctor();
+        return new VisitDto(
+                visit.getId(),
+                visit.getDayOfVisit().format(DATE_FORMATTER),
+                doctor.getId(),
+                doctor.getFirstName() + " " + doctor.getLastName() + " " + doctor.getSurname(),
+                medicalServiceDtoConverter.toMedicalServicesDtoWithoutIdentifier(visit.getMedicalServices()));
+    }
+
 }

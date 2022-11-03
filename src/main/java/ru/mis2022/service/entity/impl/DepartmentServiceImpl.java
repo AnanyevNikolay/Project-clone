@@ -34,6 +34,11 @@ public class DepartmentServiceImpl implements DepartmentService {
     }
 
     @Override
+    public boolean isExistByTalonIdAndAppealId(Long talonId, Long appealId) {
+        return departmentRepository.isExistByTalonIdAndAppealId(talonId, appealId) != null;
+    }
+
+    @Override
     public Department findDepartmentById(Long id) {
         return departmentRepository.findDepartmentById(id);
     }

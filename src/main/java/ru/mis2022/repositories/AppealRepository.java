@@ -17,4 +17,6 @@ public interface AppealRepository extends JpaRepository<Appeal, Long> {
             """)
     Optional<List<Appeal>> getAppealsDtoByPatientId(long patientId);
 
+    @Query("SELECT a FROM Appeal a WHERE a.id = :id")
+    Appeal findAppealById(Long id);
 }
