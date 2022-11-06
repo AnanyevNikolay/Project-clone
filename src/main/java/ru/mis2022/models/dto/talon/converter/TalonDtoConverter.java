@@ -54,11 +54,12 @@ public class TalonDtoConverter {
     }
 
     public TalonDto talonToTalonDto(Talon talon) {
-        return TalonDto.builder()
+        var r =  TalonDto.builder()
                 .id(talon.getId())
                 .time(talon.getTime())
                 .doctorId(talon.getDoctor().getId())
                 .patientDto(patientDtoConverter.toDto(talon.getPatient()))
                 .build();
+        return r;
     }
 }
