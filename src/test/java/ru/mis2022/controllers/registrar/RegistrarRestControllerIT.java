@@ -2,10 +2,10 @@ package ru.mis2022.controllers.registrar;
 
 import org.hamcrest.Matchers;
 import org.hamcrest.core.Is;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.transaction.annotation.Transactional;
 import ru.mis2022.models.entity.Department;
 import ru.mis2022.models.entity.Doctor;
 import ru.mis2022.models.entity.Patient;
@@ -13,12 +13,12 @@ import ru.mis2022.models.entity.PersonalHistory;
 import ru.mis2022.models.entity.Registrar;
 import ru.mis2022.models.entity.Role;
 import ru.mis2022.models.entity.Talon;
-import ru.mis2022.service.entity.DepartmentService;
-import ru.mis2022.service.entity.DoctorService;
-import ru.mis2022.service.entity.PatientService;
-import ru.mis2022.service.entity.RegistrarService;
-import ru.mis2022.service.entity.RoleService;
-import ru.mis2022.service.entity.TalonService;
+import ru.mis2022.repositories.DepartmentRepository;
+import ru.mis2022.repositories.DoctorRepository;
+import ru.mis2022.repositories.PatientRepository;
+import ru.mis2022.repositories.RegistrarRepository;
+import ru.mis2022.repositories.RoleRepository;
+import ru.mis2022.repositories.TalonRepository;
 import ru.mis2022.util.ContextIT;
 
 import java.time.LocalDate;
@@ -35,40 +35,51 @@ import static ru.mis2022.models.entity.Role.RolesEnum.PATIENT;
 // todo list 9 написать метод clear() дабы избавиться от аннотации Transactional
 //  в конце каждого теста дописать запрос проверяющий что все действительно было
 //  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
-@Transactional
 public class RegistrarRestControllerIT extends ContextIT {
-    RoleService roleService;
-    RegistrarService registrarService;
-    DoctorService doctorService;
-
-    DepartmentService departmentService;
-
-
-    TalonService talonService;
-
-    PatientService patientService;
     @Autowired
-    public RegistrarRestControllerIT(RoleService roleService, RegistrarService registrarService,
-             DoctorService doctorService, DepartmentService departmentService, TalonService talonService,
-                                                                                    PatientService patientService) {
-        this.roleService = roleService;
-        this.registrarService = registrarService;
-        this.doctorService = doctorService;
-        this.departmentService = departmentService;
-        this.talonService = talonService;
-        this.patientService = patientService;
+    RoleRepository roleRepository;
+    @Autowired
+    RegistrarRepository registrarRepository;
+    @Autowired
+    DoctorRepository doctorRepository;
+    @Autowired
+    DepartmentRepository departmentRepository;
+    @Autowired
+    TalonRepository talonRepository;
+    @Autowired
+    PatientRepository patientRepository;
+
+    @AfterEach
+    public void clear() {
+        doctorRepository.deleteAll();
+        departmentRepository.deleteAll();
+        talonRepository.deleteAll();
+        patientRepository.deleteAll();
+        registrarRepository.deleteAll();
+        roleRepository.deleteAll();
+    }
+    @Autowired
+    public RegistrarRestControllerIT(RoleRepository roleRepository, RegistrarRepository registrarRepository,
+             DoctorRepository doctorRepository, DepartmentRepository departmentRepository, TalonRepository talonRepository,
+                                                                                    PatientRepository patientRepository) {
+        this.roleRepository = roleRepository;
+        this.registrarRepository = registrarRepository;
+        this.doctorRepository = doctorRepository;
+        this.departmentRepository = departmentRepository;
+        this.talonRepository = talonRepository;
+        this.patientRepository = patientRepository;
     }
 
     Role initRole(String name) {
-        return roleService.save(Role.builder()
+        return roleRepository.save(Role.builder()
                 .name(name)
                 .build());
     }
 
     Registrar initRegistrar(Role role) {
-        return registrarService.persist(new Registrar(
+        return registrarRepository.save(new Registrar(
                 "registrar1@email.com",
-                String.valueOf("1"),
+                passwordEncoder.encode("1"),
                 "f_name",
                 "l_name",
                 "surname",
@@ -79,9 +90,9 @@ public class RegistrarRestControllerIT extends ContextIT {
 
     Doctor initDoctor(Role role, Department department, String email, String firstName, String lastName,
                       PersonalHistory personalHistory) {
-        return doctorService.persist(new Doctor(
+        return doctorRepository.save(new Doctor(
                 email,
-                String.valueOf("1"),
+                passwordEncoder.encode("1"),
                 firstName,
                 lastName,
                 "surname",
@@ -92,15 +103,15 @@ public class RegistrarRestControllerIT extends ContextIT {
     }
 
     Department initDepartement(String name) {
-        return departmentService.save(Department.builder()
+        return departmentRepository.save(Department.builder()
                 .name(name)
                 .build());
     }
 
     Patient initPatient(Role role) {
-        return patientService.persist(new Patient(
+        return patientRepository.save(new Patient(
                 "patient1@email.com",
-                String.valueOf("1"),
+                passwordEncoder.encode("1"),
                 "Patient test",
                 "супер пациент",
                 "surname",
@@ -113,7 +124,7 @@ public class RegistrarRestControllerIT extends ContextIT {
     }
 
     Talon initTalon(LocalDateTime time, Doctor doctor, Patient patient) {
-        return talonService.save(new Talon(time, doctor, patient));
+        return talonRepository.save(new Talon(time, doctor, patient));
     }
 
     @Test

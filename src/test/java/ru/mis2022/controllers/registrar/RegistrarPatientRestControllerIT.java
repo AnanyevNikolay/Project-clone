@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
-import org.springframework.transaction.annotation.Transactional;
 import ru.mis2022.feign.AuthRequestDtoTS;
 import ru.mis2022.feign.AuthTokenTS;
 import ru.mis2022.feign.PatientRequestDtoTS;
@@ -19,9 +18,9 @@ import ru.mis2022.models.dto.patient.PatientDto;
 import ru.mis2022.models.entity.Patient;
 import ru.mis2022.models.entity.Registrar;
 import ru.mis2022.models.entity.Role;
-import ru.mis2022.service.entity.PatientService;
-import ru.mis2022.service.entity.RegistrarService;
-import ru.mis2022.service.entity.RoleService;
+import ru.mis2022.repositories.PatientRepository;
+import ru.mis2022.repositories.RegistrarRepository;
+import ru.mis2022.repositories.RoleRepository;
 import ru.mis2022.util.ContextIT;
 
 import java.time.LocalDate;
@@ -41,35 +40,46 @@ import static ru.mis2022.utils.DateFormatter.DATE_FORMATTER;
 // todo list 9 дополнить метод clear() дабы избавиться от аннотации Transactional
 //  в конце каждого теста дописать запрос проверяющий что все действительно было
 //  проинициализированно в бд. по аналогии с DoctorPatientRestControllerIT#registerPatientInTalon
-@Transactional
+
 @MockBean(TestSystemFeignClient.class)
 public class RegistrarPatientRestControllerIT extends ContextIT {
 
-    private final PatientService patientService;
-    private final RegistrarService registrarService;
-    private final RoleService roleService;
+
+    @Autowired
+    PatientRepository patientRepository;
+    @Autowired
+    RegistrarRepository registrarRepository;
+    @Autowired
+    RoleRepository roleRepository;
 
     @Autowired
     private TestSystemFeignClient testSystemFeignClient;
 
     private AuthRequestDtoTS authRequest;
 
+    @AfterEach
+    public void clear() {
+        patientRepository.deleteAll();
+        registrarRepository.deleteAll();
+        roleRepository.deleteAll();
+    }
+
     @Autowired
-    public RegistrarPatientRestControllerIT(PatientService patientService, RegistrarService registrarService, RoleService roleService, AuthRequestDtoTS authRequest) {
-        this.patientService = patientService;
-        this.registrarService = registrarService;
-        this.roleService = roleService;
+    public RegistrarPatientRestControllerIT(PatientRepository patientRepository, RegistrarRepository registrarRepository, RoleRepository roleRepository, AuthRequestDtoTS authRequest) {
+        this.patientRepository = patientRepository;
+        this.registrarRepository = registrarRepository;
+        this.roleRepository = roleRepository;
         this.authRequest = authRequest;
     }
 
     Role initRole(String name) {
-        return roleService.save(Role.builder().name(name).build());
+        return roleRepository.save(Role.builder().name(name).build());
     }
 
     Patient initPatient(Role role, String firstName, String lastName, String polis, String snils) {
-        return patientService.persist(new Patient(
+        return patientRepository.save(new Patient(
                 "patient" + polis + "@email.com",
-                "1",
+                passwordEncoder.encode("1"),
                 firstName,
                 lastName,
                 "surname",
@@ -82,9 +92,9 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
     }
 
     Registrar initRegistrar(Role role) {
-        return registrarService.persist(new Registrar(
+        return registrarRepository.save(new Registrar(
                 "registrar1@email.com",
-                "1",
+                passwordEncoder.encode("1"),
                 "f_name",
                 "l_name",
                 "surname",
@@ -108,12 +118,6 @@ public class RegistrarPatientRestControllerIT extends ContextIT {
                 "1");
     }
 
-    @AfterEach
-    public void clear() {
-        patientService.deleteAll();
-        registrarService.deleteAll();
-        roleService.deleteAll();
-    }
 
     @Test
     public void searchPatientByFirstNameOrLastNameOrPolisOrSnilsTest() throws Exception {
