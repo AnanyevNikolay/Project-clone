@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.mis2022.models.dto.talon.TalonDto;
+import ru.mis2022.models.dto.talon.converter.TalonDtoConverter;
 import ru.mis2022.models.entity.Doctor;
 import ru.mis2022.models.entity.Patient;
 import ru.mis2022.models.entity.Talon;
@@ -32,6 +33,8 @@ public class PatientTalonsRestController {
     private final TalonService talonService;
     private final TalonDtoService talonDtoService;
 
+    private final TalonDtoConverter talonDtoConverter;
+
     @ApiOperation("Авторизованный пациент получает все свои талоны на которые у него есть запись")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Получение всех талонов, занятых пациентом")
@@ -49,7 +52,7 @@ public class PatientTalonsRestController {
             @ApiResponse(code = 403, message = "Пациент не записан по этому талону"),
     })
     @PatchMapping("/{talonId}")
-    public Response<Void> cancelRecordTalons(@PathVariable Long talonId) {
+    public Response<TalonDto> cancelRecordTalons(@PathVariable Long talonId) {
         Talon talon = talonService.findTalonById(talonId);
         ApiValidationUtils
                 .expectedNotNull(talon, 402, "Талона с таким id нет!");
@@ -59,7 +62,7 @@ public class PatientTalonsRestController {
                         403, "Пациент не записан по этому талону");
         talon.setPatient(null);
         talonService.save(talon);
-        return Response.ok();
+        return Response.ok(talonDtoConverter.talonToTalonDto(talon));
     }
 
     @ApiOperation("Пациент записывается на талон")

@@ -4,6 +4,7 @@ import org.hamcrest.Matchers;
 import org.hamcrest.core.Is;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -26,6 +27,10 @@ import ru.mis2022.util.ContextIT;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.ArrayList;
+import java.util.List;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -62,7 +67,7 @@ public class RegistrarScheduleRestControllerIT extends ContextIT {
     PatientRepository patientRepository;
 
     Role initRole(String name) {
-        return roleRepository.save(builder()
+        return roleRepository.save(Role.builder()
                 .name(name)
                 .build());
     }
@@ -234,6 +239,15 @@ public class RegistrarScheduleRestControllerIT extends ContextIT {
 
         //после перехода на использрвание репозиториев в тестах я закомментировал эту строку
 //        talonService.persistTalonsForDoctor(doctor, 14, 4, null, null);
+
+        List<Talon> talons = new ArrayList<>();
+        LocalDateTime time = LocalDateTime.of(LocalDate.now(), LocalTime.of(8, 0));
+        for (int day = 0; day < 4; day++) {
+            for (int hour = 0; hour < 14; hour++) {
+                talons.add(talonRepository.save(new Talon(time.plusDays(day).plusHours(hour), doctor)));
+            }
+        }
+//        talonService.persistTalonsForDoctor(doctor,14, 4, null, null);
 
         //Вывод талонов доктора
         mockMvc.perform(post("/api/registrar/schedule/talons/{id}", doctor.getId())

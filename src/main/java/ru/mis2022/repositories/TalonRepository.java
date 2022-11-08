@@ -36,7 +36,9 @@ public interface TalonRepository extends JpaRepository<Talon, Long> {
             """)
     long findCountTalonsByParameters(long doctorId, LocalDateTime startTime, LocalDateTime endTime);
 
-    @Query("SELECT t FROM Talon t WHERE t.id = :id")
+    @Query("""
+            SELECT t FROM Talon t
+            WHERE t.id = :id """)
     Talon findTalonById(Long id);
 
     @Query("""
