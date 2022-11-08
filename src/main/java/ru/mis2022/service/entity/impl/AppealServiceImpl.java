@@ -2,7 +2,9 @@ package ru.mis2022.service.entity.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import ru.mis2022.models.dto.appeal.AppealDto;
 import ru.mis2022.models.entity.Appeal;
+import ru.mis2022.models.entity.Department;
 import ru.mis2022.repositories.AppealRepository;
 import ru.mis2022.service.entity.AppealService;
 
@@ -24,6 +26,11 @@ public class AppealServiceImpl implements AppealService {
     @Override
     public Optional<List<Appeal>> getAppealsDtoByPatientId(long patientId) {
         return appealRepository.getAppealsDtoByPatientId(patientId);
+    }
+
+    @Override
+    public List<Appeal> getOpenAppealsDtoByPatientId(long patientId, boolean isClosed, long doctorId) {
+        return appealRepository.getOpenAppealsDtoByPatientId(patientId, isClosed, doctorId);
     }
 
     @Override
