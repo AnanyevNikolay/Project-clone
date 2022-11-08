@@ -17,6 +17,17 @@ public interface AppealRepository extends JpaRepository<Appeal, Long> {
             """)
     Optional<List<Appeal>> getAppealsDtoByPatientId(long patientId);
 
+    @Query(value = """
+            SELECT DISTINCT a
+            FROM Appeal a      
+                JOIN Doctor d
+                    ON a.disease.department.id = d.department.id
+                LEFT JOIN a.visits v                
+                LEFT JOIN v.medicalServices ms                    
+            WHERE a.patient.id = :patientId AND a.isClosed = :isClosed AND d.id = :doctorId
+            """)
+    List<Appeal> getOpenAppealsDtoByPatientId(long patientId, boolean isClosed, long doctorId);
+
     @Query("SELECT a FROM Appeal a WHERE a.id = :id")
     Appeal findAppealById(Long id);
 }
