@@ -11,51 +11,49 @@ import org.springframework.http.MediaType;
 import ru.mis2022.models.dto.service.MedicalServiceDto;
 import ru.mis2022.models.dto.service.PriceOfMedicalServiceDto;
 import ru.mis2022.models.entity.Economist;
-import ru.mis2022.models.entity.Role;
 import ru.mis2022.models.entity.MedicalService;
 import ru.mis2022.models.entity.PriceOfMedicalService;
-import ru.mis2022.service.entity.DepartmentService;
-import ru.mis2022.service.entity.EconomistService;
-import ru.mis2022.service.entity.MedicalServiceService;
-import ru.mis2022.service.entity.PriceOfMedicalServiceService;
-import ru.mis2022.service.entity.RoleService;
+import ru.mis2022.models.entity.Role;
+import ru.mis2022.repositories.*;
 import ru.mis2022.util.ContextIT;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static ru.mis2022.models.entity.Role.RolesEnum.*;
 import static ru.mis2022.utils.DateFormatter.DATE_FORMATTER;
 
 public class EconomistMedicalServiceRestControllerIT extends ContextIT {
 
     @Autowired
-    DepartmentService departmentService;
+    DepartmentRepository departmentRepository;
 
     @Autowired
-    RoleService roleService;
+    RoleRepository roleRepository;
 
     @Autowired
-    EconomistService economistService;
+    EconomistRepository economistRepository;
 
     @Autowired
-    MedicalServiceService medicalServiceService;
+    MedicalServiceRepository medicalServiceRepository;
 
     @Autowired
-    PriceOfMedicalServiceService priceOfMedicalServiceService;
+    PriceOfMedicalServiceRepository priceOfMedicalServiceRepository;
 
     Role initRole(String name) {
-        return roleService.save(Role.builder()
+        return roleRepository.save(Role.builder()
                 .name(name)
                 .build());
     }
 
     Economist initEconomist(Role role) {
-        return economistService.persist(new Economist(
+        return economistRepository.save(new Economist(
                 "economist@email.com",
-                String.valueOf("1"),
+                passwordEncoder.encode("1"),
                 "f_name",
                 "l_name",
                 "surname",
@@ -66,15 +64,23 @@ public class EconomistMedicalServiceRestControllerIT extends ContextIT {
 
     @AfterEach
     void clear() {
-        priceOfMedicalServiceService.deleteAll();
-        medicalServiceService.deleteAll();
-        economistService.deleteAll();
-        roleService.deleteAll();
-        departmentService.deleteAll();
+        priceOfMedicalServiceRepository.deleteAll();
+        medicalServiceRepository.deleteAll();
+        economistRepository.deleteAll();
+        roleRepository.deleteAll();
+        departmentRepository.deleteAll();
+    }
+
+    MedicalService initMedicalService(String identifier, String name, boolean isDisabled) {
+        return medicalServiceRepository.save(MedicalService.builder()
+                .identifier(identifier)
+                .name(name)
+                .isDisabled(isDisabled)
+                .build());
     }
 
     MedicalService initMedicalService(String identifier, String name) {
-        return medicalServiceService.save(MedicalService.builder()
+        return medicalServiceRepository.save(MedicalService.builder()
                 .identifier(identifier)
                 .name(name)
                 .build());
@@ -183,9 +189,8 @@ public class EconomistMedicalServiceRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.success", Is.is(true)))
                 .andExpect(jsonPath("$.data.price", Is.is(1.12)))
                 .andExpect(jsonPath("$.data.dayFrom", Is.is(price.dayFrom().format(DATE_FORMATTER))))
-                .andExpect(jsonPath("$.data.dayTo", Is.is(price.dayTo().format(DATE_FORMATTER))))
-//                .andDo(result -> System.out.println(result.getResponse().getContentAsString()))
-        ;
+                .andExpect(jsonPath("$.data.dayTo", Is.is(price.dayTo().format(DATE_FORMATTER))));
+        //.andDo(result -> System.out.println(result.getResponse().getContentAsString()));
 
         // Прошлая цена все еще лежит в базе и пытаемся отправить ее снова
         // (тем самым создаем пересечение по дате) и ждем 409
@@ -215,15 +220,84 @@ public class EconomistMedicalServiceRestControllerIT extends ContextIT {
         Assertions.assertEquals(priceQry.getMedicalService().getId(), medicalService.getId());
 
         Economist economistQry = entityManager.createQuery("""
-                SELECT e
-                FROM Economist e
-                    LEFT JOIN Role r ON r.id = e.role.id
-                WHERE e.id = :id
-                """, Economist.class)
+                        SELECT e
+                        FROM Economist e
+                            LEFT JOIN Role r ON r.id = e.role.id
+                        WHERE e.id = :id
+                        """, Economist.class)
                 .setParameter("id", economist.getId())
                 .getSingleResult();
 
         Assertions.assertEquals(economistQry.getId(), economist.getId());
     }
 
+    @Test
+    public void changeIsDisabledOnTrueTest() throws Exception {
+        Role role1 = initRole(ECONOMIST.name());
+        MedicalService medicalService1 = initMedicalService("identifier", "name");
+        Economist economist1 = initEconomist(role1);
+
+        accessToken = tokenUtil.obtainNewAccessToken(economist1.getEmail(), "1", mockMvc);
+
+        // Нормальный сценарий!
+        mockMvc.perform(patch("/api/economist/medicalService/changeIsDisabledOnTrue/{medicalServiceId}", medicalService1.getId())
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code").value(200))
+
+                .andExpect(jsonPath("$.data.id").value(medicalService1.getId()))
+                .andExpect(jsonPath("$.data.identifier").value(medicalService1.getIdentifier()))
+                .andExpect(jsonPath("$.data.name").value(medicalService1.getName()))
+                .andExpect(jsonPath("$.data.isDisabled").value(!medicalService1.isDisabled()));
+        //.andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
+        // Услуги не существует! 410
+        mockMvc.perform(patch("/api/economist/medicalService/changeIsDisabledOnTrue/{medicalServiceId}", Integer.MAX_VALUE)
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().is4xxClientError())
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(410)))
+                .andExpect(jsonPath("$.text", Is.is("Услуга не найдена")));
+        //.andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+    }
+
+    @Test
+    public void changeIsDisabledOnFalseTest() throws Exception {
+        Role role2 = initRole(ECONOMIST.name());
+        MedicalService medicalService2 = initMedicalService("identifier", "name");
+        Economist economist1 = initEconomist(role2);
+
+        accessToken = tokenUtil.obtainNewAccessToken(economist1.getEmail(), "1", mockMvc);
+
+        // Нормальный сценарий!
+        mockMvc.perform(patch("/api/economist/medicalService/changeIsDisabledOnFalse/{medicalServiceId}", medicalService2.getId())
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code").value(200))
+
+                .andExpect(jsonPath("$.data.id").value(medicalService2.getId()))
+                .andExpect(jsonPath("$.data.identifier").value(medicalService2.getIdentifier()))
+                .andExpect(jsonPath("$.data.name").value(medicalService2.getName()))
+                .andExpect(jsonPath("$.data.isDisabled").value(medicalService2.isDisabled()));
+        //.andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
+        // Услуги не существует! 410
+        mockMvc.perform(patch("/api/economist/medicalService/changeIsDisabledOnFalse/{medicalServiceId}", Integer.MAX_VALUE)
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().is4xxClientError())
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(410)))
+                .andExpect(jsonPath("$.text", Is.is("Услуга не найдена")));
+        //.andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+    }
 }

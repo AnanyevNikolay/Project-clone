@@ -1,0 +1,1 @@
+ALTER TABLE medical_service ADD is_disabled BOOLEAN DEFAULT FALSE;
