@@ -1,9 +1,7 @@
 package ru.mis2022.service.entity;
 
+import ru.mis2022.models.dto.service.MedicalServiceDto;
 import ru.mis2022.models.entity.MedicalService;
-
-import java.util.List;
-import java.util.Optional;
 
 public interface MedicalServiceService {
 
@@ -17,4 +15,5 @@ public interface MedicalServiceService {
 
     MedicalService getMedicalServiceById(Long id);
 
+    MedicalServiceDto changeMedicalServiceIsDisabled(MedicalService medicalService, boolean isDisabled);
 }

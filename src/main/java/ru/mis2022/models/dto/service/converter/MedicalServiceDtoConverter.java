@@ -18,6 +18,7 @@ public class MedicalServiceDtoConverter {
                 .identifier(medicalService.getIdentifier())
                 .name(medicalService.getName())
                 .id(medicalService.getId())
+                .isDisabled(medicalService.isDisabled())
                 .build();
     }
 

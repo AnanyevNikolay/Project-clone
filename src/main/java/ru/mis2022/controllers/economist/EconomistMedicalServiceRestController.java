@@ -6,6 +6,7 @@ import io.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -34,7 +35,7 @@ public class EconomistMedicalServiceRestController {
 
     @ApiOperation(value = "Экономист сохраняет новую медицинскую услугу")
     @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Медицинская услуга была сохранено."),
+            @ApiResponse(code = 200, message = "Медицинская услуга была сохранена."),
             @ApiResponse(code = 410, message = "Медицинская услуга с таким идентификатором уже существует."),
             @ApiResponse(code = 412, message = "Медицинская услуга с таким именем уже существует"),
     })
@@ -64,7 +65,6 @@ public class EconomistMedicalServiceRestController {
     public Response<PriceOfMedicalServiceDto> setMedicalServicePrice(
             @RequestBody PriceOfMedicalServiceDto priceOfMedicalServiceDto,
             @PathVariable("medicalServiceId") Long medicalServiceId) {
-
         ApiValidationUtils.expectedNull(priceOfMedicalServiceService
                         .getPriceOfMedicalServiceBetweenDayFromAndDayToWithMedicalService(
                                 priceOfMedicalServiceDto.dayFrom(), priceOfMedicalServiceDto.dayTo(), medicalServiceId),
@@ -74,5 +74,29 @@ public class EconomistMedicalServiceRestController {
         return Response.ok(priceOfMedicalServiceService
                 .setPriceByDtoWithMedicalService(priceOfMedicalServiceDto, medicalServiceId));
 
+    }
+
+    @ApiOperation(value = "Экономист разблокирует медицинскую услугу")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Услуга разблокирована"),
+            @ApiResponse(code = 410, message = "Услуга не найдена")
+    })
+    @PatchMapping("/changeIsDisabledOnTrue/{medicalServiceId}")
+    public Response<MedicalServiceDto> changeIsDisabledOnTrue(@PathVariable Long medicalServiceId) {
+        MedicalService medicalService = medicalServiceService.getMedicalServiceById(medicalServiceId);
+        ApiValidationUtils.expectedNotNull(medicalService, 410, "Услуга не найдена");
+        return Response.ok(medicalServiceService.changeMedicalServiceIsDisabled(medicalService, true));
+    }
+
+    @ApiOperation(value = "Экономист заблокирует медицинскую услугу")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Услуга заблокирована"),
+            @ApiResponse(code = 410, message = "Услуга не найдена")
+    })
+    @PatchMapping("/changeIsDisabledOnFalse/{medicalServiceId}")
+    public Response<MedicalServiceDto> changeIsDisableOnFalse(@PathVariable Long medicalServiceId) {
+        MedicalService medicalService = medicalServiceService.getMedicalServiceById(medicalServiceId);
+        ApiValidationUtils.expectedNotNull(medicalService, 410, "Услуга не найдена");
+        return Response.ok(medicalServiceService.changeMedicalServiceIsDisabled(medicalService, false));
     }
 }

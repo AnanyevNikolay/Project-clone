@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -21,6 +22,7 @@ import java.util.List;
  * MedicalService - Медицинская услуга
  * есть прейскурант всех услуг которые оказывает ЛПУ,
  * у каждой услуги есть уникальный идентификатор, например K321101
+ * услугу может вкл/выкл экономист при помощи поля isDisabled
  * экономист наполняет список услуг каждого отделения из общего
  * Услуга может стоить 0 УЕТ, что означает, что она бесплатная.
  * Каждая услуга стоит определенный УЕТ в фиксированный период времени, кратный дням,
@@ -46,6 +48,9 @@ public class MedicalService {
     private String identifier;
 
     private String name;
+
+    @Column(name = "is_disabled")
+    private boolean isDisabled;
 
     @OneToMany(mappedBy = "medicalService", fetch = FetchType.LAZY)
     private List<PriceOfMedicalService> prices;
