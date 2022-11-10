@@ -68,6 +68,10 @@ public class EconomistAccountRestController {
                 "Неверная последовательность указанных дат.");
         return Response.ok(accountDtoService.findAccountsDtoByRange(localDateFrom, localDateTo));
     }
+
+    public Response<List<AccountDto>> economistFillAccount(@RequestParam Long accountId){
+        return Response.ok();
+    }
 }
 
 

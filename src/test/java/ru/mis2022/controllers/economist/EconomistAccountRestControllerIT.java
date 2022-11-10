@@ -90,7 +90,7 @@ public class EconomistAccountRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data.id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data.name").value(account.getName()))
                 .andExpect(jsonPath("$.data.data").value(account.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data.money").value(Matchers.nullValue()));
+                .andExpect(jsonPath("$.data.money").value(0));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         Economist qryEconomist = entityManager.createQuery("""
@@ -136,12 +136,12 @@ public class EconomistAccountRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[0].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[0].name").value(account1.getName()))
                 .andExpect(jsonPath("$.data[0].data").value(account1.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[0].money").value(Matchers.nullValue()))
+                .andExpect(jsonPath("$.data[0].money").value(0))
 
                 .andExpect(jsonPath("$.data[1].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[1].name").value(account2.getName()))
                 .andExpect(jsonPath("$.data[1].data").value(account2.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[1].money").value(Matchers.nullValue()));
+                .andExpect(jsonPath("$.data[1].money").value(0));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         LocalDate dateTo2 = LocalDate.now().minusDays(1);
@@ -161,17 +161,17 @@ public class EconomistAccountRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[0].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[0].name").value(account1.getName()))
                 .andExpect(jsonPath("$.data[0].data").value(account1.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[0].money").value(Matchers.nullValue()))
+                .andExpect(jsonPath("$.data[0].money").value(0))
 
                 .andExpect(jsonPath("$.data[1].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[1].name").value(account2.getName()))
                 .andExpect(jsonPath("$.data[1].data").value(account2.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[1].money").value(Matchers.nullValue()))
+                .andExpect(jsonPath("$.data[1].money").value(0))
 
                 .andExpect(jsonPath("$.data[2].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[2].name").value(account3.getName()))
                 .andExpect(jsonPath("$.data[2].data").value(account3.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[2].money").value(Matchers.nullValue()));
+                .andExpect(jsonPath("$.data[2].money").value(0));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         LocalDate dateFrom2 = LocalDate.now().minusDays(7);
@@ -191,12 +191,12 @@ public class EconomistAccountRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[0].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[0].name").value(account3.getName()))
                 .andExpect(jsonPath("$.data[0].data").value(account3.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[0].money").value(Matchers.nullValue()))
+                .andExpect(jsonPath("$.data[0].money").value(0))
 
                 .andExpect(jsonPath("$.data[1].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[1].name").value(account4.getName()))
                 .andExpect(jsonPath("$.data[1].data").value(account4.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[1].money").value(Matchers.nullValue()));
+                .andExpect(jsonPath("$.data[1].money").value(0));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         // Ни одна дата не задана, Нормальный сценарий!
@@ -212,22 +212,22 @@ public class EconomistAccountRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[0].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[0].name").value(account1.getName()))
                 .andExpect(jsonPath("$.data[0].data").value(account1.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[0].money").value(Matchers.nullValue()))
+                .andExpect(jsonPath("$.data[0].money").value(0))
 
                 .andExpect(jsonPath("$.data[1].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[1].name").value(account2.getName()))
                 .andExpect(jsonPath("$.data[1].data").value(account2.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[1].money").value(Matchers.nullValue()))
+                .andExpect(jsonPath("$.data[1].money").value(0))
 
                 .andExpect(jsonPath("$.data[2].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[2].name").value(account3.getName()))
                 .andExpect(jsonPath("$.data[2].data").value(account3.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[2].money").value(Matchers.nullValue()))
+                .andExpect(jsonPath("$.data[2].money").value(0))
 
                 .andExpect(jsonPath("$.data[3].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[3].name").value(account4.getName()))
                 .andExpect(jsonPath("$.data[3].data").value(account4.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[3].money").value(Matchers.nullValue()));
+                .andExpect(jsonPath("$.data[3].money").value(0));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         LocalDate dateFrom3 = LocalDate.now().plusDays(1);

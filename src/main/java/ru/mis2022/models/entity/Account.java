@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.GeneratedValue;
@@ -49,5 +50,8 @@ public class Account {
     @JoinColumn(name = "account_id")
     private Set<Appeal> appeals;
 
-    private Long money;
+    private int money;
+
+    @Column(name = "is_formed")
+    private boolean isFormed;
 }

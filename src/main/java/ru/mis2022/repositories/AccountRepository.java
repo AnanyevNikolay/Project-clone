@@ -16,7 +16,8 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
                 acc.id,
                 acc.name,
                 acc.date,
-                acc.money)
+                acc.money,
+                acc.isFormed)
             FROM Account acc
                 WHERE acc.date
                 BETWEEN :fromDate AND :dateTo
