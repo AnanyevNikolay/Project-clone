@@ -24,7 +24,6 @@ import java.util.Objects;
 import static ru.mis2022.utils.DateFormatter.DATE_FORMATTER;
 
 
-
 @Service
 @RequiredArgsConstructor
 public class TalonServiceImpl implements TalonService {
@@ -92,15 +91,17 @@ public class TalonServiceImpl implements TalonService {
     public Talon findTalonById(Long id) {
         return talonRepository.findTalonById(id);
     }
+
     @Override
     public Talon getTalonByIdAndDoctorId(Long talonId, Long doctorId) {
         return talonRepository.getTalonByIdAndDoctorId(talonId, doctorId);
     }
+
     @Override
     public List<Doctor> findDoctorsWithTalonsSpecificTimeRange(int countDays, Long departmentId) {
         LocalDateTime startTime = LocalDateTime.now();
         LocalDateTime endTime = LocalDateTime.now().plusDays(countDays).with(LocalTime.MAX);
-        return talonRepository.findDoctorsWithTalonsSpecificTimeRange(startTime,endTime, departmentId);
+        return talonRepository.findDoctorsWithTalonsSpecificTimeRange(startTime, endTime, departmentId);
     }
 
     @Override
@@ -125,13 +126,35 @@ public class TalonServiceImpl implements TalonService {
         talonRepository.deleteAll();
     }
 
-    public Long findPatientIdByTalonId(Long talonId){
+    public Long findPatientIdByTalonId(Long talonId) {
         return patientRepository.findPatientIdByTalonId(talonId);
     }
 
     @Override
     public Talon findTalonWithDoctorAndPatientByTalonId(Long id) {
         return talonRepository.findTalonWithDoctorAndPatientByTalonId(id);
+    }
+
+    @Override
+    public void deleteTalonById(Long id) {
+        talonRepository.deleteById(id);
+    }
+
+    @Override
+    public Talon findTalonWithPatientByTalonId(Long talonId) {
+        return talonRepository.findTalonWithPatientByTalonId(talonId);
+    }
+
+    public Talon transferPatientToAnotherTalon(Talon oldTalon, Talon newTalon, boolean isDelete) {
+        newTalon.setPatient(oldTalon.getPatient());
+        talonRepository.save(newTalon);
+        if (isDelete) {
+            talonRepository.deleteById(oldTalon.getId());
+        } else {
+            oldTalon.setPatient(null);
+            talonRepository.save(oldTalon);
+        }
+        return newTalon;
     }
 
 }

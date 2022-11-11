@@ -44,4 +44,10 @@ public interface TalonService {
 
     Talon findTalonWithDoctorAndPatientByTalonId(Long id);
 
+    void deleteTalonById(Long id);
+
+    Talon findTalonWithPatientByTalonId(Long talonId);
+
+    Talon transferPatientToAnotherTalon(Talon oldTalon, Talon newTalon, boolean isDelete);
+
 }

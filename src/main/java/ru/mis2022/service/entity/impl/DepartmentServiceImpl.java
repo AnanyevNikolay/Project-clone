@@ -42,4 +42,9 @@ public class DepartmentServiceImpl implements DepartmentService {
     public Department findDepartmentById(Long id) {
         return departmentRepository.findDepartmentById(id);
     }
+
+    @Override
+    public Department findDepartmentByTalonId(Long talonId){
+        return departmentRepository.findDepartmentByTalonId(talonId);
+    }
 }

@@ -62,4 +62,13 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
             WHERE t.id = :talonId AND a.id = :appealId
             """)
     Department isExistByTalonIdAndAppealId(Long talonId, Long appealId);
+
+            @Query("""
+            SELECT dep
+            FROM Department dep
+            JOIN Doctor doc ON dep.id = doc.department.id
+            JOIN Talon t ON t.doctor.id = doc.id
+            WHERE t.id = :talonId
+            """)
+    Department findDepartmentByTalonId(Long talonId);
 }

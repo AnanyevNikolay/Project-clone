@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 import ru.mis2022.models.dto.patient.CurrentPatientDto;
 import ru.mis2022.models.dto.patient.PatientDto;
+import ru.mis2022.models.entity.Department;
 import ru.mis2022.models.entity.Patient;
 
 import java.util.List;
@@ -71,4 +72,5 @@ public interface PatientRepository extends JpaRepository<Patient, Long> {
     Optional<List<PatientDto>> findPatientsByFirstNameOrLastNameOrPolisOrSnilsPattern(
             String firstName, String lastName, String polis, String snils, Pageable pageable
     );
+
 }
