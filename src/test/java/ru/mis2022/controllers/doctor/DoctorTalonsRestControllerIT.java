@@ -127,7 +127,8 @@ public class DoctorTalonsRestControllerIT extends ContextIT {
         LocalDate date = LocalDate.now();
         LocalDate firstTestDate = LocalDate.now().plusDays(2);
         LocalDate secondTestDate = LocalDate.now().plusDays(5);
-        LocalDateTime time2 = LocalDateTime.of(LocalDate.now().plusDays(2), LocalTime.of(8, 0).plusHours(3));
+        LocalDateTime time2 = LocalDateTime.of(LocalDate.now().
+                plusDays(2), LocalTime.of(8, 0).plusHours(3));
         String formattedString2 = time2.format(DATE_TIME_FORMATTER);
         Role role = initRole("DOCTOR");
         Role role2 = initRole("PATIENT");
