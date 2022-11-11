@@ -65,6 +65,17 @@ public class User implements UserDetails {
     @PrimaryKeyJoinColumn
     private Invite invite;
 
+    @ManyToOne
+    @JoinColumn(name = "personal_history_id")
+    private PersonalHistory personalHistory;
+
+    public User(String firstName, String email, Role role, PersonalHistory personalHistory) {
+        this.firstName = firstName;
+        this.email = email;
+        this.role = role;
+        this.personalHistory = personalHistory;
+    }
+
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singletonList(role);
     }

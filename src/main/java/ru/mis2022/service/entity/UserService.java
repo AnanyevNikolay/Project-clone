@@ -26,4 +26,6 @@ public interface UserService extends UserDetailsService {
     User save(User user);
     User saveUserByInviteAndDeleteInvite(User user, String password, Invite invite);
 
+    List<User> findPersonalWhoGoVacationInRange(LocalDate from, LocalDate to);
+
 }

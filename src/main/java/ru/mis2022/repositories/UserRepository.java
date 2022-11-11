@@ -81,4 +81,15 @@ public interface UserRepository extends JpaRepository<User, Long> {
             """)
     List<User> findPersonalWhoBirthdayInRange(LocalDate fromDate, LocalDate toDate);
 
+    @Query("""
+            SELECT u
+            FROM Vacation v
+            LEFT JOIN User u
+            ON v.personalHistory.id = u.personalHistory.id
+            WHERE TO_CHAR(cast(v.dateFrom as date), 'YYYY-MM-DD')
+            BETWEEN TO_CHAR(cast(:fromDate as date), 'YYYY-MM-DD') AND
+                    TO_CHAR(cast(:toDate as date), 'YYYY-MM-DD')
+            """)
+    List<User> findPersonalWhoGoVacationInRange(LocalDate fromDate, LocalDate toDate);
+
 }

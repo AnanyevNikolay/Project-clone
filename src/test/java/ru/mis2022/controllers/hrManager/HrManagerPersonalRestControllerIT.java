@@ -3,7 +3,6 @@ package ru.mis2022.controllers.hrManager;
 
 import org.hamcrest.core.Is;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -11,13 +10,17 @@ import ru.mis2022.models.entity.Department;
 import ru.mis2022.models.entity.Doctor;
 import ru.mis2022.models.entity.HrManager;
 import ru.mis2022.models.entity.MedicalOrganization;
+import ru.mis2022.models.entity.PersonalHistory;
 import ru.mis2022.models.entity.Role;
 import ru.mis2022.models.entity.User;
+import ru.mis2022.models.entity.Vacation;
 import ru.mis2022.repositories.DepartmentRepository;
 import ru.mis2022.repositories.DoctorRepository;
 import ru.mis2022.repositories.HrManagerRepository;
+import ru.mis2022.repositories.PersonalHistoryRepository;
 import ru.mis2022.repositories.RoleRepository;
 import ru.mis2022.repositories.UserRepository;
+import ru.mis2022.repositories.VacationRepository;
 import ru.mis2022.util.ContextIT;
 
 import java.time.LocalDate;
@@ -35,18 +38,18 @@ public class HrManagerPersonalRestControllerIT extends ContextIT {
 
     @Autowired
     HrManagerRepository hrManagerRepository;
-
     @Autowired
     RoleRepository roleRepository;
-
     @Autowired
     UserRepository userRepository;
-
     @Autowired
     DepartmentRepository departmentRepository;
-
     @Autowired
     DoctorRepository doctorRepository;
+    @Autowired
+    PersonalHistoryRepository personalHistoryRepository;
+    @Autowired
+    VacationRepository vacationRepository;
 
     Role initRole(String name) {
         return roleRepository.save(Role.builder()
@@ -69,6 +72,11 @@ public class HrManagerPersonalRestControllerIT extends ContextIT {
     User initUser(String firstName, String lastName, String email, Role role, LocalDate birthday) {
         return userRepository.save(new User(
                 email, null, firstName, lastName, null, birthday, role));
+    }
+
+    User initUserForTestByFindEmployeesGoVacation(String firstName, String email, Role role, PersonalHistory personalHistory) {
+        return userRepository.save(new User(
+                email, firstName, role, personalHistory));
     }
 
     Department initDepartment(String name, MedicalOrganization medicalOrganization) {
@@ -102,11 +110,91 @@ public class HrManagerPersonalRestControllerIT extends ContextIT {
         return user.getLastName() + " " + user.getFirstName();
     }
 
+    PersonalHistory initPersonalHistory() {
+        return personalHistoryRepository.save(PersonalHistory.builder()
+                .dateOfEmployment(null)
+                .dateOfDismissal(null)
+                .build());
+    }
+
+    Vacation initVacation(LocalDate start, LocalDate end, PersonalHistory personalHistory) {
+        return vacationRepository.save(Vacation.builder()
+                .dateFrom(start)
+                .dateTo(end)
+                .personalHistory(personalHistory)
+                .build());
+    }
+
     @AfterEach
     public void clear() {
         hrManagerRepository.deleteAll();
         userRepository.deleteAll();
         roleRepository.deleteAll();
+        vacationRepository.deleteAll();
+        personalHistoryRepository.deleteAll();
+    }
+
+    @Test
+    public void findAllEmployeesWhoGoVacationInRange() throws Exception {
+
+        LocalDate start1 = LocalDate.now().plusDays(7);
+        LocalDate start2 = LocalDate.now().plusWeeks(2);
+        LocalDate start3 = LocalDate.now().plusWeeks(5);
+
+        LocalDate end1 = start1.plusDays(30);
+        LocalDate end2 = start2.plusDays(30);
+        LocalDate end3 = start3.plusDays(30);
+
+        Role roleHrManager = initRole("HR_MANAGER");
+        Role roleDoctor = initRole("DOCTOR");
+
+        PersonalHistory personalHistory1 = initPersonalHistory();
+        PersonalHistory personalHistory2 = initPersonalHistory();
+
+        // Инитим даты отпуска с персональной историей
+        Vacation vacation1 = initVacation(start1, end1, personalHistory1);
+        Vacation vacation2 = initVacation(start2, end2, personalHistory2);
+        Vacation vacation3 = initVacation(start3, end3, personalHistory2);
+
+        HrManager hrManager = initHrManager(roleHrManager);
+        User user1 = initUserForTestByFindEmployeesGoVacation("firstUser1", "user1@email.com", roleDoctor, personalHistory1);
+        User user2 = initUserForTestByFindEmployeesGoVacation("firstUser2", "user2@email.com", roleDoctor, personalHistory2);
+
+        accessToken = tokenUtil.obtainNewAccessToken(hrManager.getEmail(), "1", mockMvc);
+
+        // Ближайшие 20 дней в отпуск должны пойти 2 сотрудника
+        mockMvc.perform(get("/api/hr_manager/findAllEmployeesWhoGoVacationInRange")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("daysCount", objectMapper.writeValueAsString(20))
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+                .andExpect(jsonPath("$.data.length()", Is.is(2)))
+
+                .andExpect(jsonPath("$.data[0].id", Is.is(intValue(user1.getId()))))
+                .andExpect(jsonPath("$.data[0].firstName", Is.is(user1.getFirstName())))
+                .andExpect(jsonPath("$.data[0].email", Is.is(user1.getEmail())))
+
+                .andExpect(jsonPath("$.data[1].id", Is.is(intValue(user2.getId()))))
+                .andExpect(jsonPath("$.data[1].firstName", Is.is(user2.getFirstName())))
+                .andExpect(jsonPath("$.data[1].email", Is.is(user2.getEmail())))
+//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()))
+        ;
+
+        // Ближайшие 5 дней никто в отпуск не идет
+        mockMvc.perform(get("/api/hr_manager/findAllEmployeesWhoGoVacationInRange")
+                .header("Authorization", accessToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .param("daysCount", objectMapper.writeValueAsString(5))
+        )
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+                .andExpect(jsonPath("$.data.length()", Is.is(0)))
+//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()))
+                ;
+
     }
 
     @Test
