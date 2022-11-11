@@ -25,6 +25,7 @@ import ru.mis2022.utils.validation.ApiValidationUtils;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Validated
 @RestController
@@ -117,4 +118,17 @@ public class HrManagerPersonalRestController {
 
     }
 
+    @ApiOperation("Список сотрудников идущих в отпуск за указанный период")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Список сотрудников идущих в отпуск за указанный период"),
+    })
+    @GetMapping("/findAllEmployeesWhoGoVacationInRange")
+    public Response<List<UserDto>> findAllEmployeesWhoGoVacationInRange(
+            @RequestParam(required = false, defaultValue = "30") int daysCount) {
+
+        LocalDate start = LocalDate.now();
+        LocalDate end = start.plusDays(daysCount);
+        List<User> allEmployeesGoVacation = userService.findPersonalWhoGoVacationInRange(start, end);
+        return Response.ok(converter.toListDto(allEmployeesGoVacation));
+    }
 }
