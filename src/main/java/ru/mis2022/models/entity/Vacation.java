@@ -47,5 +47,10 @@ public class Vacation {
         this.dateTo = dateTo;
         this.personalHistory = personalHistory;
     }
+
+    public Vacation(LocalDate dateFrom, LocalDate dateTo) {
+        this.dateFrom = dateFrom;
+        this.dateTo = dateTo;
+    }
 }
 

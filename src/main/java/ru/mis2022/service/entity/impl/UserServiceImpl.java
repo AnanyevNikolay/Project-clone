@@ -82,4 +82,9 @@ public class UserServiceImpl implements UserService {
     public List<User> findPersonalByBirthdayInRange(LocalDate from, LocalDate to) {
         return userRepository.findPersonalWhoBirthdayInRange(from, to);
     }
+
+    @Override
+    public List<User> findPersonalWhoGoVacationInRange(LocalDate from, LocalDate to) {
+        return userRepository.findPersonalWhoGoVacationInRange(from, to);
+    }
 }

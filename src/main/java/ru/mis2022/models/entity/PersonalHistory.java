@@ -44,4 +44,8 @@ public class PersonalHistory {
     private LocalDate dateOfEmployment;
 
     private LocalDate dateOfDismissal;
+
+    public PersonalHistory(Set<Vacation> vacations) {
+        this.vacations = vacations;
+    }
 }

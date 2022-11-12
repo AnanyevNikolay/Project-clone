@@ -16,4 +16,7 @@ public interface DepartmentService {
     Department findDepartmentByDoctorId(Long docId);
 
     boolean isExistByTalonIdAndAppealId(Long talonId, Long appealId);
+
+    Department findDepartmentByTalonId(Long talonId);
+
 }

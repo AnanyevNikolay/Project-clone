@@ -18,4 +18,5 @@ public interface PatientService {
     List<Patient> findPatientByFullName (String fullName);
 
     void deleteAll();
+
 }
