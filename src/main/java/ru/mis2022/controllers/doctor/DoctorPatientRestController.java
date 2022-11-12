@@ -77,5 +77,25 @@ public class DoctorPatientRestController {
 
         return Response.ok(talonService.registerPatientInTalon(talon, patient));
     }
+    @ApiOperation("Доктор убирает пациента с талона")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Удаление прошло успешно"),
+            @ApiResponse(code = 401, message = "Талона с данным id не существует"),
+            @ApiResponse(code = 402, message = "Талон принадлежит другому доктору"),
+            @ApiResponse(code = 403, message = "Талон был свободен")
+    })
+    @PostMapping(value = "/removeTalonFromPatient")
+    public Response<TalonDto> deleteTalonFromPatient(@RequestParam long talonId) {
+        Talon talon = talonService.findTalonById(talonId);
+        Long currentDocId = ((Doctor) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
+        ApiValidationUtils.expectedNotNull(talon,
+                401, "Талона с данным id не существует");
+        ApiValidationUtils.expectedEqual(talon.getDoctor().getId(), currentDocId,
+                402,"Талон принадлежит другому доктору");
+        ApiValidationUtils.expectedFalse(talon.getPatient() == null,
+                403, "Талон был свободен");
+
+        return Response.ok(talonService.removeTalonFromPatient(talon));
+    }
 
 }

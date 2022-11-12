@@ -306,4 +306,70 @@ public class DoctorPatientRestControllerIT extends ContextIT {
 
         Assertions.assertEquals(talon1.getPatient().getId(), patient.getId());
     }
+    @Test
+    public void deleteTalonFromPatient() throws Exception {
+        Role roleDoc = initRole(DOCTOR.name());
+        Role rolePatient = initRole("PATIENT");
+        Department department = initDepartment("Therapy");
+        Doctor doctor = initDoctor(roleDoc, department, null, "doc@email.com");
+        Doctor otherDoctor = initDoctor(roleDoc, department, null, "otherDoc@email.com");
+        Patient patient = initPatient("email1@rt.ru", "Alexandr", "Safronov", "Sergeevich",
+                rolePatient, "2222 878190", "2349581209685472", "567-476-439 85");
+        LocalDateTime talonTime = LocalDateTime.now().with(LocalTime.MIN).plusHours(10);
+        Talon talon = initTalon(talonTime, doctor, patient);
+        Talon freeTalon = initTalon(talonTime, doctor, null);
+
+        accessToken = tokenUtil.obtainNewAccessToken(doctor.getEmail(), "1", mockMvc);
+
+        // талон успешно откреплен от пользователя
+        mockMvc.perform(post("/api/doctor/patient/removeTalonFromPatient")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("talonId", talon.getId().toString()))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+                .andExpect(jsonPath("$.data.id", Is.is(talon.getId().intValue())))
+                .andExpect(jsonPath("$.data.time", Is.is(DATE_TIME_FORMATTER.format(talon.getTime()))))
+                .andExpect(jsonPath("$.data.doctorId", Is.is(doctor.getId().intValue())));
+//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
+        //         талона с таким id не существует
+        mockMvc.perform(post("/api/doctor/patient/removeTalonFromPatient")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("talonId", "8888888888"))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(401)))
+                .andExpect(jsonPath("$.text", Is.is("Талона с данным id не существует")));
+//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
+        // У талона другой доктор, а не под которым зашли
+        talon.setPatient(patient);
+        talon.setDoctor(otherDoctor);
+        talonRepository.save(talon);
+        mockMvc.perform(post("/api/doctor/patient/removeTalonFromPatient")
+                        .param("talonId", talon.getId().toString())
+                        .param("patientId", patient.getId().toString())
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(402)))
+                .andExpect(jsonPath("$.text", Is.is("Талон принадлежит другому доктору")));
+//              .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
+//         Талон был свободен
+        mockMvc.perform(post("/api/doctor/patient/removeTalonFromPatient")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("talonId", freeTalon.getId().toString()))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(403)))
+                .andExpect(jsonPath("$.text", Is.is("Талон был свободен")));
+//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+    }
 }
