@@ -24,4 +24,6 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
             """)
     List<AccountDto> findAccountsDtoByRangeDate(@Param("fromDate") LocalDate fromDate,
                                                 @Param("dateTo") LocalDate dateTo);
+
+    Account findAccountById(Long id);
 }

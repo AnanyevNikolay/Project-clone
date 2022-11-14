@@ -10,14 +10,11 @@ import java.util.List;
 @Component
 public class UserDtoConverter {
 
-
-
     public List<UserDto> toListDto(List<User> users) {
         List<UserDto> usersDtoList = new ArrayList<>();
         users.forEach(user -> usersDtoList.add(toDto(user)));
         return usersDtoList;
     }
-
 
     public UserDto toDto(User entity) {
         String roleName = entity.getRole().getName();

@@ -18,6 +18,12 @@ public class AppealDtoConverter {
 
     private final VisitDtoConverter visitDtoConverter;
 
+    public List<AppealDto> toListAppealDto(List<Appeal> appealList) {
+        List<AppealDto> appealDtoList = new ArrayList<>();
+        appealList.forEach(appeal -> appealDtoList.add(toAppealDto(appeal)));
+        return appealDtoList;
+    }
+
     public List<CurrentPatientAppealsDto> convertAppealsListToAppealsDtoList(List<Appeal> appeals) {
         if (appeals == null) {
             return Collections.emptyList();

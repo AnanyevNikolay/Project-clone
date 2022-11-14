@@ -2,12 +2,13 @@ package ru.mis2022.service.entity.impl;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import ru.mis2022.models.dto.appeal.AppealDto;
+import ru.mis2022.models.entity.Account;
 import ru.mis2022.models.entity.Appeal;
-import ru.mis2022.models.entity.Department;
+import ru.mis2022.repositories.AccountRepository;
 import ru.mis2022.repositories.AppealRepository;
 import ru.mis2022.service.entity.AppealService;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -17,6 +18,7 @@ import java.util.Optional;
 public class AppealServiceImpl implements AppealService {
 
     private final AppealRepository appealRepository;
+    private final AccountRepository accountRepository;
 
     @Override
     public Appeal save(Appeal appeal) {
@@ -41,5 +43,25 @@ public class AppealServiceImpl implements AppealService {
     @Override
     public Appeal findAppealById(Long id) {
         return appealRepository.findAppealById(id);
+    }
+
+    @Override
+    public List<Appeal> findAllCloseAppeals(LocalDate dateTo) {
+        return appealRepository.findAllCloseAppeals(dateTo);
+    }
+
+    @Override
+    public void saveChangeData(List<Appeal> appealList, Account account) {
+        if (appealList.isEmpty()) {
+            account.setFormed(true);
+            accountRepository.save(account);
+        } else {
+            for (Appeal appeal : appealList) {
+                appeal.setAccount(account);
+                appealRepository.save(appeal);
+                account.setFormed(true);
+                accountRepository.save(account);
+            }
+        }
     }
 }

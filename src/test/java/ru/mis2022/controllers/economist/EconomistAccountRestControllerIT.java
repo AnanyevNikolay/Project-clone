@@ -7,11 +7,12 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-
 import ru.mis2022.models.entity.Account;
+import ru.mis2022.models.entity.Appeal;
 import ru.mis2022.models.entity.Economist;
 import ru.mis2022.models.entity.Role;
 import ru.mis2022.repositories.AccountRepository;
+import ru.mis2022.repositories.AppealRepository;
 import ru.mis2022.repositories.EconomistRepository;
 import ru.mis2022.repositories.RoleRepository;
 import ru.mis2022.util.ContextIT;
@@ -20,6 +21,7 @@ import java.time.LocalDate;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.mis2022.models.entity.Role.RolesEnum.ECONOMIST;
@@ -33,10 +35,21 @@ public class EconomistAccountRestControllerIT extends ContextIT {
     EconomistRepository economistRepository;
     @Autowired
     RoleRepository roleRepository;
+    @Autowired
+    AppealRepository appealRepository;
 
     Account initAccount(LocalDate dateTo, String name) {
         return accountRepository.save(Account
                 .builder()
+                .date(dateTo)
+                .name(name)
+                .build());
+    }
+
+    Account initAccount1(boolean isFormed, LocalDate dateTo, String name) {
+        return accountRepository.save(Account
+                .builder()
+                .isFormed(isFormed)
                 .date(dateTo)
                 .name(name)
                 .build());
@@ -61,11 +74,73 @@ public class EconomistAccountRestControllerIT extends ContextIT {
                 .build());
     }
 
+    Appeal initAppeal(boolean isClosed, LocalDate localDate, Account account){
+        return appealRepository.save(Appeal
+                .builder()
+                .isClosed(isClosed)
+                .localDate(localDate)
+                .account(account)
+                .build());
+    }
+
     @AfterEach
     void clear() {
         accountRepository.deleteAll();
         economistRepository.deleteAll();
         roleRepository.deleteAll();
+        appealRepository.deleteAll();
+    }
+
+    @Test
+    public void updateAccount() throws Exception {
+        Role roleEconomist = initRole("ECONOMIST");
+        Economist economist = initEconomist(roleEconomist);
+
+        LocalDate dateAccount = LocalDate.now().plusDays(10);
+        LocalDate dateAppeal1 = LocalDate.now().plusDays(5);
+        LocalDate dateAppeal2 = LocalDate.now().minusDays(5);
+
+        Account accountNotFormed = initAccount1(false, dateAccount, "nameTest");
+        Account accountFormed = initAccount1(true, dateAccount, "nameTest");
+
+        Appeal appeal1 = initAppeal(true, dateAppeal1, null);
+        Appeal appeal2 = initAppeal(true, dateAppeal2, null);
+
+        accessToken = tokenUtil.obtainNewAccessToken(economist.getEmail(), "1", mockMvc);
+
+//        Все нормально
+        mockMvc.perform(put("/api/economist/account/updateAccount/{accountId}", accountNotFormed.getId())
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.isFormed", Is.is(true)))
+                .andExpect(jsonPath("$.data.id").value(Matchers.notNullValue()))
+//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()))
+        ;
+//          Не нормально, счет уже сформирован
+        mockMvc.perform(put("/api/economist/account/updateAccount/{accountId}", accountFormed.getId())
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code").value(412))
+                .andExpect(jsonPath("$.text", Is.is("Счет уже сформирован")))
+//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()))
+        ;
+//          Не норм, счета с таким ID не существует.
+        mockMvc.perform(put("/api/economist/account/updateAccount/{accountId}", 9876)
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code").value(411))
+                .andExpect(jsonPath("$.text", Is.is("Счет не найден")))
+//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()))
+        ;
+
     }
 
     @Test
