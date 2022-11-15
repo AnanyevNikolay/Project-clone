@@ -74,7 +74,7 @@ public class EconomistAccountRestControllerIT extends ContextIT {
                 .build());
     }
 
-    Appeal initAppeal(boolean isClosed, LocalDate localDate, Account account){
+    Appeal initAppeal(boolean isClosed, LocalDate localDate, Account account) {
         return appealRepository.save(Appeal
                 .builder()
                 .isClosed(isClosed)
@@ -96,15 +96,31 @@ public class EconomistAccountRestControllerIT extends ContextIT {
         Role roleEconomist = initRole("ECONOMIST");
         Economist economist = initEconomist(roleEconomist);
 
-        LocalDate dateAccount = LocalDate.now().plusDays(10);
-        LocalDate dateAppeal1 = LocalDate.now().plusDays(5);
-        LocalDate dateAppeal2 = LocalDate.now().minusDays(5);
+        LocalDate dateAccount1 = LocalDate.now().plusDays(10); // 2022-11-25
+        LocalDate dateAccount2 = LocalDate.now().minusMonths(1); // 2022-10-15
 
-        Account accountNotFormed = initAccount1(false, dateAccount, "nameTest");
-        Account accountFormed = initAccount1(true, dateAccount, "nameTest");
+        LocalDate dateAppeal1 = LocalDate.now().plusDays(5);  // 2022-11-20
+        LocalDate dateAppeal2 = LocalDate.now().plusDays(10); // 2022-11-25
+        LocalDate dateAppeal3 = LocalDate.now().minusDays(30); // 2022-10-16
+        LocalDate dateAppeal4 = LocalDate.now().minusMonths(1); // 2022-10-15
 
+        // не сформированный счет
+        Account accountNotFormed = initAccount1(false, dateAccount1, "nameTest");
+        // сформированный счет, не попадает
+        Account accountFormed = initAccount1(true, dateAccount1, "nameTest");
+        // не сформированный счет с другой датой
+        Account accountNotFormedAndWithAnotherDate = initAccount1(false, dateAccount2, "nameTest");
+
+        // закрытое обращение, не имеющее счета, с датой попадающей в счет - accountNotFormed
         Appeal appeal1 = initAppeal(true, dateAppeal1, null);
+        // закрытое обращение, не имеющее счета, с датой на границе, попадающей в счет - accountNotFormed
         Appeal appeal2 = initAppeal(true, dateAppeal2, null);
+        // открытое обращение - не должно никуда попасть
+        Appeal appeal3 = initAppeal(false, dateAppeal2, null);
+        // закрытое обращение с датой на границе, не попадающей ни в один счет
+        Appeal appeal5 = initAppeal(true, dateAppeal3, null);
+        // закрытое обращение с датой попадающей в другой счет - accountNotFormedAndWithAnotherDate
+        Appeal appeal6 = initAppeal(true, dateAppeal4, null);
 
         accessToken = tokenUtil.obtainNewAccessToken(economist.getEmail(), "1", mockMvc);
 
@@ -116,10 +132,74 @@ public class EconomistAccountRestControllerIT extends ContextIT {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", Is.is(true)))
                 .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.data.isFormed", Is.is(true)))
                 .andExpect(jsonPath("$.data.id").value(Matchers.notNullValue()))
+                .andExpect(jsonPath("$.data.isFormed", Is.is(false)))
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()))
         ;
+
+        // Проверка на добавление account_id в appeal
+        Appeal appealCheck1 = entityManager.createQuery("""
+            SELECT a
+            FROM Appeal a
+            JOIN Account acc
+            ON a.account.id = acc.id
+            WHERE a.id = :appealId
+            """, Appeal.class)
+                .setParameter("appealId", appeal1.getId())
+                .getSingleResult();
+
+        Assertions.assertEquals(accountNotFormed.getId(), appealCheck1.getAccount().getId());
+
+        //  Проверка на добавление account_id в appeal
+        Appeal appealCheck2 = entityManager.createQuery("""
+            SELECT a
+            FROM Appeal a
+            JOIN Account acc
+            ON a.account.id = acc.id
+            WHERE a.id = :appealId
+            """, Appeal.class)
+                .setParameter("appealId", appeal2.getId())
+                .getSingleResult();
+
+        Assertions.assertEquals(accountNotFormed.getId(), appealCheck2.getAccount().getId());
+
+        mockMvc.perform(put("/api/economist/account/updateAccount/{accountId}", accountNotFormedAndWithAnotherDate.getId())
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code").value(200))
+                .andExpect(jsonPath("$.data.id").value(Matchers.notNullValue()))
+                .andExpect(jsonPath("$.data.isFormed", Is.is(false)))
+//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()))
+        ;
+
+        //  Проверка на связь сущностей по account id (на добавление account_id в appeal)
+        Appeal appealCheck3 = entityManager.createQuery("""
+            SELECT a
+            FROM Appeal a
+            JOIN Account acc
+            ON a.account.id = acc.id
+            WHERE a.id = :appealId
+            """, Appeal.class)
+                .setParameter("appealId", appeal6.getId())
+                .getSingleResult();
+
+        Assertions.assertEquals(accountNotFormedAndWithAnotherDate.getId(), appealCheck3.getAccount().getId());
+
+        // Здесь проверяется, что account_id не присвоился appeal, потому что не подошло по дате
+        Appeal appealCheck4 = entityManager.createQuery("""
+            SELECT DISTINCT a
+            FROM Appeal a
+            JOIN Account acc
+            ON a.id = :appealId
+            """, Appeal.class)
+                .setParameter("appealId", appeal5.getId())
+                .getSingleResult();
+
+        Assertions.assertNull(appealCheck4.getAccount());
+
 //          Не нормально, счет уже сформирован
         mockMvc.perform(put("/api/economist/account/updateAccount/{accountId}", accountFormed.getId())
                         .header("Authorization", accessToken)
@@ -140,7 +220,6 @@ public class EconomistAccountRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.text", Is.is("Счет не найден")))
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()))
         ;
-
     }
 
     @Test
@@ -165,7 +244,7 @@ public class EconomistAccountRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data.id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data.name").value(account.getName()))
                 .andExpect(jsonPath("$.data.data").value(account.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data.money").value(0));
+                .andExpect(jsonPath("$.data.money").value(Matchers.nullValue()));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         Economist qryEconomist = entityManager.createQuery("""
@@ -211,12 +290,12 @@ public class EconomistAccountRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[0].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[0].name").value(account1.getName()))
                 .andExpect(jsonPath("$.data[0].data").value(account1.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[0].money").value(0))
+                .andExpect(jsonPath("$.data[0].money").value(Matchers.nullValue()))
 
                 .andExpect(jsonPath("$.data[1].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[1].name").value(account2.getName()))
                 .andExpect(jsonPath("$.data[1].data").value(account2.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[1].money").value(0));
+                .andExpect(jsonPath("$.data[1].money").value(Matchers.nullValue()));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         LocalDate dateTo2 = LocalDate.now().minusDays(1);
@@ -236,17 +315,17 @@ public class EconomistAccountRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[0].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[0].name").value(account1.getName()))
                 .andExpect(jsonPath("$.data[0].data").value(account1.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[0].money").value(0))
+                .andExpect(jsonPath("$.data[0].money").value(Matchers.nullValue()))
 
                 .andExpect(jsonPath("$.data[1].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[1].name").value(account2.getName()))
                 .andExpect(jsonPath("$.data[1].data").value(account2.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[1].money").value(0))
+                .andExpect(jsonPath("$.data[1].money").value(Matchers.nullValue()))
 
                 .andExpect(jsonPath("$.data[2].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[2].name").value(account3.getName()))
                 .andExpect(jsonPath("$.data[2].data").value(account3.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[2].money").value(0));
+                .andExpect(jsonPath("$.data[2].money").value(Matchers.nullValue()));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         LocalDate dateFrom2 = LocalDate.now().minusDays(7);
@@ -266,12 +345,12 @@ public class EconomistAccountRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[0].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[0].name").value(account3.getName()))
                 .andExpect(jsonPath("$.data[0].data").value(account3.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[0].money").value(0))
+                .andExpect(jsonPath("$.data[0].money").value(Matchers.nullValue()))
 
                 .andExpect(jsonPath("$.data[1].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[1].name").value(account4.getName()))
                 .andExpect(jsonPath("$.data[1].data").value(account4.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[1].money").value(0));
+                .andExpect(jsonPath("$.data[1].money").value(Matchers.nullValue()));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         // Ни одна дата не задана, Нормальный сценарий!
@@ -287,22 +366,22 @@ public class EconomistAccountRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data[0].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[0].name").value(account1.getName()))
                 .andExpect(jsonPath("$.data[0].data").value(account1.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[0].money").value(0))
+                .andExpect(jsonPath("$.data[0].money").value(Matchers.nullValue()))
 
                 .andExpect(jsonPath("$.data[1].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[1].name").value(account2.getName()))
                 .andExpect(jsonPath("$.data[1].data").value(account2.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[1].money").value(0))
+                .andExpect(jsonPath("$.data[1].money").value(Matchers.nullValue()))
 
                 .andExpect(jsonPath("$.data[2].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[2].name").value(account3.getName()))
                 .andExpect(jsonPath("$.data[2].data").value(account3.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[2].money").value(0))
+                .andExpect(jsonPath("$.data[2].money").value(Matchers.nullValue()))
 
                 .andExpect(jsonPath("$.data[3].id").value(Matchers.notNullValue()))
                 .andExpect(jsonPath("$.data[3].name").value(account4.getName()))
                 .andExpect(jsonPath("$.data[3].data").value(account4.getDate().format(DATE_FORMATTER)))
-                .andExpect(jsonPath("$.data[3].money").value(0));
+                .andExpect(jsonPath("$.data[3].money").value(Matchers.nullValue()));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         LocalDate dateFrom3 = LocalDate.now().plusDays(1);

@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import ru.mis2022.models.dto.account.AccountDto;
 import ru.mis2022.models.dto.account.converter.ConvertorAccountDto;
-import ru.mis2022.models.dto.appeal.converter.AppealDtoConverter;
 import ru.mis2022.models.entity.Account;
 import ru.mis2022.models.entity.Appeal;
 import ru.mis2022.models.response.Response;
@@ -40,7 +39,6 @@ public class EconomistAccountRestController {
     private final AccountDtoService accountDtoService;
     private final DataConvertor dataConvertor;
     private final AppealService appealService;
-    private final AppealDtoConverter appealDtoConverter;
 
     @ApiOperation("Экономист сохраняет новый счет")
     @ApiResponses(value = {
@@ -64,12 +62,12 @@ public class EconomistAccountRestController {
     @PutMapping("/updateAccount/{accountId}")
     public Response <AccountDto> updateAccount(@PathVariable Long accountId){
 
-        ApiValidationUtils.expectedNotNull(accountService.findAccountById(accountId),
-                411, "Счет не найден");
-        ApiValidationUtils.expectedFalse(accountService.findAccountById(accountId).isFormed(),
-                412, "Счет уже сформирован");
-
         Account account = accountService.findAccountById(accountId);
+
+        ApiValidationUtils.expectedNotNull(account,
+                411, "Счет не найден");
+        ApiValidationUtils.expectedFalse(account.isFormed(),
+                412, "Счет уже сформирован");
 
         List<Appeal> appealList = appealService.findAllCloseAppeals(account.getDate());
 

@@ -38,7 +38,7 @@ public interface AppealRepository extends JpaRepository<Appeal, Long> {
             JOIN Account acc
             ON a.isClosed IS TRUE
             WHERE TO_CHAR(cast(a.localDate as date), 'YYYY-MM-DD')
-            BETWEEN TO_CHAR(cast(date_trunc('month', current_date) as date), 'YYYY-MM-DD')
+            BETWEEN TO_CHAR(cast(date_trunc('month', cast(:dateTo as date)) as date), 'YYYY-MM-DD')
             AND TO_CHAR(cast(:dateTo as date), 'YYYY-MM-DD')
             AND a.account.id IS NULL
             """)

@@ -52,16 +52,9 @@ public class AppealServiceImpl implements AppealService {
 
     @Override
     public void saveChangeData(List<Appeal> appealList, Account account) {
-        if (appealList.isEmpty()) {
-            account.setFormed(true);
-            accountRepository.save(account);
-        } else {
             for (Appeal appeal : appealList) {
                 appeal.setAccount(account);
                 appealRepository.save(appeal);
-                account.setFormed(true);
-                accountRepository.save(account);
             }
-        }
     }
 }

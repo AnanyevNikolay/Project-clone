@@ -50,7 +50,7 @@ public class Account {
     @JoinColumn(name = "account_id")
     private Set<Appeal> appeals;
 
-    private int money;
+    private Long money;
 
     @Column(name = "is_formed")
     private boolean isFormed;

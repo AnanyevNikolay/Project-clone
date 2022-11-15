@@ -786,7 +786,7 @@ public class DataInitializer {
                                 .date(key)
                                 .build();
 
-                        final int[] money = {0};
+                        final Long[] money = {0L};
 
                         value.stream()
                                 .map(Appeal::getVisits)

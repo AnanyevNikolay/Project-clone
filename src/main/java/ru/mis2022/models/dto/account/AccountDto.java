@@ -10,6 +10,6 @@ public record AccountDto(Long id,
                          String name,
                          @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "dd.MM.yyyy")
                          LocalDate data,
-                         int money,
+                         Long money,
                          boolean isFormed)
 {}
