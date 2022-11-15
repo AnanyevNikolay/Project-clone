@@ -38,6 +38,7 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
                 AND dis.disabled = :dis
             """)
     List<DiseaseDto> findDiseaseByDepartmentDoctors(@Param("docId") Long docId, @Param("dis") boolean disabled);
+
     Disease findDiseaseById(Long id);
 
     @Query("""
@@ -50,4 +51,23 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
             """)
     boolean existsDiseaseByDiseaseIdAndDoctorId(Long diseaseId, Long doctorId);
 
+    @Query("""
+                SELECT new ru.mis2022.models.dto.disease.DiseaseDto(
+                    dis.id,
+                    dis.identifier,
+                    dis.name,
+                    dis.disabled)
+                 FROM Disease dis
+                    LEFT JOIN Department dep ON dis.department.id = dep.id
+                 WHERE dis.department IS NULL
+            """)
+    List<DiseaseDto> findDiseaseWithoutDepartment();
+
+    @Query("""
+                 SELECT dis
+                 FROM Disease dis
+                    LEFT JOIN Department dep ON dis.department.id = dep.id
+                 WHERE dis.department IS null
+            """)
+    Disease findByIdWithoutDepartment(Long diseaseId);
 }

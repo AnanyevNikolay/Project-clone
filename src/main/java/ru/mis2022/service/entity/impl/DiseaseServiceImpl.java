@@ -4,6 +4,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.mis2022.models.dto.disease.DiseaseDto;
 import ru.mis2022.models.dto.disease.converter.DiseaseDtoConverter;
+import ru.mis2022.models.entity.Department;
 import ru.mis2022.models.entity.Disease;
 import ru.mis2022.repositories.DiseaseRepository;
 import ru.mis2022.service.entity.DiseaseService;
@@ -14,7 +15,6 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class DiseaseServiceImpl implements DiseaseService {
-
     private final DiseaseRepository diseaseRepository;
     private final DiseaseDtoConverter diseaseDtoConverter;
 
@@ -64,4 +64,16 @@ public class DiseaseServiceImpl implements DiseaseService {
     public boolean existsDiseaseByDiseaseIdAndDoctorId(long diseaseId, long doctorId) {
         return diseaseRepository.existsDiseaseByDiseaseIdAndDoctorId(diseaseId, doctorId);
     }
+
+    public DiseaseDto addDiseaseToDepartment(Disease disease, Department department) {
+        disease.setDepartment(department);
+        diseaseRepository.save(disease);
+        return diseaseDtoConverter.toDiseaseDto(disease);
+    }
+
+    @Override
+    public Disease findByIdWithoutDepartment(Long diseaseId) {
+        return diseaseRepository.findByIdWithoutDepartment(diseaseId);
+    }
+
 }

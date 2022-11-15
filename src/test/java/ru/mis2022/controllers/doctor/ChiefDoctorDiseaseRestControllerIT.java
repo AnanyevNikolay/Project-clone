@@ -18,6 +18,8 @@ import ru.mis2022.util.ContextIT;
 import java.time.LocalDate;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static ru.mis2022.models.entity.Role.RolesEnum.CHIEF_DOCTOR;
@@ -75,6 +77,7 @@ public class ChiefDoctorDiseaseRestControllerIT extends ContextIT {
                 .name(name)
                 .build());
     }
+
 
     @AfterEach
     void clear() {
@@ -182,5 +185,76 @@ public class ChiefDoctorDiseaseRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.code", Is.is(411)))
                 .andExpect(jsonPath("$.text", Is.is("Заболеваним не занимается данный доктор.")));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+    }
+
+    @Test
+    public void getAllDiseasesWithoutDepartmentTest() throws Exception {
+        Role roleChiefDoctor = initRole(CHIEF_DOCTOR.name());
+        Department department = initDepartment("department");
+        Disease disease1 = initDisease("RQDOdsGHvKtEOL5", null, "disease1", false);
+        Disease disease2 = initDisease("mP241V4iS9w6RWo", null, "disease2", false);
+        Doctor doctor = initDoctor("doctor0@mail.ru", roleChiefDoctor, department);
+
+        accessToken = tokenUtil.obtainNewAccessToken(doctor.getEmail(), "1", mockMvc);
+
+        mockMvc.perform(get("/api/chief-doctor/disease/listDiseaseWithoutDepartment")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+
+
+                .andExpect(jsonPath("$.data[0].id", Is.is(disease1.getId().intValue())))
+                .andExpect(jsonPath("$.data[0].identifier", Is.is(disease1.getIdentifier())))
+                .andExpect(jsonPath("$.data[0].name", Is.is(disease1.getName())))
+                .andExpect(jsonPath("$.data[0].disabled", Is.is(disease1.isDisabled())))
+
+                .andExpect(jsonPath("$.data[1].id", Is.is(disease2.getId().intValue())))
+                .andExpect(jsonPath("$.data[1].identifier", Is.is(disease2.getIdentifier())))
+                .andExpect(jsonPath("$.data[1].name", Is.is(disease2.getName())))
+                .andExpect(jsonPath("$.data[1].disabled", Is.is(disease2.isDisabled())));
+//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
+    }
+
+    @Test
+    public void diseaseWithDoctorDepartmentTest() throws Exception {
+        Role roleChiefDoctor = initRole(CHIEF_DOCTOR.name());
+        Department department1 = initDepartment("department1");
+        Disease disease1 = initDisease("7Gm3MSiToAWxfae", null, "disease1", false);
+        Doctor doctor = initDoctor("doctor0@mail.ru", roleChiefDoctor, department1);
+
+        accessToken = tokenUtil.obtainNewAccessToken(doctor.getEmail(), "1", mockMvc);
+
+//      всё работает
+        mockMvc.perform(post("/api/chief-doctor/disease/diseasesForDoctor")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("diseaseId", disease1.getId().toString())
+                        .param("departmentId", department1.getId().toString())
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+
+                .andExpect(jsonPath("$.data.id", Is.is(disease1.getId().intValue())))
+                .andExpect(jsonPath("$.data.identifier", Is.is(disease1.getIdentifier())))
+                .andExpect(jsonPath("$.data.name", Is.is(disease1.getName())))
+                .andExpect(jsonPath("$.data.disabled", Is.is(disease1.isDisabled())));
+//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+
+//      такой болезни нет или она уже связана с отделением
+        mockMvc.perform(post("/api/chief-doctor/disease/diseasesForDoctor")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .param("diseaseId", "88888888")
+                        .param("departmentId", department1.getId().toString())
+                )
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(401)))
+                .andExpect(jsonPath("$.text", Is.is("Болезни не существует или она уже связана с отделением")));
     }
 }
