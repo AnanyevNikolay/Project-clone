@@ -336,8 +336,15 @@ public class DoctorPatientRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data.doctorId", Is.is(doctor.getId().intValue())))
                 .andExpect(jsonPath("$.data.patientDto").value(Matchers.nullValue()));
         //.andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
-        // Assert.assertNull(freeTalon.getPatient());
 
+        Talon talon1 = entityManager.createQuery("""
+                        SELECT talon
+                        FROM Talon talon
+                        WHERE talon.id = :talonId
+                        """, Talon.class)
+                .setParameter("talonId", talon.getId())
+                .getSingleResult();
+        Assertions.assertNull(talon1.getPatient());
 
         //         талона с таким id не существует
         mockMvc.perform(post("/api/doctor/patient/removeTalonFromPatient")
