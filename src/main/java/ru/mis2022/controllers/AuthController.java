@@ -73,9 +73,8 @@ public class AuthController {
     @PostMapping("/confirm/emailpassword")
     public Response<UserDto> confirmEmailPassword(@RequestBody UserPasswordChangingDto userPasswordChangingDto) {
         String pwd = userPasswordChangingDto.password().trim();
-        String token = userPasswordChangingDto.token();
         ApiValidationUtils.expectedFalse(pwd.length() < 10, 410, "Пароль менее 10 символов");
-        Invite invite = inviteService.findByToken(token);
+        Invite invite = inviteService.findByToken(userPasswordChangingDto.token());
         ApiValidationUtils.expectedFalse(invite == null || invite.getExpirationDate().isBefore(LocalDateTime.now()),
                 415, "Ссылка устарела");
         User user = userService.findUserById(invite.getId());

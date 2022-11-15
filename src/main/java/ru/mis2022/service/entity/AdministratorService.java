@@ -13,4 +13,6 @@ public interface AdministratorService {
     boolean isExistById(Long id);
 
     void deleteAll();
+
+    Administrator saveAndSendRegistInviteToAdmin(Administrator administrator);
 }

@@ -10,4 +10,7 @@ public interface EconomistService {
     Economist persist(Economist economist);
 
     void deleteAll();
+
+    Economist saveAndSendRegistInviteToEconomist(Economist economist);
+
 }

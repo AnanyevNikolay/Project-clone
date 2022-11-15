@@ -13,11 +13,11 @@ import ru.mis2022.models.entity.MedicalService;
 import ru.mis2022.models.entity.PriceOfMedicalService;
 import ru.mis2022.models.entity.Role;
 import ru.mis2022.models.entity.Yet;
-import ru.mis2022.service.entity.EconomistService;
-import ru.mis2022.service.entity.MedicalServiceService;
-import ru.mis2022.service.entity.PriceOfMedicalServiceService;
-import ru.mis2022.service.entity.RoleService;
-import ru.mis2022.service.entity.YetService;
+import ru.mis2022.repositories.EconomistRepository;
+import ru.mis2022.repositories.MedicalServiceRepository;
+import ru.mis2022.repositories.PriceOfMedicalServiceRepository;
+import ru.mis2022.repositories.RoleRepository;
+import ru.mis2022.repositories.YetRepository;
 import ru.mis2022.util.ContextIT;
 
 import java.math.BigDecimal;
@@ -28,43 +28,42 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 public class EconomistCheckRestControllerIT extends ContextIT {
-    PriceOfMedicalServiceService priceOfMedicalServiceService;
-    YetService yetService;
-    EconomistService economistService;
-    RoleService roleService;
-    MedicalServiceService medicalServiceService;
 
     @Autowired
-    public EconomistCheckRestControllerIT(YetService yetService,
-                                          EconomistService economistService,
-                                          RoleService roleService,
-                                          PriceOfMedicalServiceService priceOfMedicalServiceService,
-                                          MedicalServiceService medicalServiceService) {
-        this.yetService = yetService;
-        this.economistService = economistService;
-        this.roleService = roleService;
-        this.priceOfMedicalServiceService = priceOfMedicalServiceService;
-        this.medicalServiceService = medicalServiceService;
-    }
+    PriceOfMedicalServiceRepository priceOfMedicalServiceRepository;
+
+    @Autowired
+    YetRepository yetRepository;
+
+    @Autowired
+    EconomistRepository economistRepository;
+
+    @Autowired
+    RoleRepository roleRepository;
+
+    @Autowired
+    MedicalServiceRepository medicalServiceRepository;
 
     Role initRole(String name) {
-        return roleService.save(new Role(name));
+        return roleRepository.save(Role.builder()
+                .name(name)
+                .build());
     }
 
-    Economist initEconomist(Role role, String email) {
-        return economistService.persist(new Economist(
-                email,
-                "economistPassword",
-                "economistFirstName",
-                "economistLastName",
-                "economistSurname",
+    Economist initEconomist(Role role) {
+        return economistRepository.save(new Economist(
+                "economist1@email.com",
+                passwordEncoder.encode("1"),
+                "f_name",
+                "l_name",
+                "surname",
                 LocalDate.now().minusYears(20),
                 role
         ));
     }
 
     Yet initYet(LocalDate dayFrom, LocalDate dayTo) {
-        return yetService.save(new Yet(
+        return yetRepository.save(new Yet(
                 70.00,
                 dayFrom,
                 dayTo
@@ -72,7 +71,7 @@ public class EconomistCheckRestControllerIT extends ContextIT {
     }
 
     PriceOfMedicalService initPriceOfMedicalService(LocalDate dayFrom, LocalDate dayTo, MedicalService medicalService) {
-        return priceOfMedicalServiceService.save(new PriceOfMedicalService(
+        return priceOfMedicalServiceRepository.save(new PriceOfMedicalService(
                 BigDecimal.valueOf(1.0),
                 dayFrom,
                 dayTo,
@@ -80,29 +79,28 @@ public class EconomistCheckRestControllerIT extends ContextIT {
         ));
     }
 
-    MedicalService initMedicalService() {
-        return medicalServiceService.save(new MedicalService(
-                "identifier",
-                "medicalService"
-        ));
+    MedicalService initMedicalService(String identifier, String name) {
+        return medicalServiceRepository.save(MedicalService.builder()
+                .identifier(identifier)
+                .name(name)
+                .build());
     }
 
     @AfterEach
     void clear() {
-        economistService.deleteAll();
-        roleService.deleteAll();
-        yetService.deleteAll();
-        priceOfMedicalServiceService.deleteAll();
-        medicalServiceService.deleteAll();
+        economistRepository.deleteAll();
+        roleRepository.deleteAll();
+        yetRepository.deleteAll();
+        priceOfMedicalServiceRepository.deleteAll();
+        medicalServiceRepository.deleteAll();
     }
-
 
     @Test
     public void checkPricesByYetTest() throws Exception {
-        MedicalService medicalService = initMedicalService();
+        MedicalService medicalService = initMedicalService("identifier", "name");
 
         Role economistRole = initRole("ECONOMIST");
-        Economist economist = initEconomist(economistRole, "economist@mail.com");
+        Economist economist = initEconomist(economistRole);
 
         LocalDate dateFrom1 = LocalDate.of(2022, 1, 1);
         LocalDate dateTo1 = LocalDate.of(2022, 2, 1);
@@ -122,7 +120,7 @@ public class EconomistCheckRestControllerIT extends ContextIT {
         // Сохраняем три уеты и три цены без наложений, ждем код 200
 
         DatesToCheckDto datesToCheckDto = new DatesToCheckDto(dateFrom1, dateTo3);
-        accessToken = tokenUtil.obtainNewAccessToken(economist.getUsername(), "economistPassword", mockMvc);
+        accessToken = tokenUtil.obtainNewAccessToken(economist.getEmail(), "1", mockMvc);
         mockMvc.perform(post("/api/economist/yetChecks/datesOverlap")
                         .header("Authorization", accessToken)
                         .content(objectMapper.writeValueAsString(datesToCheckDto))
@@ -135,8 +133,8 @@ public class EconomistCheckRestControllerIT extends ContextIT {
 //                .andDo(result -> System.out.println(result.getResponse().getContentAsString()))
         ;
 
-        yetService.deleteAll();
-        priceOfMedicalServiceService.deleteAll();
+        yetRepository.deleteAll();
+        priceOfMedicalServiceRepository.deleteAll();
 
         initYet(dateFrom1, dateTo1);
         initYet(dateFrom1, dateTo1);
@@ -161,8 +159,8 @@ public class EconomistCheckRestControllerIT extends ContextIT {
 //                .andDo(result -> System.out.println(result.getResponse().getContentAsString()))
         ;
 
-        yetService.deleteAll();
-        priceOfMedicalServiceService.deleteAll();
+        yetRepository.deleteAll();
+        priceOfMedicalServiceRepository.deleteAll();
 
         initYet(dateFrom1, dateTo1);
         initYet(dateFrom2, dateTo2);
@@ -187,8 +185,8 @@ public class EconomistCheckRestControllerIT extends ContextIT {
 //                .andDo(result -> System.out.println(result.getResponse().getContentAsString()))
         ;
 
-        yetService.deleteAll();
-        priceOfMedicalServiceService.deleteAll();
+        yetRepository.deleteAll();
+        priceOfMedicalServiceRepository.deleteAll();
 
         LocalDate dayFromWithSpace = LocalDate.of(2022, 4, 1);
         LocalDate dayToWithSpace = LocalDate.of(2022, 5, 1);
@@ -218,8 +216,8 @@ public class EconomistCheckRestControllerIT extends ContextIT {
 //                .andDo(result -> System.out.println(result.getResponse().getContentAsString()))
         ;
 
-        yetService.deleteAll();
-        priceOfMedicalServiceService.deleteAll();
+        yetRepository.deleteAll();
+        priceOfMedicalServiceRepository.deleteAll();
 
         Yet yet = initYet(dateFrom3, dateTo3);
         initYet(dateFrom2, dateTo2);
@@ -229,7 +227,7 @@ public class EconomistCheckRestControllerIT extends ContextIT {
         initPriceOfMedicalService(dateFrom1.plusDays(25), dateTo2.minusDays(25), medicalService);
         initPriceOfMedicalService(dateFrom1.plusDays(5), dateTo1.minusDays(20), medicalService);
 
-        // Цены и ует нормальные, но сохранены в обратом порядке, ожидаем 200
+        // Цены и ует нормальные, но сохранены в обратном порядке, ожидаем 200
 
         mockMvc.perform(post("/api/economist/yetChecks/datesOverlap")
                         .header("Authorization", accessToken)
@@ -242,7 +240,6 @@ public class EconomistCheckRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.code", Is.is(200)))
 //                .andDo(result -> System.out.println(result.getResponse().getContentAsString()))
         ;
-
 
         // Ручное удаление
 

@@ -1,8 +1,7 @@
 package ru.mis2022.service.entity.impl;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -15,19 +14,19 @@ import java.time.LocalDateTime;
 import static ru.mis2022.utils.DateFormatter.DATE_TIME_FORMATTER;
 
 @Service
+@RequiredArgsConstructor
 public class MailServiceImpl implements MailService {
     private final JavaMailSender mailSender;
-    private final ConfigurableEnvironment env;
 
     @Value("${spring.mail.username}")
     private String username;
 
+    @Value("${testsystem.server.address}")
+    private String serverAddress;
 
-    @Autowired
-    public MailServiceImpl(JavaMailSender mailSender, ConfigurableEnvironment env) {
-        this.mailSender = mailSender;
-        this.env = env;
-    }
+    @Value("${server.port}")
+    private String mainPort;
+
 
     @Override
     public void sendRegistrationInviteByEmail(Invite invite, User user) {
@@ -35,11 +34,10 @@ public class MailServiceImpl implements MailService {
                         + LocalDateTime.now().format(DATE_TIME_FORMATTER),
                 String.format("confirm email and write new password here (in newPassword parameter in url) follow the link:\n\n" +
                                 "http://%s:%s/api/auth/confirm/emailpassword?&token=%s",
-                        env.getProperty("server.address"), System.getenv().get("MAIN_PORT"), invite.getToken()));
+                        serverAddress, mainPort, invite.getToken()));
     }
 
-    @Override
-    public void send(String mailTo, String subject, String message) {
+    private void send(String mailTo, String subject, String message) {
         SimpleMailMessage mailMsg = new SimpleMailMessage();
         mailMsg.setFrom(username);
         mailMsg.setTo(mailTo);
