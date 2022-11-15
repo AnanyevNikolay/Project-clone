@@ -1,5 +1,6 @@
 package ru.mis2022.controllers.doctor;
 
+import org.hamcrest.Matchers;
 import org.hamcrest.core.Is;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
@@ -297,15 +298,16 @@ public class DoctorPatientRestControllerIT extends ContextIT {
 
         // Проверяем сохранение пациента к талону.
         Talon talon1 = entityManager.createQuery("""
-            SELECT t FROM Talon t
-            JOIN Patient p ON p.id = t.patient.id
-            WHERE p.id = :patId
-            """, Talon.class)
+                        SELECT t FROM Talon t
+                        JOIN Patient p ON p.id = t.patient.id
+                        WHERE p.id = :patId
+                        """, Talon.class)
                 .setParameter("patId", patient.getId())
                 .getSingleResult();
 
         Assertions.assertEquals(talon1.getPatient().getId(), patient.getId());
     }
+
     @Test
     public void deleteTalonFromPatient() throws Exception {
         Role roleDoc = initRole(DOCTOR.name());
@@ -331,8 +333,11 @@ public class DoctorPatientRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.code", Is.is(200)))
                 .andExpect(jsonPath("$.data.id", Is.is(talon.getId().intValue())))
                 .andExpect(jsonPath("$.data.time", Is.is(DATE_TIME_FORMATTER.format(talon.getTime()))))
-                .andExpect(jsonPath("$.data.doctorId", Is.is(doctor.getId().intValue())));
-//                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+                .andExpect(jsonPath("$.data.doctorId", Is.is(doctor.getId().intValue())))
+                .andExpect(jsonPath("$.data.patientDto").value(Matchers.nullValue()));
+        //.andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+        // Assert.assertNull(freeTalon.getPatient());
+
 
         //         талона с таким id не существует
         mockMvc.perform(post("/api/doctor/patient/removeTalonFromPatient")

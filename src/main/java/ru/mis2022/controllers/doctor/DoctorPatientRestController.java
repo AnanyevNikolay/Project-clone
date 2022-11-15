@@ -77,6 +77,7 @@ public class DoctorPatientRestController {
 
         return Response.ok(talonService.registerPatientInTalon(talon, patient));
     }
+
     @ApiOperation("Доктор убирает пациента с талона")
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Удаление прошло успешно"),
@@ -86,7 +87,7 @@ public class DoctorPatientRestController {
     })
     @PostMapping(value = "/removeTalonFromPatient")
     public Response<TalonDto> deleteTalonFromPatient(@RequestParam long talonId) {
-        Talon talon = talonService.findTalonById(talonId);
+        Talon talon = talonService.findTalonByIdWithDoctorAndPatient(talonId);
         Long currentDocId = ((Doctor) SecurityContextHolder.getContext().getAuthentication().getPrincipal()).getId();
         ApiValidationUtils.expectedNotNull(talon,
                 401, "Талона с данным id не существует");
