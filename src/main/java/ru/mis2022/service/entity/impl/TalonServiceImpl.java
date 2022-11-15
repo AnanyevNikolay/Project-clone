@@ -158,4 +158,10 @@ public class TalonServiceImpl implements TalonService {
         return newTalon;
     }
 
+    @Override
+    public TalonDto removeTalonFromPatient(Talon talon) {
+        talon.setPatient(null);
+        talon = talonRepository.save(talon);
+        return talonDtoConverter.talonToTalonDto(talon);
+    }
 }

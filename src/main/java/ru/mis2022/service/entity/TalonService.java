@@ -50,4 +50,5 @@ public interface TalonService {
 
     Talon transferPatientToAnotherTalon(Talon oldTalon, Talon newTalon, boolean isDelete);
 
+    TalonDto removeTalonFromPatient(Talon talon);
 }
