@@ -23,4 +23,9 @@ public class DiseaseDtoServiceImpl implements DiseaseDtoService {
     public List<DiseaseDto> findDiseaseByDepartmentDoctors(Long docId, boolean disabled) {
         return diseaseRepository.findDiseaseByDepartmentDoctors(docId, disabled);
     }
+
+    @Override
+    public List<DiseaseDto> findDiseaseWithoutDepartment() {
+        return diseaseRepository.findDiseaseWithoutDepartment();
+    }
 }
