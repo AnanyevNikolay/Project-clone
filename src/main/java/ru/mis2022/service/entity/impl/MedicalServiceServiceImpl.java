@@ -11,8 +11,7 @@ import ru.mis2022.models.entity.MedicalService;
 import ru.mis2022.repositories.MedicalServiceRepository;
 import ru.mis2022.service.entity.MedicalServiceService;
 
-import java.util.List;
-import java.util.Optional;
+import java.util.Set;
 
 
 @Service
@@ -54,5 +53,10 @@ public class MedicalServiceServiceImpl implements MedicalServiceService {
     public MedicalServiceDto changeMedicalServiceIsDisabled(MedicalService medicalService, boolean isDisabled) {
         medicalService.setDisabled(isDisabled);
         return medicalServiceDtoConverter.toMedicalServiceDto(save(medicalService));
+    }
+
+    @Override
+    public Set<MedicalService> getMedicalServicesByIdsAndDepartment(Set<Long> ids, long departmentId) {
+        return medicalServiceRepository.getMedicalServicesByIdsAndDepartment(ids, departmentId);
     }
 }

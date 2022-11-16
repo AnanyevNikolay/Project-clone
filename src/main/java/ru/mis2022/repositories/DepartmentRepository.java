@@ -71,4 +71,5 @@ public interface DepartmentRepository extends JpaRepository<Department, Long> {
             WHERE t.id = :talonId
             """)
     Department findDepartmentByTalonId(Long talonId);
+
 }
