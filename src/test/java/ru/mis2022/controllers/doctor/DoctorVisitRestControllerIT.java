@@ -10,6 +10,7 @@ import ru.mis2022.models.entity.Appeal;
 import ru.mis2022.models.entity.Department;
 import ru.mis2022.models.entity.Disease;
 import ru.mis2022.models.entity.Doctor;
+import ru.mis2022.models.entity.MedicalService;
 import ru.mis2022.models.entity.Role;
 import ru.mis2022.models.entity.Talon;
 import ru.mis2022.models.entity.Visit;
@@ -17,6 +18,7 @@ import ru.mis2022.repositories.AppealRepository;
 import ru.mis2022.repositories.DepartmentRepository;
 import ru.mis2022.repositories.DiseaseRepository;
 import ru.mis2022.repositories.DoctorRepository;
+import ru.mis2022.repositories.MedicalServiceRepository;
 import ru.mis2022.repositories.RoleRepository;
 import ru.mis2022.repositories.TalonRepository;
 import ru.mis2022.repositories.VisitRepository;
@@ -24,9 +26,13 @@ import ru.mis2022.util.ContextIT;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -49,6 +55,8 @@ public class DoctorVisitRestControllerIT extends ContextIT {
     DoctorRepository doctorRepository;
     @Autowired
     DiseaseRepository diseaseRepository;
+    @Autowired
+    MedicalServiceRepository medicalServiceRepository;
 
     Role initRole(String name) {
         return roleRepository.save(Role.builder().name(name).build());
@@ -99,8 +107,25 @@ public class DoctorVisitRestControllerIT extends ContextIT {
                 .build());
     }
 
+    Visit initVisit(Appeal appeal, Doctor doctor) {
+        return visitRepository.save(Visit.builder()
+                .appeal(appeal)
+                .doctor(doctor)
+                .dayOfVisit(LocalDate.now())
+                .build());
+    }
+
+    MedicalService initMedicalService(String identifier, String name, Department department) {
+        return medicalServiceRepository.save(MedicalService.builder()
+                .identifier(identifier)
+                .name(name)
+                .department(department)
+                .build());
+    }
+
     @AfterEach
     void clear() {
+        medicalServiceRepository.deleteAll();
         visitRepository.deleteAll();
         appealRepository.deleteAll();
         diseaseRepository.deleteAll();
@@ -218,5 +243,144 @@ public class DoctorVisitRestControllerIT extends ContextIT {
         Assertions.assertEquals(talonQry, Collections.emptyList());
         Assertions.assertFalse(appeal1.isClosed());
 
+    }
+
+    @Test
+    public void addServicesToVisitTest() throws Exception {
+        Role role = initRole(DOCTOR.name());
+        Department validDepartment = initDepartment("validDepartment");
+        Doctor doctor = initDoctor(validDepartment, role, "doctorPopov@cucumber.ground");
+
+        Disease disease = initDisease("di1", "disease", validDepartment);
+        Appeal appeal = initAppeal(disease, false);
+        Visit visit = initVisit(appeal, doctor);
+
+        Set<Long> medicalServArg = new HashSet<>();
+        Set<MedicalService> services = new HashSet<>();
+        MedicalService medicalService1 = initMedicalService("ms1", "msName1", validDepartment);
+        MedicalService medicalService2 = initMedicalService("ms2", "msName2", validDepartment);
+        MedicalService medicalService3 = initMedicalService("ms3", "msName3", validDepartment);
+        medicalServArg.add(medicalService1.getId());
+        medicalServArg.add(medicalService2.getId());
+        medicalServArg.add(medicalService3.getId());
+        services.add(medicalService1);
+        services.add(medicalService2);
+        services.add(medicalService3);
+
+        accessToken = tokenUtil.obtainNewAccessToken(doctor.getEmail(), "1", mockMvc);
+
+        // Нормальный сценарий БЕЗ закрытия обращения
+        mockMvc.perform(patch("/api/doctor/visit/addServices/{visitId}", visit.getId())
+                        .param("closeAppeal", String.valueOf(false))
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(medicalServArg.toString())
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.data.doctorId", Is.is(doctor.getId().intValue())))
+                .andExpect(jsonPath("$.data.dateOfVisit", Is.is(visit.getDayOfVisit().format(DATE_FORMATTER))));
+//                .andExpect(jsonPath("$.data.medicalServiceDtoList.length()", Is.is(services.size())));
+
+        Visit qryVisit = entityManager.createQuery("""
+                SELECT v
+                FROM Visit v
+                    LEFT JOIN v.medicalServices ms
+                        ON ms.visit.id = v.id
+                WHERE v.id = :visitId   
+                """, Visit.class).setParameter("visitId", visit.getId()).getSingleResult();
+
+        Assertions.assertEquals(qryVisit.getId(), visit.getId());
+        Assertions.assertNotNull(qryVisit.getMedicalServices());
+
+
+
+        // Посещения с таким ID для данного доктора не существует
+        mockMvc.perform(patch("/api/doctor/visit/addServices/{visitId}", 8888L)
+                        .param("closeAppeal", String.valueOf(false))
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(medicalServArg.toString())
+                )
+                .andExpect(status().is4xxClientError())
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(410)))
+                .andExpect(jsonPath("$.text", Is.is("Посещения с таким ID для данного доктора не существует")));
+
+        // Посещения с таким ID для данного доктора не существует
+        Doctor failDoctor = initDoctor(validDepartment, role, "doctor@doc.tor");
+        Visit failVisit = initVisit(appeal, failDoctor);
+
+        mockMvc.perform(patch("/api/doctor/visit/addServices/{visitId}", failVisit.getId())
+                        .param("closeAppeal", String.valueOf(false))
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(medicalServArg.toString())
+                )
+                .andExpect(status().is4xxClientError())
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(410)))
+                .andExpect(jsonPath("$.text", Is.is("Посещения с таким ID для данного доктора не существует")));
+
+        // Некоторые услуги не существуют
+        Set<Long> failMedicalServIds = new HashSet<>(Arrays.asList(medicalService1.getId(), 999L));
+
+        mockMvc.perform(patch("/api/doctor/visit/addServices/{visitId}", visit.getId())
+                        .param("closeAppeal", String.valueOf(false))
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(failMedicalServIds.toString())
+                )
+                .andExpect(status().is4xxClientError())
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(412)))
+                .andExpect(jsonPath("$.text", Is.is("Некоторые услуги не существуют или не могут быть оказаны в этом отделении")));
+
+        // Некоторые услуги не могут быть оказаны в данном отделении
+        Department failDepartment = initDepartment("failDep");
+        MedicalService otherDepMS = initMedicalService("fms", "msName", failDepartment);
+        Set<Long> failMedicalServIds2 = new HashSet<>(Arrays.asList(medicalService1.getId(), otherDepMS.getId()));
+
+        mockMvc.perform(patch("/api/doctor/visit/addServices/{visitId}", visit.getId())
+                        .param("closeAppeal", String.valueOf(false))
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(failMedicalServIds2.toString())
+                )
+                .andExpect(status().is4xxClientError())
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(412)))
+                .andExpect(jsonPath("$.text", Is.is("Некоторые услуги не существуют или не могут быть оказаны в этом отделении")));
+
+        // Нормальный сценарий с закрытием обращения
+        mockMvc.perform(patch("/api/doctor/visit/addServices/{visitId}", visit.getId())
+                        .param("closeAppeal", String.valueOf(true))
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(medicalServArg.toString())
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)));
+
+        Appeal qryAppeal = entityManager.createQuery("""
+                SELECT a
+                FROM Appeal a
+                WHERE a.id = :appealId   
+                """, Appeal.class).setParameter("appealId", appeal.getId()).getSingleResult();
+
+        Assertions.assertTrue(qryAppeal.isClosed());
+
+        // Обращение закрыто
+
+        mockMvc.perform(patch("/api/doctor/visit/addServices/{visitId}", visit.getId())
+                        .param("closeAppeal", String.valueOf(false))
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(medicalServArg.toString())
+                )
+                .andExpect(status().is4xxClientError())
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(411)))
+                .andExpect(jsonPath("$.text", Is.is("Обращение закрыто")));
     }
 }
