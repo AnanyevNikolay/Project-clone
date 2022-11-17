@@ -8,6 +8,8 @@ import org.springframework.transaction.annotation.Transactional;
 import ru.mis2022.models.entity.Administrator;
 import ru.mis2022.repositories.AdministratorRepository;
 import ru.mis2022.service.entity.AdministratorService;
+import ru.mis2022.service.entity.InviteService;
+import ru.mis2022.service.entity.MailService;
 import ru.mis2022.utils.GenerateRandomString;
 
 @Service
@@ -17,6 +19,10 @@ public class AdministratorServiceImpl implements AdministratorService {
     private final PasswordEncoder encoder;
     private final AdministratorRepository administratorRepository;
     private final GenerateRandomString generator;
+    private final MailService mailService;
+    private final InviteService inviteService;
+
+
     @Value("15")
     private int randomPasswordLength;
 
@@ -50,4 +56,11 @@ public class AdministratorServiceImpl implements AdministratorService {
         administratorRepository.deleteAll();
     }
 
+    @Override
+    @Transactional
+    public Administrator saveAndSendRegistInviteToAdmin(Administrator administrator){
+        Administrator savedAdministrator = persist(administrator);
+        mailService.sendRegistrationInviteByEmail(inviteService.persist(administrator), administrator);
+        return savedAdministrator;
+    }
 }

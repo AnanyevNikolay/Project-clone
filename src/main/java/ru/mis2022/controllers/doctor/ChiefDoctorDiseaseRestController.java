@@ -6,16 +6,23 @@ import io.swagger.annotations.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.mis2022.models.dto.disease.DiseaseDto;
+import ru.mis2022.models.entity.Department;
 import ru.mis2022.models.entity.Disease;
 import ru.mis2022.models.entity.Doctor;
 import ru.mis2022.models.response.Response;
+import ru.mis2022.service.dto.DiseaseDtoService;
+import ru.mis2022.service.entity.DepartmentService;
 import ru.mis2022.service.entity.DiseaseService;
 import ru.mis2022.utils.validation.ApiValidationUtils;
+
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -23,6 +30,10 @@ import ru.mis2022.utils.validation.ApiValidationUtils;
 @RequestMapping("/api/chief-doctor/disease")
 public class ChiefDoctorDiseaseRestController {
     private final DiseaseService diseaseService;
+
+    private final DiseaseDtoService diseaseDtoService;
+
+    private final DepartmentService departmentService;
 
     @ApiOperation("Заведущий отделения блокирует заболевание от отделения.")
     @ApiResponses(value = {
@@ -62,5 +73,28 @@ public class ChiefDoctorDiseaseRestController {
                 diseaseService.existsDiseaseByDiseaseIdAndDoctorId(disease.getId(), doctorId),
                 411,
                 "Заболеваним не занимается данный доктор.");
+    }
+
+    @ApiOperation("Заведующий отделения получает список заболеваний не связанных с отделениями")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Список заболеваний не связанных с отделениями"),
+    })
+    @GetMapping("/listDiseaseWithoutDepartment")
+    public Response<List<DiseaseDto>> getAllDiseasesWithoutDepartment() {
+        return Response.ok(diseaseDtoService.findDiseaseWithoutDepartment());
+    }
+
+    @ApiOperation("Заведующий отделением связывает болезни с отделением доктора")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Связываем болезни с отделением доктора"),
+            @ApiResponse(code = 401, message = "Болезни не существует или она уже связана с отделением"),
+    })
+    @PostMapping("/diseasesForDoctor")
+    public Response<DiseaseDto> diseaseWithDoctorDepartment(long diseaseId) {
+        Disease disease = diseaseService.findByIdWithoutDepartment(diseaseId);
+        ApiValidationUtils.expectedNotNull(disease, 401, "Болезни не существует или она уже связана с отделением");
+        Doctor doctor = ((Doctor) SecurityContextHolder.getContext().getAuthentication().getPrincipal());
+        Department department = doctor.getDepartment();
+        return Response.ok(diseaseService.addDiseaseToDepartment(disease, department));
     }
 }

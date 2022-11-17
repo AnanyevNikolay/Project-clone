@@ -9,7 +9,6 @@ import ru.mis2022.models.dto.talon.converter.TalonDtoConverter;
 import ru.mis2022.models.entity.Doctor;
 import ru.mis2022.models.entity.Patient;
 import ru.mis2022.models.entity.Talon;
-import ru.mis2022.repositories.DoctorRepository;
 import ru.mis2022.repositories.PatientRepository;
 import ru.mis2022.repositories.TalonRepository;
 import ru.mis2022.service.entity.TalonService;
@@ -145,6 +144,8 @@ public class TalonServiceImpl implements TalonService {
         return talonRepository.findTalonWithPatientByTalonId(talonId);
     }
 
+    @Override
+    @Transactional
     public Talon transferPatientToAnotherTalon(Talon oldTalon, Talon newTalon, boolean isDelete) {
         newTalon.setPatient(oldTalon.getPatient());
         talonRepository.save(newTalon);
@@ -157,4 +158,10 @@ public class TalonServiceImpl implements TalonService {
         return newTalon;
     }
 
+    @Override
+    public TalonDto removeTalonFromPatient(Talon talon) {
+        talon.setPatient(null);
+        talon = talonRepository.save(talon);
+        return talonDtoConverter.talonToTalonDto(talon);
+    }
 }
