@@ -6,7 +6,7 @@ import ru.mis2022.models.entity.Account;
 import ru.mis2022.models.entity.Appeal;
 import ru.mis2022.repositories.AppealRepository;
 import ru.mis2022.service.entity.AppealService;
-
+import ru.mis2022.repositories.AccountRepository
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
@@ -16,6 +16,7 @@ import java.util.Optional;
 public class AppealServiceImpl implements AppealService {
 
     private final AppealRepository appealRepository;
+    private final AccountRepository accountRepository;
 
     @Override
     public Appeal save(Appeal appeal) {
