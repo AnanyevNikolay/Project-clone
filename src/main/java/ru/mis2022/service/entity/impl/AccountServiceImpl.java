@@ -3,8 +3,10 @@ package ru.mis2022.service.entity.impl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.mis2022.models.entity.Account;
+import ru.mis2022.models.entity.Appeal;
 import ru.mis2022.repositories.AccountRepository;
 import ru.mis2022.service.entity.AccountService;
+import ru.mis2022.service.entity.AppealService;
 
 import java.util.List;
 
@@ -13,6 +15,7 @@ import java.util.List;
 public class AccountServiceImpl implements AccountService {
 
     private final AccountRepository accountRepository;
+    private final AppealService appealService;
 
     @Override
     public Account save(Account account) {
@@ -32,5 +35,11 @@ public class AccountServiceImpl implements AccountService {
     @Override
     public Account findAccountById(Long id) {
         return accountRepository.findAccountById(id);
+    }
+
+    @Override
+    public void saveChangeData(Account account) {
+        List<Appeal> appealList = appealService.findAllCloseAppeals((account).getDate());
+        appealService.saveChangeData(appealList, account);
     }
 }

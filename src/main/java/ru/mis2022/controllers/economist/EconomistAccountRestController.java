@@ -56,12 +56,10 @@ public class EconomistAccountRestController {
     @ApiResponses(value = {
             @ApiResponse(code = 200, message = "Счет наполнен"),
             @ApiResponse(code = 411, message = "Счет не найден"),
-            @ApiResponse(code = 412, message = "Счет уже сформирован"),
-            @ApiResponse(code = 413, message = "Обращения не найдены"),
+            @ApiResponse(code = 412, message = "Счет уже сформирован")
     })
     @PutMapping("/updateAccount/{accountId}")
     public Response <AccountDto> updateAccount(@PathVariable Long accountId){
-
         Account account = accountService.findAccountById(accountId);
 
         ApiValidationUtils.expectedNotNull(account,
@@ -69,10 +67,7 @@ public class EconomistAccountRestController {
         ApiValidationUtils.expectedFalse(account.isFormed(),
                 412, "Счет уже сформирован");
 
-        List<Appeal> appealList = appealService.findAllCloseAppeals(account.getDate());
-
-        appealService.saveChangeData(appealList, account);
-
+        accountService.saveChangeData(account);
         return Response.ok(convertorAccountDto.toDto(account));
     }
 

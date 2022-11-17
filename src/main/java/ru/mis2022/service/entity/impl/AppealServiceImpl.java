@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import ru.mis2022.models.entity.Account;
 import ru.mis2022.models.entity.Appeal;
-import ru.mis2022.repositories.AccountRepository;
 import ru.mis2022.repositories.AppealRepository;
 import ru.mis2022.service.entity.AppealService;
 
@@ -17,7 +16,6 @@ import java.util.Optional;
 public class AppealServiceImpl implements AppealService {
 
     private final AppealRepository appealRepository;
-    private final AccountRepository accountRepository;
 
     @Override
     public Appeal save(Appeal appeal) {
