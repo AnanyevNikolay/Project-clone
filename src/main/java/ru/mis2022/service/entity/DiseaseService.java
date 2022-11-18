@@ -1,6 +1,7 @@
 package ru.mis2022.service.entity;
 
 import ru.mis2022.models.dto.disease.DiseaseDto;
+import ru.mis2022.models.entity.Appeal;
 import ru.mis2022.models.entity.Department;
 import ru.mis2022.models.entity.Disease;
 
@@ -22,8 +23,10 @@ public interface DiseaseService {
     void deleteAll();
 
     DiseaseDto changeDisabledDisease(Disease disease, boolean disabled);
+    DiseaseDto detachDisease(Disease disease);
 
     boolean existsDiseaseByDiseaseIdAndDoctorId(long diseaseId, long doctorId);
+    List<Appeal> existsAppealsByDiseaseId(Long diseaseId);
 
     DiseaseDto addDiseaseToDepartment(Disease disease, Department department);
 

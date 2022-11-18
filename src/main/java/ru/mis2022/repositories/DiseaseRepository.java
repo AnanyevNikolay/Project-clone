@@ -5,6 +5,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import ru.mis2022.models.dto.disease.DiseaseDto;
+import ru.mis2022.models.entity.Appeal;
 import ru.mis2022.models.entity.Disease;
 
 import java.util.List;
@@ -50,6 +51,15 @@ public interface DiseaseRepository extends JpaRepository<Disease, Long> {
                 AND doc.id = :doctorId
             """)
     boolean existsDiseaseByDiseaseIdAndDoctorId(Long diseaseId, Long doctorId);
+
+    // проверяем, что нет ни одного обращения в отделении доктора, связанного с этим заболеванием
+    @Query("""
+            SELECT a FROM Appeal a
+            JOIN Disease dis ON a.disease.id = dis.id
+            JOIN Department dep ON a.disease.department.id = dep.id
+            WHERE dis.id = :diseaseId AND a.isClosed = false 
+            """)
+    List<Appeal> existsAppealsByDiseaseId(Long diseaseId);
 
     @Query("""
                 SELECT new ru.mis2022.models.dto.disease.DiseaseDto(
