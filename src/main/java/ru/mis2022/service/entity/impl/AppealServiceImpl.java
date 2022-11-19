@@ -7,7 +7,6 @@ import ru.mis2022.models.entity.Appeal;
 import ru.mis2022.repositories.AccountRepository;
 import ru.mis2022.repositories.AppealRepository;
 import ru.mis2022.service.entity.AppealService;
-
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
