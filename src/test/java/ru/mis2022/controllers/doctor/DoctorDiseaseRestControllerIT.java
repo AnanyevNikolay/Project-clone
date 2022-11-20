@@ -62,11 +62,12 @@ public class DoctorDiseaseRestControllerIT extends ContextIT {
         ));
     }
 
-    Disease initDisease(String identifier, String name, Department department) {
+    Disease initDisease(String identifier, String name, Department department, boolean disabled) {
         return diseaseRepository.save(Disease.builder()
                 .identifier(identifier)
                 .name(name)
                 .department(department)
+                .disabled(disabled)
                 .build());
     }
 
@@ -78,9 +79,7 @@ public class DoctorDiseaseRestControllerIT extends ContextIT {
         departmentRepository.deleteAll();
     }
 
-    //todo list1 починить тест
     @Test
-    @Disabled
     void getAllDiseaseByDoctorIdTest() throws Exception {
         Department department = initDepartment("Pediatrics");
         Department department1 = initDepartment("Surgery");
@@ -112,12 +111,12 @@ public class DoctorDiseaseRestControllerIT extends ContextIT {
 
 
         //Вернуть все заболевания отделения доктора
-        Disease disease1 = (initDisease("T01", "Headache", department));
-        Disease disease2 = (initDisease("T02", "Backache", department));
+        Disease disease1 = (initDisease("T01", "Headache", department, false));
+        Disease disease2 = (initDisease("T02", "Backache", department, false));
 
         //сохранили болезни других отделений для проверки
-        Disease disease3 = initDisease("G3", "Fracture", department1);
-        Disease disease4 = initDisease("G76", "Injury", null);
+        Disease disease3 = initDisease("G3", "Fracture", department1, false);
+        Disease disease4 = initDisease("G76", "Injury", null, false);
 
 
         mockMvc.perform(get("/api/doctor/disease/{doctorId}/getAllDisease", doctor.getId())
@@ -144,9 +143,9 @@ public class DoctorDiseaseRestControllerIT extends ContextIT {
         Department department2 = initDepartment("department2");
         Doctor doctor1 = initDoctor(role, department2, null, "Doctor1@gmail.com");
         // неактивное заболевание!
-        Disease disease5 = initDisease("G4", "disease5", department2);
+        Disease disease5 = initDisease("G4", "disease5", department2, true);
         // активное заболевание!
-        Disease disease6 = initDisease("G5", "disease6", department2);
+        Disease disease6 = initDisease("G5", "disease6", department2, false);
 
         // Нормальный сценарий, только активные заболевания!
         mockMvc.perform(get("/api/doctor/disease/{doctorId}/getAllDisease", doctor1.getId())

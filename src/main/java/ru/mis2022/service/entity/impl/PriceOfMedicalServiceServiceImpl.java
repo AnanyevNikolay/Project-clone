@@ -37,8 +37,6 @@ public class PriceOfMedicalServiceServiceImpl implements PriceOfMedicalServiceSe
 
     @Override
     public boolean checkIfThereAnyDateOverlap(List<PriceOfMedicalService> medicalServices) {
-        medicalServices.sort(Comparator.comparing(PriceOfMedicalService::getDayTo));
-
         LocalDate endDate = null;
 
         for (PriceOfMedicalService medicalService : medicalServices) {
@@ -52,17 +50,12 @@ public class PriceOfMedicalServiceServiceImpl implements PriceOfMedicalServiceSe
                 }
             }
         }
-
         return false;
     }
 
     @Override
     public boolean checkIfThereAnyActiveServiceWhileYetIsNot(List<PriceOfMedicalService> medicalServices, List<Yet> yets) {
-        yets.sort(Comparator.comparing(Yet::getDayTo));
-        medicalServices.sort(Comparator.comparing(PriceOfMedicalService::getDayTo));
-
         List<SpacesInYetDates> spacesInYetsDates = new ArrayList<>();
-
         LocalDate endDayYet = null;
 
         for (Yet yet : yets) {

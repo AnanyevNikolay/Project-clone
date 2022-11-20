@@ -117,10 +117,22 @@ public class EconomistCheckRestControllerIT extends ContextIT {
         initPriceOfMedicalService(dateFrom1.plusDays(25), dateTo2.minusDays(25), medicalService);
         initPriceOfMedicalService(dateFrom2.plusDays(27), dateTo3.minusDays(20), medicalService);
 
+        accessToken = tokenUtil.obtainNewAccessToken(economist.getEmail(), "1", mockMvc);
+
+        DatesToCheckDto failDates = new DatesToCheckDto(null, dateTo3);
+        mockMvc.perform(post("/api/economist/yetChecks/datesOverlap")
+                        .header("Authorization", accessToken)
+                        .content(objectMapper.writeValueAsString(failDates))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().is4xxClientError())
+                .andExpect(jsonPath("$.success", Is.is(false)))
+                .andExpect(jsonPath("$.code", Is.is(422)))
+                .andExpect(jsonPath("$.text", Is.is("Переданы некорректные даты")));
+
         // Сохраняем три уеты и три цены без наложений, ждем код 200
 
         DatesToCheckDto datesToCheckDto = new DatesToCheckDto(dateFrom1, dateTo3);
-        accessToken = tokenUtil.obtainNewAccessToken(economist.getEmail(), "1", mockMvc);
         mockMvc.perform(post("/api/economist/yetChecks/datesOverlap")
                         .header("Authorization", accessToken)
                         .content(objectMapper.writeValueAsString(datesToCheckDto))

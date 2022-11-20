@@ -91,9 +91,9 @@ public class RegistrarScheduleRestControllerIT extends ContextIT {
                 .build());
     }
 
-    Doctor initDoctor(Role role, Department department, PersonalHistory personalHistory) {
+    Doctor initDoctor(String email, Role role, Department department, PersonalHistory personalHistory) {
         return doctorRepository.save(new Doctor(
-                "doctor1@email.com",
+                email,
                 passwordEncoder.encode("1"),
                 "f_name",
                 "l_name",
@@ -141,19 +141,16 @@ public class RegistrarScheduleRestControllerIT extends ContextIT {
         return new Talon(time, doctor, patient);
     }
 
-    //todo list1 починить тест. Так же в тесте тестируются сразу несколько эндпоинтов, что неправильно - разложить на несколько тестов
     @Test
-    @Disabled
     public void getAllMedicalOrganizationsTest() throws Exception {
-
         Role roleRegistrar = initRole("REGISTRAR");
         Registrar registrar = initRegistrar(roleRegistrar);
 
         accessToken = tokenUtil.obtainNewAccessToken(registrar.getEmail(), "1", mockMvc);
 
-
-        MedicalOrganization medicalOrganization = initMedicalOrganizations(
-                "City Hospital", "Moscow, Pravda street, 30");
+        initMedicalOrganizations("City Hospital", "Moscow, Pravda street, 30");
+        initMedicalOrganizations("City Hospital2", "Moscow, Pravda street, 31");
+        initMedicalOrganizations("City Hospital3", "Moscow, Pravda street, 32");
 
         //Вывод списка медицинских организаций
         mockMvc.perform(get("/api/registrar/schedule/medicalOrganizations")
@@ -162,9 +159,20 @@ public class RegistrarScheduleRestControllerIT extends ContextIT {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.data.length()", Is.is(3)))
                 .andExpect(jsonPath("$.data[0].name", Is.is("City Hospital")))
                 .andExpect(jsonPath("$.data[0].address", Is.is("Moscow, Pravda street, 30")));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+    }
+
+    @Test
+    public void getAllDepartmentsByMedicalMedicalOrganizationIdTest() throws Exception {
+        MedicalOrganization medicalOrganization =
+                initMedicalOrganizations("City Hospital", "Moscow, Pravda street, 30");
+        Role roleRegistrar = initRole("REGISTRAR");
+        Registrar registrar = initRegistrar(roleRegistrar);
+
+        accessToken = tokenUtil.obtainNewAccessToken(registrar.getEmail(), "1", mockMvc);
 
         //Список департаментов медицинской организации с несуществующим id
         mockMvc.perform(post("/api/registrar/schedule/departments/{id}", 100)
@@ -178,8 +186,10 @@ public class RegistrarScheduleRestControllerIT extends ContextIT {
                         "Медицинской организации с таким id нет!")));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
-
-        Department department = initDepartment("Therapy", medicalOrganization);
+        initDepartment("department1", medicalOrganization);
+        initDepartment("department2", medicalOrganization);
+        initDepartment("department3", medicalOrganization);
+        initDepartment("department4", medicalOrganization);
 
         //Вывод списка департаментов
         mockMvc.perform(post("/api/registrar/schedule/departments/{id}", medicalOrganization.getId())
@@ -188,8 +198,20 @@ public class RegistrarScheduleRestControllerIT extends ContextIT {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", Is.is(true)))
-                .andExpect(jsonPath("$.data[0].name", Is.is("Therapy")));
+                .andExpect(jsonPath("$.data.length()", Is.is(4)))
+                .andExpect(jsonPath("$.data[0].name", Is.is("department1")))
+                .andExpect(jsonPath("$.data[1].name", Is.is("department2")))
+                .andExpect(jsonPath("$.data[2].name", Is.is("department3")));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+    }
+
+    @Test
+    public void getAllDoctorsByDepartmentIdTest() throws Exception {
+        Role roleRegistrar = initRole("REGISTRAR");
+        Registrar registrar = initRegistrar(roleRegistrar);
+        Department department = initDepartment("Therapy", null);
+
+        accessToken = tokenUtil.obtainNewAccessToken(registrar.getEmail(), "1", mockMvc);
 
         //Департамента с таким id нет
         mockMvc.perform(post("/api/registrar/schedule/doctors/{id}", 100)
@@ -199,13 +221,15 @@ public class RegistrarScheduleRestControllerIT extends ContextIT {
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.success", Is.is(false)))
                 .andExpect(jsonPath("$.code", Is.is(414)))
-                .andExpect(jsonPath("$.text", Is.is(
-                        "Департамента с таким id нет!")));
+                .andExpect(jsonPath("$.text", Is.is("Департамента с таким id нет!")));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
-
         Role roleDoctor = initRole("DOCTOR");
-        Doctor doctor = initDoctor(roleDoctor, department, null);
+        initDoctor("doc1@mai.l", roleDoctor, department, null);
+        initDoctor("doc2@mai.l", roleDoctor, department, null);
+        initDoctor("doc3@mai.l", roleDoctor, department, null);
+        initDoctor("doc4@mai.l", roleDoctor, department, null);
+        initDoctor("doc5@mai.l", roleDoctor, department, null);
 
         //Вывод списка докторов
         mockMvc.perform(post("/api/registrar/schedule/doctors/{id}", department.getId())
@@ -214,12 +238,24 @@ public class RegistrarScheduleRestControllerIT extends ContextIT {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.data.length()", Is.is(5)))
                 .andExpect(jsonPath("$.data[0].role", Is.is("DOCTOR")))
                 .andExpect(jsonPath("$.data[0].lastName", Is.is("l_name")))
                 .andExpect(jsonPath("$.data[0].firstName", Is.is("f_name")))
                 .andExpect(jsonPath("$.data[0].department", Is.is("Therapy")))
                 .andExpect(jsonPath("$.data[0].birthday", Matchers.notNullValue()));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
+    }
+
+    @Test
+    public void getAllTalonsByDoctorIdTest() throws Exception {
+        Department department = initDepartment("Therapy", null);
+        Role roleRegistrar = initRole("REGISTRAR");
+        Role roleDoctor = initRole("DOCTOR");
+        Registrar registrar = initRegistrar(roleRegistrar);
+        Doctor doctor = initDoctor("doc1@mai.l", roleDoctor, department, null);
+
+        accessToken = tokenUtil.obtainNewAccessToken(registrar.getEmail(), "1", mockMvc);
 
         //Доктора с таким id нет
         mockMvc.perform(post("/api/registrar/schedule/talons/{id}", 1000)
@@ -229,16 +265,8 @@ public class RegistrarScheduleRestControllerIT extends ContextIT {
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("$.success", Is.is(false)))
                 .andExpect(jsonPath("$.code", Is.is(414)))
-                .andExpect(jsonPath("$.text", Is.is(
-                        "Доктора с таким id нет!")));
+                .andExpect(jsonPath("$.text", Is.is("Доктора с таким id нет!")));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
-
-
-        Role rolePatient = initRole("PATIENT");
-        Patient patient = initPatient(rolePatient);
-
-        //после перехода на использрвание репозиториев в тестах я закомментировал эту строку
-//        talonService.persistTalonsForDoctor(doctor, 14, 4, null, null);
 
         List<Talon> talons = new ArrayList<>();
         LocalDateTime time = LocalDateTime.of(LocalDate.now(), LocalTime.of(8, 0));
@@ -247,7 +275,6 @@ public class RegistrarScheduleRestControllerIT extends ContextIT {
                 talons.add(talonRepository.save(new Talon(time.plusDays(day).plusHours(hour), doctor)));
             }
         }
-//        talonService.persistTalonsForDoctor(doctor,14, 4, null, null);
 
         //Вывод талонов доктора
         mockMvc.perform(post("/api/registrar/schedule/talons/{id}", doctor.getId())
@@ -256,7 +283,8 @@ public class RegistrarScheduleRestControllerIT extends ContextIT {
                 )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", Is.is(true)))
-                .andExpect(jsonPath("$.data[0].doctorId", Is.is(doctor.getId().intValue())));
+                .andExpect(jsonPath("$.data[0].doctorId", Is.is(doctor.getId().intValue())))
+                .andExpect(jsonPath("$.data.length()", Is.is(talons.size())));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
     }
 
@@ -268,7 +296,7 @@ public class RegistrarScheduleRestControllerIT extends ContextIT {
         Registrar registrar = initRegistrar(roleRegistrar);
         Department department = initDepartment("department", null);
         Patient patient = initPatient(rolePatient);
-        Doctor doctor = initDoctor(roleDoctor, department, null);
+        Doctor doctor = initDoctor("doc1@mai.l", roleDoctor, department, null);
         Talon talon = initTalon(LocalDateTime.now().plusHours(3), doctor, null);
         Talon busyTalon = initTalon(LocalDateTime.now().plusHours(2), doctor, patient);
 
