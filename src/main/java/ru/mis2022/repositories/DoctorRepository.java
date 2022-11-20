@@ -114,4 +114,13 @@ public interface DoctorRepository extends JpaRepository<Doctor, Long> {
     """)
     int findByRoleForMain();
 
+    @Query("""
+    SELECT d
+    FROM Doctor d
+    JOIN PersonalHistory p ON p.id = d.personalHistory.id
+    JOIN FETCH Vacation v ON v.id = d.personalHistory.id
+    WHERE v.personalHistory.id = d.personalHistory.id
+    """)
+    List<Doctor> findAllWhoNeedVacation();
+
 }

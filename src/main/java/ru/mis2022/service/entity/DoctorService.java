@@ -1,6 +1,9 @@
 package ru.mis2022.service.entity;
 
+import ru.mis2022.models.dto.doctor.DoctorDto;
 import ru.mis2022.models.entity.Doctor;
+
+import java.util.List;
 
 
 public interface DoctorService {
@@ -23,5 +26,7 @@ public interface DoctorService {
     Doctor findById(long doctorId);
 
     boolean findByIdForMain();
+
+    List<DoctorDto> daysForVacations();
 
 }

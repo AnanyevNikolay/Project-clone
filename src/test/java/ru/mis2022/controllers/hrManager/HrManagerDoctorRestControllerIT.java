@@ -99,7 +99,8 @@ public class HrManagerDoctorRestControllerIT extends ContextIT {
                 "surName",
                 "01.01.1980",
                 "DOCTOR",
-                "DepartmentTest"
+                "DepartmentTest",
+                0
         );
     }
 
@@ -132,7 +133,8 @@ public class HrManagerDoctorRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.data.surname", Is.is("surName")))
                 .andExpect(jsonPath("$.data.role", Is.is("DOCTOR")))
                 .andExpect(jsonPath("$.data.birthday", Is.is("01.01.1980")))
-                .andExpect(jsonPath("$.data.department", Is.is("DepartmentTest")));
+                .andExpect(jsonPath("$.data.department", Is.is("DepartmentTest")))
+                .andExpect(jsonPath("$.data.daysForVacations", Is.is(0)));
 //                .andDo(mvcResult -> System.out.println(mvcResult.getResponse().getContentAsString()));
 
         //Не валидный id в ДТО администратора, создание доктора

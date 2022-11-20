@@ -1,10 +1,7 @@
 package ru.mis2022.controllers.hrManager;
 
-
 import org.hamcrest.core.Is;
-import org.junit.Ignore;
 import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -24,7 +21,6 @@ import ru.mis2022.repositories.RoleRepository;
 import ru.mis2022.repositories.UserRepository;
 import ru.mis2022.repositories.VacationRepository;
 import ru.mis2022.util.ContextIT;
-
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -106,10 +102,35 @@ public class HrManagerPersonalRestControllerIT extends ContextIT {
                 department
         ));
     }
-
-    String getFullName(User user) {
-        return user.getLastName() + " " + user.getFirstName();
+    Doctor initDoctor(String firstName,
+                      String email,
+                      Role role,
+                      PersonalHistory personalHistory,
+                      Department department) {
+        return doctorRepository.save(new Doctor(
+            firstName,
+            email,
+            role,
+            personalHistory,
+            department
+        ));
     }
+
+    PersonalHistory initPersonalHistory(LocalDate dateOfEmployment,
+                                        LocalDate dateOfDismissal) {
+        return personalHistoryRepository.save(new PersonalHistory(
+           dateOfEmployment,
+           dateOfDismissal
+        ));
+    }
+    Vacation initVacations(LocalDate dateFrom, LocalDate dateTo, PersonalHistory personalHistory) {
+        return vacationRepository.save(new Vacation(
+           dateFrom,
+           dateTo,
+           personalHistory
+        ));
+    }
+
 
     PersonalHistory initPersonalHistory() {
         return personalHistoryRepository.save(PersonalHistory.builder()
@@ -511,6 +532,78 @@ public class HrManagerPersonalRestControllerIT extends ContextIT {
                 .andExpect(jsonPath("$.success", Is.is(false)))
                 .andExpect(jsonPath("$.code", Is.is(412)))
                 .andExpect(jsonPath("$.text", Is.is("В организации уже две главных врачей")));
+
+    }
+
+    @Test
+    public void daysForVacationsTest() throws Exception {
+
+        Role roleHrManager = initRole("HR_MANAGER");
+        Role roleDoctor = initRole("DOCTOR");
+        Department department = initDepartment("Surgery", null);
+        HrManager hrManager = initHrManager(roleHrManager);
+
+
+        // Доктор устроился в Январе, он отдыхал 1 день и ему до конца года положено 32 для отпуска
+        PersonalHistory personalHistory1 =
+                initPersonalHistory(LocalDate.of(2022, 1, 1),null);
+
+        Vacation vacation = initVacations(LocalDate.of(2022, 12, 1),
+                LocalDate.of(2022, 12, 2), personalHistory1);
+
+        Doctor doctor = initDoctor("Ivan", "ivan@mail.ru", roleDoctor, personalHistory1, department);
+
+        accessToken = tokenUtil.obtainNewAccessToken(hrManager.getEmail(), "1", mockMvc);
+
+        mockMvc.perform(get("/api/hr_manager/daysForVacations")
+                .header("Authorization", accessToken)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+                .andExpect(jsonPath("$.data[0].daysForVacations", Is.is(32)));
+
+
+        // Доктор устроился в Декабре, он отдыхал 10 дней и он "перегулял" -9 дней
+        PersonalHistory personalHistory2 =
+                initPersonalHistory(LocalDate.of(2022, 12, 1),null);
+
+        Vacation vacation2 = initVacations(LocalDate.of(2022, 12, 1),
+                LocalDate.of(2022, 12, 10), personalHistory2);
+
+        Doctor doctor2 = initDoctor("Ivan", "ivan@mail", roleDoctor, personalHistory2, department);
+
+        mockMvc.perform(get("/api/hr_manager/daysForVacations")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)))
+                .andExpect(jsonPath("$.data[1].daysForVacations", Is.is(-9)));
+    }
+
+    @Test
+    public void daysForVacationsForEmptyListTest() throws Exception {
+
+        Role roleHrManager = initRole("HR_MANAGER");
+        Role roleDoctor = initRole("DOCTOR");
+        Department department = initDepartment("Surgery", null);
+        HrManager hrManager = initHrManager(roleHrManager);
+
+        //У Доктора нет заявлении, ждем что никому в отпуск не надо
+        PersonalHistory personalHistory1 =
+                initPersonalHistory(LocalDate.of(2022, 1, 1),null);
+
+        Doctor doctor = initDoctor("Ivan", "ivan@mail.ru", roleDoctor, personalHistory1, department);
+
+        accessToken = tokenUtil.obtainNewAccessToken(hrManager.getEmail(), "1", mockMvc);
+
+        mockMvc.perform(get("/api/hr_manager/daysForVacations")
+                        .header("Authorization", accessToken)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)));
 
     }
 
