@@ -1,15 +1,19 @@
 package ru.mis2022.service.entity.impl;
 
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import ru.mis2022.models.entity.Invite;
 import ru.mis2022.models.entity.User;
 import ru.mis2022.repositories.UserRepository;
 import ru.mis2022.service.entity.InviteService;
+import ru.mis2022.service.entity.MailService;
 import ru.mis2022.service.entity.UserService;
+import ru.mis2022.utils.GenerateRandomString;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -22,7 +26,12 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder encoder;
     private final InviteService inviteService;
+    private final GenerateRandomString generator;
 
+    private final MailService mailService;
+
+    @Value("15")
+    private int randomPasswordLength;
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
@@ -46,7 +55,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public boolean isExistsByNameAndId(String name, Long id) {
-        return userRepository.existsByEmailAndId(name,id);
+        return userRepository.existsByEmailAndId(name, id);
     }
 
     @Override
@@ -86,5 +95,12 @@ public class UserServiceImpl implements UserService {
     @Override
     public List<User> findPersonalWhoGoVacationInRange(LocalDate from, LocalDate to) {
         return userRepository.findPersonalWhoGoVacationInRange(from, to);
+    }
+
+    @Override
+    @Transactional
+    public void sendingEmailToChangePassword(String email) {
+        User user = userRepository.findByEmail(email);
+        mailService.sendRegistrationInviteByEmail(inviteService.persist(user), user);
     }
 }

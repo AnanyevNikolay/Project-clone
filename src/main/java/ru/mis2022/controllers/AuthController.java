@@ -82,4 +82,10 @@ public class AuthController {
         return Response.ok(userDtoConverter.toDto(user));
     }
 
+    @ApiOperation("Восстановление пароля любого юзера")
+    @PostMapping("/passwordRecovery")
+    public Response<Void> passwordRecoveryForAnyUser(@RequestBody String email) {
+        userService.sendingEmailToChangePassword(email);
+        return Response.ok();
+    }
 }
