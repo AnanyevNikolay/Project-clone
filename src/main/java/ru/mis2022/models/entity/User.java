@@ -76,6 +76,12 @@ public class User implements UserDetails {
         this.personalHistory = personalHistory;
     }
 
+    public User(String firstName, String email, Role role) {
+        this.firstName = firstName;
+        this.email = email;
+        this.role = role;
+    }
+
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return Collections.singletonList(role);
     }

@@ -45,5 +45,24 @@ public class DoctorDto {
     private String role;
 
     private String department;
+    private int daysForVacations;
+
+    public DoctorDto(Long id,
+                     String email,
+                     String s,
+                     String f_name,
+                     String l_name,
+                     String surName,
+                     String s1,
+                     String doctor,
+                     String departmentTest) {
+    }
+
+    public DoctorDto(String firstName,
+                     String lastName,
+                     String surname,
+                     String department,
+                     int daysForVacations) {
+    }
 
 }

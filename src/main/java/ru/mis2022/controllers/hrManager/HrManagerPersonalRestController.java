@@ -22,10 +22,8 @@ import ru.mis2022.models.response.Response;
 import ru.mis2022.service.entity.DoctorService;
 import ru.mis2022.service.entity.UserService;
 import ru.mis2022.utils.validation.ApiValidationUtils;
-
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Validated
 @RestController
@@ -116,6 +114,15 @@ public class HrManagerPersonalRestController {
         return Response.ok(doctorDtoConverter.toDto(doctorService
                 .changeRoleDoctor(doctor, Role.RolesEnum.MAIN_DOCTOR.name())));
 
+    }
+
+    @ApiOperation("Кадровик получает врачей, которым надо в отпуск")
+    @ApiResponses(value = {
+            @ApiResponse(code = 200, message = "Получен список врачей, которым надо в отпуск")
+    })
+    @GetMapping("/daysForVacations")
+    public Response<List<DoctorDto>> daysForVacations() {
+        return Response.ok(doctorService.daysForVacations());
     }
 
     @ApiOperation("Список сотрудников идущих в отпуск за указанный период")

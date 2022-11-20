@@ -45,6 +45,11 @@ public class PersonalHistory {
 
     private LocalDate dateOfDismissal;
 
+    public PersonalHistory(LocalDate dateOfEmployment, LocalDate dateOfDismissal) {
+        this.dateOfEmployment = dateOfEmployment;
+        this.dateOfDismissal = dateOfDismissal;
+    }
+
     public PersonalHistory(Set<Vacation> vacations) {
         this.vacations = vacations;
     }
