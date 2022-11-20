@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import ru.mis2022.models.entity.Appeal;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,4 +31,16 @@ public interface AppealRepository extends JpaRepository<Appeal, Long> {
 
     @Query("SELECT a FROM Appeal a WHERE a.id = :id")
     Appeal findAppealById(Long id);
+
+    @Query("""
+            SELECT DISTINCT a
+            FROM Appeal a
+            JOIN Account acc
+            ON a.isClosed IS TRUE AND a.account.id IS NULL
+            WHERE TO_CHAR(cast(a.localDate as date), 'YYYY-MM-DD')
+            BETWEEN TO_CHAR(cast(date_trunc('month', cast(:dateTo as date)) as date), 'YYYY-MM-DD')
+            AND TO_CHAR(cast(:dateTo as date), 'YYYY-MM-DD')
+            """)
+    List<Appeal> findAllCloseAppeals(LocalDate dateTo);
+
 }
