@@ -6,6 +6,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.transaction.annotation.Transactional;
 import ru.mis2022.models.dto.user.UserPasswordChangingDto;
@@ -15,12 +16,15 @@ import ru.mis2022.models.entity.Role;
 import ru.mis2022.models.entity.User;
 import ru.mis2022.service.entity.AdministratorService;
 import ru.mis2022.service.entity.InviteService;
+import ru.mis2022.service.entity.MailService;
 import ru.mis2022.service.entity.RoleService;
 import ru.mis2022.util.ContextIT;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.verify;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -31,6 +35,8 @@ public class AuthControllerIT extends ContextIT {
     RoleService roleService;
     AdministratorService administratorService;
     InviteService inviteService;
+    @MockBean
+    MailService mailService;
 
     @Autowired
     public AuthControllerIT(RoleService roleService, AdministratorService administratorService, InviteService inviteService) {
@@ -81,9 +87,9 @@ public class AuthControllerIT extends ContextIT {
         UserPasswordChangingDto userPasswordChangingDto1 = new UserPasswordChangingDto(invite1.getToken(), "admpassadmpass123");
 
         mockMvc.perform(post("/api/auth/confirm/emailpassword")
-                .content(objectMapper.writeValueAsString(userPasswordChangingDto1))
-                .contentType(MediaType.APPLICATION_JSON)
-        )
+                        .content(objectMapper.writeValueAsString(userPasswordChangingDto1))
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success", Is.is(true)))
                 .andExpect(jsonPath("$.code", Is.is(200)))
@@ -132,16 +138,35 @@ public class AuthControllerIT extends ContextIT {
 
         // Работает без аннотации @Transactional
         Invite qryInvite = entityManager.createQuery("""
-        SELECT i
-        FROM Invite i
-        LEFT JOIN User u
-            ON u.id = i.id
-        WHERE i.id = :id
-        """, Invite.class)
+                        SELECT i
+                        FROM Invite i
+                        LEFT JOIN User u
+                            ON u.id = i.id
+                        WHERE i.id = :id
+                        """, Invite.class)
                 .setParameter("id", invite2.getId())
                 .getSingleResult();
 
         Assertions.assertEquals(qryInvite.getUser().getId(), administrator2.getId());
 
     }
+
+    @Test
+    public void passwordRecoveryForAnyUserTest() throws Exception {
+        Role adminRole = initRole("ADMIN");
+        Administrator administrator1 = initAdmin("admin1@mail.com", adminRole);
+
+        // Юзер с таким email существует
+        mockMvc.perform(post("/api/auth/passwordRecovery")
+                        .content(administrator1.getEmail())
+                        .contentType(MediaType.APPLICATION_JSON)
+                )
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success", Is.is(true)))
+                .andExpect(jsonPath("$.code", Is.is(200)));
+
+        // инвайт создан
+        verify(mailService).sendRegistrationInviteByEmail(any(Invite.class), any(User.class));
+    }
+
 }

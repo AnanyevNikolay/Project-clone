@@ -24,17 +24,14 @@ public class MailServiceImpl implements MailService {
     @Value("${testsystem.server.address}")
     private String serverAddress;
 
-    @Value("${server.port}")
-    private String mainPort;
-
 
     @Override
     public void sendRegistrationInviteByEmail(Invite invite, User user) {
         send(user.getEmail(), "VL mis2222 confirm email n pwd"
                         + LocalDateTime.now().format(DATE_TIME_FORMATTER),
                 String.format("confirm email and write new password here (in newPassword parameter in url) follow the link:\n\n" +
-                                "http://%s:%s/api/auth/confirm/emailpassword?&token=%s",
-                        serverAddress, mainPort, invite.getToken()));
+                                "%s/api/auth/confirm/emailpassword?token=%s",
+                        serverAddress, invite.getToken()));
     }
 
     private void send(String mailTo, String subject, String message) {

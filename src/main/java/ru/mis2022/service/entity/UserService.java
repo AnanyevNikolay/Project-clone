@@ -15,17 +15,22 @@ public interface UserService extends UserDetailsService {
 
     boolean existsById(Long id);
 
-    boolean isExistsByNameAndId(String name,Long id);
+    boolean isExistsByNameAndId(String name, Long id);
 
     List<User> findPersonalByFullName(String fullName, String roleName);
 
     List<User> findPersonalByBirthdayInRange(LocalDate from, LocalDate to);
 
     User persist(User user);
+
     User findUserById(Long id);
+
     User save(User user);
+
     User saveUserByInviteAndDeleteInvite(User user, String password, Invite invite);
 
     List<User> findPersonalWhoGoVacationInRange(LocalDate from, LocalDate to);
+
+    void sendingEmailToChangePassword(String email);
 
 }
