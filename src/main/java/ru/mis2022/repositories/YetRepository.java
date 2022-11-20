@@ -40,6 +40,7 @@ public interface YetRepository extends JpaRepository<Yet, Long> {
             SELECT y
             FROM Yet y
             WHERE y.dayFrom >= :dayFrom and y.dayTo <= :dayTo
+            ORDER BY y.dayTo
             """)
     List<Yet> findAllYetsBetweenDayFromAndDayTo(LocalDate dayFrom, LocalDate dayTo);
 

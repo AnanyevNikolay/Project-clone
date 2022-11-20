@@ -54,7 +54,6 @@ public class YetServiceImpl implements YetService {
     }
 
     public boolean checkIfThereAnyDateOverlap(List<Yet> yets) {
-        yets.sort(Comparator.comparing(Yet::getDayTo));
         LocalDate endDate = null;
 
         for (Yet yet : yets) {
@@ -68,7 +67,6 @@ public class YetServiceImpl implements YetService {
                 }
             }
         }
-
         return false;
     }
 

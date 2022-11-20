@@ -14,6 +14,7 @@ public interface PriceOfMedicalServiceRepository extends JpaRepository<PriceOfMe
             SELECT pof
             FROM PriceOfMedicalService pof
             WHERE pof.dayFrom >= :dayFrom and pof.dayTo <= :dayTo
+            ORDER BY pof.dayTo
             """)
     List<PriceOfMedicalService> findAllPricesBetweenDayFromAndDayTo(LocalDate dayFrom, LocalDate dayTo);
 
