@@ -13,6 +13,7 @@ public class ConvertorAccountDto {
                 .name(entity.getName())
                 .money(entity.getMoney())
                 .data(entity.getDate())
+                .isFormed(entity.isFormed())
                 .build();
     }
 
@@ -22,6 +23,7 @@ public class ConvertorAccountDto {
                 .name(dto.name())
                 .money(dto.money())
                 .date(dto.data())
+                .isFormed(dto.isFormed())
                 .build();
     }
 }
